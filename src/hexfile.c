@@ -41,7 +41,8 @@ static void write_record(FILE *file, size_t length, unsigned address,
 
     /* write header */
     fprintf(file, ":%02X%04X%02X",
-            length & 0xff, address & 0xffff,
+            (unsigned)length & 0xff,
+            address & 0xffff,
             type & 0xff);
 
     checksum -= length + (address >> 8) + address + type;
