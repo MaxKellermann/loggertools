@@ -108,6 +108,9 @@ int serialio_select(struct serialio *serio, int options,
     unsigned long sleeps;
     int result;
 
+    assert(serio != NULL);
+    assert(serio->hCom != NULL);
+
     sleeps = timeout == NULL
         ? (unsigned long)-1
         : ( timeout->tv_sec * 1000 + timeout->tv_usec / 1000);
@@ -138,6 +141,14 @@ int serialio_read(struct serialio *serio, void *data, size_t *nbytes) {
 
     assert(serio != NULL);
     assert(serio->hCom != NULL);
+
+    if (*nbytes == 0)
+        return 0;
+
+    /* windows becomes really slow if we request more bytes than it
+       has available in the receive buffer ... for now, read only 1
+       byte at a time */
+    *nbytes = 1;
 
     ret = ReadFile(serio->hCom, data, *nbytes, &result, NULL);
     if (!ret)
