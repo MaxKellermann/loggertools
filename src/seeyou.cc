@@ -257,7 +257,7 @@ const TurnPoint *SeeYouTurnPointReader::read() {
         } else if (strcmp(columns[z], "Style") == 0)
             tp->setStyle((TurnPoint::style_t)atoi(column));
         else if (strcmp(columns[z], "Direction") == 0)
-            tp->setDirection(column);
+            tp->setDirection((unsigned)atoi(column));
         else if (strcmp(columns[z], "Length") == 0)
             tp->setLength((unsigned)strtoul(column, NULL, 10));
         else if (strcmp(columns[z], "Frequency") == 0)
@@ -317,7 +317,8 @@ void SeeYouTurnPointWriter::write(const TurnPoint &tp) {
     putc(',', file);
     fprintf(file, "%d,",
             tp.getStyle());
-    write_column(file, tp.getDirection());
+    if (tp.getDirection() != UINT_MAX)
+        fprintf(file, "%u", tp.getDirection());
     putc(',', file);
     if (tp.getLength() > 0)
         fprintf(file, "%u", tp.getLength());

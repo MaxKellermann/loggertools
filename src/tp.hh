@@ -125,7 +125,7 @@ private:
     char *title, *code, *country;
     Position position;
     style_t style;
-    char *direction;
+    unsigned direction;
     unsigned length;
     char *frequency, *description;
 public:
@@ -134,7 +134,7 @@ public:
               const char *_country,
               const Position &_position,
               style_t _style,
-              const char *_direction,
+              unsigned _direction,
               unsigned _length,
               const char *_frequency,
               const char *_description);
@@ -160,10 +160,10 @@ public:
         return style;
     }
     void setStyle(style_t _style);
-    const char *getDirection() const {
+    unsigned getDirection() const {
         return direction;
     }
-    void setDirection(const char *_direction);
+    void setDirection(unsigned _direction);
     unsigned getLength() const {
         return length;
     }

@@ -61,7 +61,8 @@ void Position::operator =(const Position &pos) {
 
 TurnPoint::TurnPoint(void)
     :title(NULL), code(NULL), country(NULL),
-     style(STYLE_UNKNOWN), direction(NULL), length(0),
+     style(STYLE_UNKNOWN),
+     direction(UINT_MAX), length(0),
      frequency(NULL), description(NULL) {
 }
 
@@ -69,7 +70,7 @@ TurnPoint::TurnPoint(const char *_title, const char *_code,
                      const char *_country,
                      const Position &_position,
                      style_t _style,
-                     const char *_direction,
+                     unsigned _direction,
                      unsigned _length,
                      const char *_frequency,
                      const char *_description)
@@ -78,7 +79,7 @@ TurnPoint::TurnPoint(const char *_title, const char *_code,
      country(copy_string(_country)),
      position(_position),
      style(_style),
-     direction(copy_string(_direction)),
+     direction(_direction),
      length(_length),
      frequency(copy_string(_frequency)),
      description(copy_string(_description)) {
@@ -91,8 +92,6 @@ TurnPoint::~TurnPoint(void) {
         free(code);
     if (country != NULL)
         free(country);
-    if (direction != NULL)
-        free(direction);
     if (frequency != NULL)
         free(frequency);
     if (description != NULL)
@@ -125,10 +124,8 @@ void TurnPoint::setStyle(style_t _style) {
     style = _style;
 }
 
-void TurnPoint::setDirection(const char *_direction) {
-    if (direction != NULL)
-        free(direction);
-    direction = copy_string(_direction);
+void TurnPoint::setDirection(unsigned _direction) {
+    direction = _direction;
 }
 
 void TurnPoint::setLength(unsigned _length) {
