@@ -20,45 +20,51 @@
  */
 
 #include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <string.h>
-#include <errno.h>
-#include <stdlib.h>
+
+void write_record(FILE *file, size_t length, unsigned address,
+                  unsigned type, const unsigned char *data) {
+    unsigned z;
+    unsigned char checksum = 0;
+
+    /* write header */
+    fprintf(file, ":%02X%04X%02X",
+            length & 0xff, address & 0xffff,
+            type & 0xff);
+
+    checksum -= length + (address >> 8) + address + type;
+
+    /* write data */
+    for (z = 0; z < length; z++) {
+        fprintf(file, "%02X", data[z] & 0xff);
+        checksum -= data[z];
+    }
+
+    /* write checksum */
+    fprintf(file, "%02X\n", checksum & 0xff);
+}
 
 int main(int argc, char **argv) {
     const int fd = 0;
     FILE *const file = stdout;
-    unsigned offset = 0;
-    char buffer[16];
+    unsigned address = 0;
+    unsigned char buffer[0x10];
     ssize_t nbytes;
-    size_t z;
-    int checksum;
 
     (void)argc;
     (void)argv;
 
+    /* write data records, 16 bytes each */
     while ((nbytes = read(fd, buffer, sizeof(buffer))) > 0) {
-        memset(buffer + nbytes, 0, sizeof(buffer) - nbytes);
+        write_record(file, (size_t)nbytes, address,
+                     0, buffer);
 
-        checksum = 0;
-
-        fprintf(file, ":10%04X00", offset & 0xffff);
-        checksum -= 0x10 + (offset >> 8) + offset;
-
-        for (z = 0; z < sizeof(buffer); z++) {
-            fprintf(file, "%02X", buffer[z] & 0xff);
-            checksum -= buffer[z];
-        }
-        fprintf(file, "%02X", checksum & 0xff);
-        fputs("\n", file);
-
-        offset += 0x10;
+        address += (size_t)nbytes;
     }
 
-    fputs(":00000001FF\n", file);
+    /* write end-of-file record */
+    write_record(file, 0, 0, 1, NULL);
 
     return 0;
 }
