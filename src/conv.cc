@@ -37,5 +37,10 @@ int main(int argc, char **argv) {
         delete tp;
     }
 
+    writer->flush();
+
+    delete writer;
+    delete reader;
+
     return 0;
 }
