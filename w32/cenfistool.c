@@ -252,6 +252,7 @@ static DWORD WINAPI comm_thread_func(LPVOID ctx) {
     fseek(file, 0, SEEK_SET);
     file_done = 0;
 
+    SendMessage(hText, WM_SETTEXT, 0, (LPARAM)"sending");
     SendMessage(hProgress, PBM_SETRANGE, 0, MAKELPARAM(0, file_size / 1024));
 
     while (fgets(line, sizeof(line) - 2, file) != NULL) {
@@ -269,9 +270,7 @@ static DWORD WINAPI comm_thread_func(LPVOID ctx) {
         line[length++] = '\n';
 
         /* write line to device */
-        SendMessage(hText, WM_SETTEXT, 0, (LPARAM)"write");
         status = cenfis_write_data(cenfis, line, length);
-        SendMessage(hText, WM_SETTEXT, 0, (LPARAM)"write done");
         if (cenfis_is_error(status)) {
             SendMessage(hText, WM_SETTEXT, 0, (LPARAM)"cenfis_write_data failed");
             cenfis_close(cenfis);
@@ -282,9 +281,7 @@ static DWORD WINAPI comm_thread_func(LPVOID ctx) {
         tv.tv_sec = 2;
         tv.tv_usec = 0;
 
-        SendMessage(hText, WM_SETTEXT, 0, (LPARAM)"select");
         status = cenfis_select(cenfis, &tv);
-        SendMessage(hText, WM_SETTEXT, 0, (LPARAM)"select done");
         if (cenfis_is_error(status)) {
             SendMessage(hText, WM_SETTEXT, 0, (LPARAM)"cenfis_select failed");
             cenfis_close(cenfis);
@@ -295,9 +292,7 @@ static DWORD WINAPI comm_thread_func(LPVOID ctx) {
             SendMessage(hText, WM_SETTEXT, 0, (LPARAM)"no ack");
             cenfis_close(cenfis);
             return 1;
-        } else if (status == CENFIS_STATUS_DATA) {
-            SendMessage(hText, WM_SETTEXT, 0, (LPARAM)"sending");
-        } else {
+        } else if (status != CENFIS_STATUS_DATA) {
             SendMessage(hText, WM_SETTEXT, 0, (LPARAM)"wrong status");
             cenfis_close(cenfis);
             return 1;
