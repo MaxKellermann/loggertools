@@ -585,7 +585,7 @@ static int download_flight(int argpos, int argc, char **argv) {
         flight = flight2;
         flight2 = buffer;
 
-        printf("%s\t%s-%s\t%s\n", flight.data + 9, flight.data + 18, flight.data + 0x1b, flight.data + 40);
+        printf("%s\t%s-%s\t%s\n", buffer.data + 9, buffer.data + 18, buffer.data + 0x1b, buffer.data + 40);
     }
 
     printf("seek_mem\n");
