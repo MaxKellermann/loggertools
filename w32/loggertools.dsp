@@ -95,11 +95,26 @@ SOURCE=..\src\cenfis.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\cenfis.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\cenfisreg.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\cenfistool.c
 # End Source File
 # Begin Source File
 
 SOURCE=.\cenfistool.rc
+
+!IF  "$(CFG)" == "loggertools - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "loggertools - Win32 Debug"
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 

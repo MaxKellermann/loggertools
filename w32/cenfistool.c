@@ -1,3 +1,24 @@
+/*
+ * loggertools
+ * Copyright (C) 2004 Max Kellermann (max@duempel.org)
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; version 2 of the License
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+ * 02111-1307, USA.
+ *
+ * $Id$
+ */
+
 #include <windows.h>
 #include <commctrl.h>
 #include <stdio.h>
@@ -6,7 +27,9 @@
 #include <cenfis.h>
 
 #include "resource.h"
+#include "cenfistool.h"
 
+static HINSTANCE hInstance;
 static char data_filename[4096];
 static char port_filename[32];
 static HANDLE comm_thread = NULL;
@@ -136,6 +159,8 @@ static BOOL CALLBACK MainWinDlgProc(HWND hDlg, UINT uMsg,
                                     WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
     case WM_INITDIALOG:
+        SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG,
+                    (LPARAM)LoadIcon(hInstance, MAKEINTRESOURCE(IDI_CENFIS)));
         make_comm_list(GetDlgItem(hDlg, IDC_PORT));
         return TRUE;
 
@@ -314,9 +339,13 @@ static BOOL CALLBACK ProgressDlgProc(HWND hDlg, UINT uMsg,
     }
 }
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, 
+int WINAPI WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, 
                    LPSTR lpCmdLine, int nCmdShow) {
     int ret;
+
+    hInstance = _hInstance;
+
+    register_cenfistool();
 
     ret = DialogBox(hInstance, MAKEINTRESOURCE(IDD_MAIN), NULL, MainWinDlgProc);
     if (!ret)
