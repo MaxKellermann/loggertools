@@ -32,12 +32,20 @@ static char *copy_string(const char *p) {
         : strdup(p);
 }
 
+Altitude::Altitude()
+    :value(0), unit(UNIT_UNKNOWN), ref(REF_UNKNOWN) {
+}
+
+Altitude::Altitude(long _value, unit_t _unit, ref_t _ref)
+    :value(_value), unit(_unit), ref(_ref) {
+}
+
 Position::Position(void)
-    :latitude(NULL), longitude(NULL), altitude(LONG_MIN) {
+    :latitude(NULL), longitude(NULL) {
 }
 
 Position::Position(const char *_lat, const char *_long,
-                   long _alt)
+                   const Altitude &_alt)
     :latitude(copy_string(_lat)),
      longitude(copy_string(_long)),
      altitude(_alt) {

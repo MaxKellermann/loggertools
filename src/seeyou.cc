@@ -161,7 +161,7 @@ const TurnPoint *SeeYouTurnPointReader::read() {
     int ret;
     TurnPoint *tp = new TurnPoint();
     std::string latitude, longitude;
-    long elevation = LONG_MIN;
+    Altitude *altitude = NULL;
 
     if (is_eof)
         return NULL;
@@ -196,10 +196,15 @@ const TurnPoint *SeeYouTurnPointReader::read() {
         else if (strcmp(columns[z], "Longitude") == 0)
             longitude = column;
         else if (strcmp(columns[z], "Elevation") == 0) {
+            if (altitude != NULL)
+                delete altitude;
+
             if (*column == 0)
-                elevation = LONG_MIN;
+                altitude = new Altitude();
             else
-                elevation = strtol(column, NULL, 10);
+                altitude = new Altitude(strtol(column, NULL, 10),
+                                        Altitude::UNIT_METERS,
+                                        Altitude::REF_MSL);
         } else if (strcmp(columns[z], "Style") == 0)
             tp->setStyle((TurnPoint::style_t)atoi(column));
         else if (strcmp(columns[z], "Direction") == 0)
@@ -212,9 +217,14 @@ const TurnPoint *SeeYouTurnPointReader::read() {
             tp->setDescription(column);
     }
 
+    if (altitude == NULL)
+        altitude = new Altitude();
+
     tp->setPosition(Position(latitude.data(),
                              longitude.data(),
-                             elevation));
+                             *altitude));
+
+    delete altitude;
 
     return tp;
 }
@@ -238,8 +248,9 @@ void SeeYouTurnPointWriter::write(const TurnPoint &tp) {
     putc(',', file);
     write_column(file, tp.getPosition().getLongitude());
     putc(',', file);
-    if (tp.getPosition().getAltitude() != LONG_MIN)
-        fprintf(file, "%luM", tp.getPosition().getAltitude(),
+    if (tp.getPosition().getAltitude().defined())
+        fprintf(file, "%luM",
+                tp.getPosition().getAltitude().getValue(),
                 tp.getStyle());
     putc(',', file);
     fprintf(file, "%d,",

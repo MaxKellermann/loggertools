@@ -21,14 +21,50 @@
 
 #include <stdio.h>
 
+class Altitude {
+public:
+    enum unit_t {
+        UNIT_UNKNOWN = 0,
+        UNIT_METERS = 1,
+        UNIT_FEET = 2
+    };
+    enum ref_t {
+        REF_UNKNOWN = 0,
+        REF_MSL = 1,
+        REF_GND = 2,
+        REF_1013 = 3,
+        REF_AIRFIELD = 4
+    };
+private:
+    long value;
+    unit_t unit;
+    ref_t ref;
+public:
+    Altitude();
+    Altitude(long _value, unit_t _unit, ref_t _ref);
+public:
+    bool defined() const {
+        return unit != UNIT_UNKNOWN && ref != REF_UNKNOWN;
+    }
+    long getValue() const {
+        return value;
+    }
+    unit_t getUnit() const {
+        return unit;
+    }
+    ref_t getRef() const {
+        return ref;
+    }
+};
+
 class Position {
 private:
     char *latitude, *longitude;
-    long altitude;
+    Altitude altitude;
 public:
     Position();
     Position(const char *_lat, const char *_long,
-             long _alt);
+             const Altitude &_alt);
     Position(const Position &position);
     ~Position();
     void operator =(const Position &pos);
@@ -39,7 +75,7 @@ public:
     const char *getLongitude() const {
         return longitude;
     }
-    long getAltitude() const {
+    const Altitude &getAltitude() const {
         return altitude;
     }
 };
