@@ -126,8 +126,8 @@ private:
     Position position;
     style_t style;
     unsigned direction;
-    unsigned length;
-    char *frequency, *description;
+    unsigned length, frequency;
+    char *description;
 public:
     TurnPoint();
     TurnPoint(const char *_title, const char *_code,
@@ -136,7 +136,7 @@ public:
               style_t _style,
               unsigned _direction,
               unsigned _length,
-              const char *_frequency,
+              unsigned _frequency,
               const char *_description);
     ~TurnPoint();
 public:
@@ -168,10 +168,10 @@ public:
         return length;
     }
     void setLength(unsigned _length);
-    const char *getFrequency() const {
+    unsigned getFrequency() const {
         return frequency;
     }
-    void setFrequency(const char *_freq);
+    void setFrequency(unsigned _freq);
     const char *getDescription() const {
         return description;
     }

@@ -87,12 +87,58 @@ CenfisTurnPointWriter::CenfisTurnPointWriter(FILE *_file)
     fprintf(file, "O created by loggertools\n");
 }
 
+static char *formatAngle(char *buffer, size_t buffer_max_len,
+                         const Angle &angle, const char *letters) {
+    int value = angle.getValue();
+    int a = abs(value);
+
+    snprintf(buffer, buffer_max_len, "%c %02u %02u %02u",
+             value < 0 ? letters[0] : letters[1],
+             a / 60 / 1000, (a / 1000) % 60,
+             ((a % 1000) * 60 + 30) / 1000);
+
+    return buffer;
+}
+
 void CenfisTurnPointWriter::write(const TurnPoint &tp) {
     if (file == NULL)
         throw new TurnPointWriterException("already flushed");
 
     fprintf(file, "11 N %s ; %s\n",
-            tp.getTitle(), tp.getDescription());
+            tp.getCode(), tp.getTitle());
+
+    if (tp.getPosition().defined()) {
+        char latitude[16], longitude[16];
+
+        formatAngle(latitude, sizeof(latitude),
+                    tp.getPosition().getLatitude(), "SN");
+        formatAngle(longitude, sizeof(longitude),
+                    tp.getPosition().getLongitude(), "EW");
+
+        fprintf(file, "   C %s %s",
+                latitude, longitude);
+
+        if (tp.getPosition().getAltitude().defined())
+            fprintf(file, " M %5u", tp.getPosition().getAltitude().getValue());
+
+        fprintf(file, "\n");
+    }
+
+    if (tp.getFrequency() > 0)
+        fprintf(file, "   F %u %03u\n",
+                tp.getFrequency() / 1000000,
+                (tp.getFrequency() / 1000) % 1000);
+
+    if (tp.getDirection() != UINT_MAX) {
+        fprintf(file, "   R %02u", tp.getDirection() / 10);
+
+        if (tp.getStyle() == TurnPoint::STYLE_AIRFIELD_GRASS)
+            fprintf(file, "     Grass");
+        else if (tp.getStyle() == TurnPoint::STYLE_AIRFIELD_SOLID)
+            fprintf(file, "     Asphalt");
+
+        fprintf(file, "\n");
+    }
 }
 
 void CenfisTurnPointWriter::flush() {

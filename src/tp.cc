@@ -63,7 +63,7 @@ TurnPoint::TurnPoint(void)
     :title(NULL), code(NULL), country(NULL),
      style(STYLE_UNKNOWN),
      direction(UINT_MAX), length(0),
-     frequency(NULL), description(NULL) {
+     frequency(0), description(NULL) {
 }
 
 TurnPoint::TurnPoint(const char *_title, const char *_code,
@@ -72,7 +72,7 @@ TurnPoint::TurnPoint(const char *_title, const char *_code,
                      style_t _style,
                      unsigned _direction,
                      unsigned _length,
-                     const char *_frequency,
+                     unsigned _frequency,
                      const char *_description)
     :title(copy_string(_title)),
      code(copy_string(_code)),
@@ -81,7 +81,7 @@ TurnPoint::TurnPoint(const char *_title, const char *_code,
      style(_style),
      direction(_direction),
      length(_length),
-     frequency(copy_string(_frequency)),
+     frequency(_frequency),
      description(copy_string(_description)) {
 }
 
@@ -92,8 +92,6 @@ TurnPoint::~TurnPoint(void) {
         free(code);
     if (country != NULL)
         free(country);
-    if (frequency != NULL)
-        free(frequency);
     if (description != NULL)
         free(description);
 }
@@ -132,10 +130,8 @@ void TurnPoint::setLength(unsigned _length) {
     length = _length;
 }
 
-void TurnPoint::setFrequency(const char *_frequency) {
-    if (frequency != NULL)
-        free(frequency);
-    frequency = copy_string(_frequency);
+void TurnPoint::setFrequency(unsigned _frequency) {
+    frequency = _frequency;
 }
 
 void TurnPoint::setDescription(const char *_description) {

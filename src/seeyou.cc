@@ -199,6 +199,25 @@ static char *formatAngle(char *buffer, size_t buffer_max_len,
     return buffer;
 }
 
+static unsigned parseFrequency(const char *p) {
+    char *endptr;
+    unsigned long n1, n2;
+
+    if (p == NULL || *p == 0)
+        return 0;
+
+    n1 = strtoul(p, &endptr, 10);
+    if (endptr == NULL || *endptr != '.' )
+        return 0;
+
+    p = endptr + 1;
+
+    if (*p)
+        n2 = strtoul(endptr + 1, &endptr, 10);
+
+    return (n1 * 1000 + n2) * 1000;
+}
+
 const TurnPoint *SeeYouTurnPointReader::read() {
     char line[4096], column[1024];
     const char *p;
@@ -256,12 +275,13 @@ const TurnPoint *SeeYouTurnPointReader::read() {
                                         Altitude::REF_MSL);
         } else if (strcmp(columns[z], "Style") == 0)
             tp->setStyle((TurnPoint::style_t)atoi(column));
-        else if (strcmp(columns[z], "Direction") == 0)
-            tp->setDirection((unsigned)atoi(column));
-        else if (strcmp(columns[z], "Length") == 0)
+        else if (strcmp(columns[z], "Direction") == 0) {
+            if (*column)
+                tp->setDirection((unsigned)atoi(column));
+        } else if (strcmp(columns[z], "Length") == 0)
             tp->setLength((unsigned)strtoul(column, NULL, 10));
         else if (strcmp(columns[z], "Frequency") == 0)
-            tp->setFrequency(column);
+            tp->setFrequency(parseFrequency(column));
         else if (strcmp(columns[z], "Description") == 0)
             tp->setDescription(column);
     }
@@ -323,7 +343,10 @@ void SeeYouTurnPointWriter::write(const TurnPoint &tp) {
     if (tp.getLength() > 0)
         fprintf(file, "%u", tp.getLength());
     putc(',', file);
-    write_column(file, tp.getFrequency());
+    if (tp.getFrequency() > 0)
+        fprintf(file, "%u.%03u",
+                tp.getFrequency() / 1000000,
+                (tp.getFrequency() / 1000) % 1000);
     putc(',', file);
     write_column(file, tp.getDescription());
     fputs("\r\n", file);
