@@ -195,6 +195,7 @@ TurnPointFormat::~TurnPointFormat(void) {
 static SeeYouTurnPointFormat seeYouFormat;
 static CenfisTurnPointFormat cenfisFormat;
 static CenfisDatabaseFormat cenfisDatabaseFormat;
+static FilserTurnPointFormat filserFormat;
 
 TurnPointFormat *getTurnPointFormat(const char *ext) {
     if (strcasecmp(ext, "cup") == 0)
@@ -204,6 +205,8 @@ TurnPointFormat *getTurnPointFormat(const char *ext) {
         return &cenfisFormat;
     else if (strcasecmp(ext, "dab") == 0)
         return &cenfisDatabaseFormat;
+    else if (strcasecmp(ext, "da4") == 0)
+        return &filserFormat;
     else
         return NULL;
 }

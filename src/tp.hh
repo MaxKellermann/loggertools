@@ -267,4 +267,10 @@ public:
     virtual TurnPointWriter *createWriter(FILE *file);
 };
 
+class FilserTurnPointFormat : public TurnPointFormat {
+public:
+    virtual TurnPointReader *createReader(FILE *file);
+    virtual TurnPointWriter *createWriter(FILE *file);
+};
+
 TurnPointFormat *getTurnPointFormat(const char *ext);
