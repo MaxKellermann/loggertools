@@ -143,28 +143,16 @@ public:
     virtual void flush(void) = 0;
 };
 
-class SeeYouTurnPointReader : public TurnPointReader {
-private:
-    char *filename;
-    FILE *file;
-    int is_eof;
-    unsigned num_columns;
-    char **columns;
+class TurnPointFormat {
 public:
-    SeeYouTurnPointReader(const char *_filename);
-    virtual ~SeeYouTurnPointReader();
+    virtual ~TurnPointFormat();
 public:
-    virtual const TurnPoint *read();
+    virtual TurnPointReader *createReader(FILE *file) = 0;
+    virtual TurnPointWriter *createWriter(FILE *file) = 0;
 };
 
-class SeeYouTurnPointWriter : public TurnPointWriter {
-private:
-    char *filename;
-    FILE *file;
+class SeeYouTurnPointFormat {
 public:
-    SeeYouTurnPointWriter(const char *_filename);
-    virtual ~SeeYouTurnPointWriter();
-public:
-    virtual void write(const TurnPoint &tp);
-    virtual void flush(void);
+    virtual TurnPointReader *createReader(FILE *file);
+    virtual TurnPointWriter *createWriter(FILE *file);
 };

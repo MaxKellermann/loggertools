@@ -194,3 +194,7 @@ TurnPointReader::~TurnPointReader() {
 
 TurnPointWriter::~TurnPointWriter() {
 }
+
+TurnPointFormat::~TurnPointFormat() {
+}
+

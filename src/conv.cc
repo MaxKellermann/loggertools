@@ -22,8 +22,10 @@
 #include "tp.hh"
 
 int main(int argc, char **argv) {
-    TurnPointReader *reader = new SeeYouTurnPointReader("/home/max/dl/tp/alps.cup");
-    TurnPointWriter *writer = new SeeYouTurnPointWriter("/proc/self/fd/1");
+    SeeYouTurnPointFormat format;
+    FILE *file = fopen("/home/max/dl/tp/alps.cup", "r");
+    TurnPointReader *reader = format.createReader(file);
+    TurnPointWriter *writer = format.createWriter(stdout);
     const TurnPoint *tp;
 
     (void)argc;

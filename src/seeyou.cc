@@ -27,6 +27,28 @@
 
 #include "tp.hh"
 
+class SeeYouTurnPointReader : public TurnPointReader {
+private:
+    FILE *file;
+    int is_eof;
+    unsigned num_columns;
+    char **columns;
+public:
+    SeeYouTurnPointReader(FILE *_file);
+public:
+    virtual const TurnPoint *read();
+};
+
+class SeeYouTurnPointWriter : public TurnPointWriter {
+private:
+    FILE *file;
+public:
+    SeeYouTurnPointWriter(FILE *_file);
+public:
+    virtual void write(const TurnPoint &tp);
+    virtual void flush(void);
+};
+
 unsigned count_columns(const char *p) {
     unsigned count = 1;
     int in_string = 0;
@@ -100,18 +122,13 @@ void write_column(FILE *file, const char *value) {
     putc('"', file);
 }
 
-SeeYouTurnPointReader::SeeYouTurnPointReader(const char *_filename)
-    :filename(strdup(_filename)), file(NULL), is_eof(0),
+SeeYouTurnPointReader::SeeYouTurnPointReader(FILE *_file)
+    :file(_file), is_eof(0),
      num_columns(0), columns(NULL) {
     char line[4096], column[1024];
     const char *p;
     unsigned z;
     int ret;
-
-    file = fopen(filename, "r");
-    if (file == NULL)
-        throw TurnPointReaderException("Failed to open file: %s",
-                                       filename, strerror(errno));
 
     p = fgets(line, sizeof(line), file);
     if (p == NULL)
@@ -135,13 +152,6 @@ SeeYouTurnPointReader::SeeYouTurnPointReader(const char *_filename)
         else
             columns[z] = strdup(column);
     }
-}
-
-SeeYouTurnPointReader::~SeeYouTurnPointReader() {
-    if (file != NULL)
-        fclose(file);
-    if (filename != NULL)
-        free(filename);
 }
 
 const TurnPoint *SeeYouTurnPointReader::read() {
@@ -209,21 +219,9 @@ const TurnPoint *SeeYouTurnPointReader::read() {
     return tp;
 }
 
-SeeYouTurnPointWriter::SeeYouTurnPointWriter(const char *_filename)
-    :filename(strdup(_filename)), file(NULL) {
-    file = fopen(filename, "w");
-    if (file == NULL)
-        throw TurnPointWriterException("Failed to create file: %s",
-                                       filename, strerror(errno));
-
+SeeYouTurnPointWriter::SeeYouTurnPointWriter(FILE *_file)
+    :file(_file) {
     fputs("Title,Code,Country,Latitude,Longitude,Elevation,Style,Direction,Length,Frequency,Description\r\n", file);
-}
-
-SeeYouTurnPointWriter::~SeeYouTurnPointWriter() {
-    if (file != NULL)
-        fclose(file);
-    if (filename != NULL)
-        free(filename);
 }
 
 void SeeYouTurnPointWriter::write(const TurnPoint &tp) {
@@ -264,4 +262,12 @@ void SeeYouTurnPointWriter::flush(void) {
     fputs("-----Related Tasks-----\r\n", file);
     fclose(file);
     file = NULL;
+}
+
+TurnPointReader *SeeYouTurnPointFormat::createReader(FILE *file) {
+    return new SeeYouTurnPointReader(file);
+}
+
+TurnPointWriter *SeeYouTurnPointFormat::createWriter(FILE *file) {
+    return new SeeYouTurnPointWriter(file);
 }
