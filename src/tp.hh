@@ -204,7 +204,8 @@ class TurnPointReaderException {
 private:
     char *msg;
 public:
-    TurnPointReaderException(const char *fmt, ...);
+    TurnPointReaderException(const char *fmt, ...)
+        __attribute__((format(printf, 2, 3)));
     TurnPointReaderException(const TurnPointReaderException &ex);
     virtual ~TurnPointReaderException();
 public:
@@ -217,7 +218,8 @@ class TurnPointWriterException {
 private:
     char *msg;
 public:
-    TurnPointWriterException(const char *fmt, ...);
+    TurnPointWriterException(const char *fmt, ...)
+        __attribute__((format(printf, 2, 3)));
     TurnPointWriterException(const TurnPointWriterException &ex);
     virtual ~TurnPointWriterException();
 public:

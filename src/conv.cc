@@ -27,6 +27,9 @@
 
 #include "tp.hh"
 
+static void usage()
+    __attribute__((noreturn));
+
 static void usage() {
     fprintf(stderr, "usage: loggerconf [options] [filename]\n");
     fprintf(stderr, "options:\n");

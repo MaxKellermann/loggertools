@@ -381,7 +381,7 @@ const TurnPoint *CenfisTurnPointReader::read() {
     TurnPoint *ret = NULL;
 
     while ((fgets(line, sizeof(line), file)) != NULL) {
-        TurnPoint *ret = handleLine(line);
+        ret = handleLine(line);
         if (ret != NULL)
             return ret;
     }

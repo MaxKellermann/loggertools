@@ -25,7 +25,10 @@
 #include <string.h>
 #include <errno.h>
 
-static void usage() {
+static void usage(void)
+     __attribute__((noreturn));
+
+static void usage(void) {
     fprintf(stderr, "usage: hexfile [options] [filename]\n");
     fprintf(stderr, "options:\n");
     fprintf(stderr, " -d           decode\n");
