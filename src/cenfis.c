@@ -118,7 +118,8 @@ static void do_menu(int fd, char p_or_d) {
         buffer[nbytes] = 0;
 
         if (strstr(buffer, "Y to confirm") != NULL ||
-            strstr(buffer, "\"Y\" to confirm") != NULL) {
+            strstr(buffer, "\"Y\" to confirm") != NULL ||
+            strstr(buffer, "\"Y\" to continue") != NULL) {
             ch = 'Y';
             write(fd, &ch, sizeof(ch));
         } else if (strstr(buffer, "Program [P]") != NULL) {
