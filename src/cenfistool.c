@@ -20,130 +20,22 @@
  */
 
 #include <sys/types.h>
-#include <fcntl.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include <termios.h>
-#include <signal.h>
-#include <time.h>
 
-static void alarm_handler(int dummy) {
-    (void)dummy;
-}
-
-static ssize_t wait_for_prompt(int fd, char *buffer, size_t buffer_size) {
-    ssize_t nbytes;
-    unsigned z;
-    size_t buffer_pos = 0;
-    time_t timeout = time(NULL) + 20;
-
-    alarm(20);
-
-    do {
-        if (buffer_pos >= buffer_size)
-            buffer_pos = 0;
-
-        nbytes = read(fd, buffer + buffer_pos, buffer_size - buffer_pos);
-        for (z = 0; z < (unsigned)nbytes; z++) {
-            fprintf(stderr, "%c", buffer[buffer_pos + z]);
-            fflush(stderr);
-        }
-        if (nbytes < 0) {
-            alarm(0);
-            tcflush(fd, TCIFLUSH);
-            return errno == EINTR
-                ? 0 : -1;
-        }
-
-        if (memchr(buffer + buffer_pos, ':', nbytes) != NULL) {
-            alarm(0);
-            buffer_pos += (size_t)nbytes;
-            return (ssize_t)buffer_pos;
-        }
-
-        buffer_pos += (size_t)nbytes;
-    } while (time(NULL) <= timeout);
-
-    return 0;
-}
-
-static int wait_for_asterisk(int fd) {
-    char buffer[256];
-    ssize_t nbytes;
-    time_t timeout = time(NULL) + 5;
-
-    alarm(5);
-
-    do {
-        nbytes = read(fd, buffer, sizeof(buffer));
-        if (nbytes < 0) {
-            alarm(0);
-            tcflush(fd, TCIFLUSH);
-            return errno == EINTR
-                ? 0 : -1;
-        }
-
-        if (memchr(buffer, '*', nbytes) != NULL) {
-            alarm(0);
-            tcflush(fd, TCIFLUSH);
-            return 1;
-        }
-    } while (time(NULL) <= timeout);
-
-    return 0;
-}
-
-static void do_menu(int fd, char p_or_d) {
-    char buffer[1024];
-    ssize_t nbytes;
-    char ch;
-
-    tcflush(fd, TCOFLUSH);
-
-    for (;;) {
-        nbytes = wait_for_prompt(fd, buffer, sizeof(buffer) - 1);
-        if (nbytes < 0) {
-            fprintf(stderr, "failed to read: %s\n",
-                    strerror(errno));
-            _exit(1);
-        }
-
-        if (nbytes == 0) {
-            fprintf(stderr, "timeout, no prompt\n");
-            _exit(1);
-        }
-
-        buffer[nbytes] = 0;
-
-        if (strstr(buffer, "Y to confirm") != NULL ||
-            strstr(buffer, "\"Y\" to confirm") != NULL ||
-            strstr(buffer, "\"Y\" to continue") != NULL) {
-            ch = 'Y';
-            write(fd, &ch, sizeof(ch));
-        } else if (strstr(buffer, "Program [P]") != NULL) {
-            write(fd, &p_or_d, sizeof(p_or_d));
-        } else if (strstr(buffer, "waiting for") != NULL) {
-            return;
-        } else {
-            fprintf(stderr, "unknown prompt\n");
-            _exit(1);
-        }
-    }
-}
+#include "cenfis.h"
 
 int main(int argc, char **argv) {
     const char *filename = NULL;
     const char *device = "/dev/ttyS0";
     FILE *file;
-    int fd, ret;
     char line[256];
     size_t length;
-    ssize_t nbytes;
-    struct termios attr;
-
-    signal(SIGALRM, alarm_handler);
+    cenfis_status_t status;
+    struct cenfis *cenfis;
+    struct timeval tv;
 
     if (argc != 3) {
         fprintf(stderr, "usage: cenfistool send filename.bhf\n");
@@ -164,41 +56,62 @@ int main(int argc, char **argv) {
         _exit(1);
     }
 
-    fd = open(device, O_RDWR | O_NOCTTY);
-    if (fd < 0) {
-        fprintf(stderr, "failed to open '%s': %s\n",
-                device, strerror(errno));
+    status = cenfis_open(device, &cenfis);
+    if (cenfis_is_error(status)) {
+        if (status == CENFIS_STATUS_ERRNO) {
+            fprintf(stderr, "failed to open '%s': %s\n",
+                    device, strerror(errno));
+        } else {
+            fprintf(stderr, "cenfis_open('%s') failed with status %d\n",
+                    device, status);
+        }
         _exit(1);
     }
 
-    ret = tcgetattr(fd, &attr);
-    if (ret < 0) {
-        fprintf(stderr, "tcgetattr failed: %s\n",
-                strerror(errno));
-        _exit(1);
+    /*cenfis_dump(cenfis, 1);*/
+
+    /* wait for the device to become ready and automatically respond
+       to questions */
+    while (1) {
+        tv.tv_sec = 1;
+        tv.tv_usec = 0;
+
+        printf("Waiting for device\n");
+
+        status = cenfis_select(cenfis, &tv);
+        if (cenfis_is_error(status)) {
+            fprintf(stderr, "cenfis_select failed with status %d\n", status);
+            _exit(1);
+        }
+
+        if (status == CENFIS_STATUS_DIALOG_CONFIRM) {
+            printf("Sending 'Y' to confirm\n");
+
+            status = cenfis_confirm(cenfis);
+            if (cenfis_is_error(status)) {
+                fprintf(stderr, "cenfis_confirm failed with status %d\n",
+                        status);
+                _exit(1);
+            }
+        } else if (status == CENFIS_STATUS_DIALOG_SELECT) {
+            printf("Sending 'P' response\n");
+
+            status = cenfis_dialog_respond(cenfis, 'P');
+            if (cenfis_is_error(status)) {
+                fprintf(stderr, "cenfis_dialog_respond failed with status %d\n",
+                        status);
+                _exit(1);
+            }
+        } else if (status == CENFIS_STATUS_DATA) {
+            break;
+        }
     }
 
-    attr.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
-    attr.c_oflag &= ~OPOST;
-    attr.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
-    attr.c_cflag &= ~(CSIZE | PARENB | CRTSCTS | IXON | IXOFF);
-    attr.c_cflag |= (CS8 | CLOCAL);
-    attr.c_cc[VMIN] = 0;
-    attr.c_cc[VTIME] = 1;
-    cfsetospeed(&attr, B57600);
-    cfsetispeed(&attr, B57600);
-    ret = tcsetattr(fd, TCSANOW, &attr);
-    if (ret < 0) {
-        fprintf(stderr, "tcsetattr failed: %s\n",
-                strerror(errno));
-        _exit(1);
-    }
+    printf("Sending data to device\n");
 
-    tcflush(fd, TCOFLUSH);
-
-    do_menu(fd, 'P');
-
+    /* it's data time. read the input file */
     while (fgets(line, sizeof(line) - 2, file) != NULL) {
+        /* format the line */
         length = strlen(line);
         while (length > 0 && line[length - 1] >= 0 &&
                line[length - 1] <= ' ')
@@ -210,29 +123,32 @@ int main(int argc, char **argv) {
         line[length++] = '\r';
         line[length++] = '\n';
 
-        nbytes = write(fd, line, length);
-        if (nbytes < 0) {
-            fprintf(stderr, "failed to write to '%s': %s\n",
-                    device, strerror(errno));
+        /* write line to device */
+        status = cenfis_write_data(cenfis, line, length);
+        if (cenfis_is_error(status)) {
+            fprintf(stderr, "cenfis_write_data failed with status %d\n",
+                    status);
             _exit(1);
         }
 
-        if ((size_t)nbytes < length) {
-            fprintf(stderr, "short write to '%s'\n",
-                    device);
+        /* wait for ACK from device */
+        tv.tv_sec = 2;
+        tv.tv_usec = 0;
+
+        status = cenfis_select(cenfis, &tv);
+        if (cenfis_is_error(status)) {
+            fprintf(stderr, "cenfis_select failed with status %d\n", status);
             _exit(1);
         }
 
-        ret = wait_for_asterisk(fd);
-        if (ret < 0) {
-            fprintf(stderr, "read from '%s' failed: %s\n",
-                    device, strerror(errno));
+        if (status == CENFIS_STATUS_WAIT_ACK) {
+            fprintf(stderr, "no ack from device\n");
             _exit(1);
-        }
-
-        if (ret == 0) {
-            fprintf(stderr, "timeout on '%s'\n",
-                    device);
+        } else if (status == CENFIS_STATUS_DATA) {
+            printf(".");
+            fflush(stdout);
+        } else {
+            fprintf(stderr, "wrong status %d\n", status);
             _exit(1);
         }
     }
