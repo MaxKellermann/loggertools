@@ -486,6 +486,9 @@ void CenfisTurnPointWriter::write(const TurnPoint &tp) {
     if (tp.getRunway().defined()) {
         fprintf(file, "   R %02u", tp.getRunway().getDirection() / 10);
 
+        if (tp.getRunway().getLength() > 0)
+            fprintf(file, " %04u", tp.getRunway().getLength());
+
         switch (tp.getRunway().getType()) {
         case Runway::TYPE_UNKNOWN:
             break;
