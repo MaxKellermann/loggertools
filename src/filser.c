@@ -1,0 +1,262 @@
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <string.h>
+#include <errno.h>
+#include <termios.h>
+#include <signal.h>
+#include <time.h>
+
+static void alarm_handler(int dummy) {
+    (void)dummy;
+}
+
+static int syn_ack(int fd) {
+    const char syn = 0x16, ack = 0x06;
+    char buffer;
+    ssize_t nbytes;
+
+    tcflush(fd, TCIOFLUSH);
+
+    nbytes = write(fd, &syn, sizeof(syn));
+    if (nbytes <= 0)
+        return (int)nbytes;
+
+    nbytes = read(fd, &buffer, sizeof(buffer));
+    if (nbytes <= 0)
+        return (int)nbytes;
+
+    return buffer == ack
+        ? 1 : 0;
+}
+
+static void syn_ack_wait(int fd) {
+    int ret;
+    unsigned tries = 10;
+
+    do {
+        alarm(10);
+        ret = syn_ack(fd);
+        alarm(0);
+        if (ret < 0) {
+            fprintf(stderr, "failed to connect: %s\n",
+                    strerror(errno));
+            _exit(1);
+        }
+
+        if (ret == 0) {
+            fprintf(stderr, "no filser found, trying again\n");
+            sleep(1);
+        }
+    } while (ret == 0 && tries-- > 0);
+
+    if (ret == 0) {
+        fprintf(stderr, "no filser\n");
+        _exit(1);
+    }
+}
+
+static int connect(const char *device) {
+    int fd, ret;
+    struct termios attr;
+
+    fd = open(device, O_RDWR | O_NOCTTY);
+    if (fd < 0) {
+        fprintf(stderr, "failed to open '%s': %s\n",
+                device, strerror(errno));
+        _exit(1);
+    }
+
+    ret = tcgetattr(fd, &attr);
+    if (ret < 0) {
+        fprintf(stderr, "tcgetattr failed: %s\n",
+                strerror(errno));
+        _exit(1);
+    }
+
+    attr.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
+    attr.c_oflag &= ~OPOST;
+    attr.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
+    attr.c_cflag &= ~(CSIZE | PARENB | CRTSCTS | IXON | IXOFF);
+    attr.c_cflag |= (CS8 | CLOCAL);
+    attr.c_cc[VMIN] = 0;
+    attr.c_cc[VTIME] = 1;
+    cfsetospeed(&attr, B19200);
+    cfsetispeed(&attr, B19200);
+    ret = tcsetattr(fd, TCSANOW, &attr);
+    if (ret < 0) {
+        fprintf(stderr, "tcsetattr failed: %s\n",
+                strerror(errno));
+        _exit(1);
+    }
+
+    return fd;
+}
+
+static ssize_t read_full(int fd, unsigned char *buffer, size_t len) {
+    ssize_t nbytes;
+    size_t pos = 0;
+    time_t timeout = time(NULL) + 10;
+
+    alarm(10);
+
+    for (;;) {
+        nbytes = read(fd, buffer + pos, len - pos);
+        if (nbytes < 0) {
+            alarm(0);
+            return (int)nbytes;
+        }
+
+        pos += (size_t)nbytes;
+        if (pos >= len)
+            return (ssize_t)pos;
+
+        if (time(NULL) > timeout) {
+            alarm(0);
+            errno = EINTR;
+            return -1;
+        }
+    }
+}
+
+static unsigned char calc_crc_char(unsigned char d, unsigned char crc) {
+    unsigned char tmp;
+    const unsigned char crcpoly = 0x69;
+    int count;
+
+    for (count = 8; --count >= 0; d <<= 1) {
+        tmp = crc ^ d;
+        crc <<= 1;
+        if (tmp & 0x80)
+            crc ^= crcpoly;
+    }
+    return crc;
+}
+
+static unsigned char calc_crc(const unsigned char *buffer, size_t len) {
+    unsigned z;
+    unsigned char crc = 0xff;
+
+    for(z = 0; z < len; z++)
+        crc = calc_crc_char(buffer[z], crc);
+
+    return crc;
+}
+
+
+static ssize_t read_full_crc(int fd, unsigned char *buffer, size_t len) {
+    ssize_t nbytes;
+    unsigned char crc;
+
+    nbytes = read_full(fd, buffer, len);
+    if (nbytes < 0)
+        return nbytes;
+
+    crc = calc_crc(buffer, len - 1);
+    if (crc != buffer[len - 1]) {
+        fprintf(stderr, "CRC error\n");
+        _exit(1);
+    }
+
+    return nbytes;
+}
+
+static int communicate(int fd, unsigned char cmd,
+                       unsigned char *buffer, size_t buffer_len) {
+    const unsigned char prefix = 0x02;
+    ssize_t nbytes;
+    int ret;
+
+    syn_ack_wait(fd);
+
+    tcflush(fd, TCIOFLUSH);
+
+    nbytes = write(fd, &prefix, sizeof(prefix));
+    if (nbytes <= 0)
+        return (int)nbytes;
+
+    nbytes = write(fd, &cmd, sizeof(cmd));
+    if (nbytes <= 0)
+        return (int)nbytes;
+
+    ret = read_full_crc(fd, buffer, buffer_len);
+    if (ret < 0)
+        return -1;
+
+    return 1;
+}
+
+static int check_mem_settings(int fd) {
+    int ret;
+    unsigned char buffer[7];
+
+    ret = communicate(fd, 'Q' | 0x80,
+                      buffer, sizeof(buffer));
+    if (ret < 0) {
+        fprintf(stderr, "failed to communicate: %s\n",
+                strerror(errno));
+        _exit(1);
+    }
+
+    if (ret == 0) {
+        fprintf(stderr, "no valid response\n");
+        _exit(1);
+    }
+
+    return 0;
+}
+
+static int flight_list(int argpos, int argc, char **argv) {
+    const char *device = "/dev/ttyS0";
+    unsigned char cmd[] = { 0x02, 'M' | 0x80 };
+    int fd;
+    unsigned char record[0x60];
+    int ret;
+
+    (void)argpos;
+    (void)argc;
+    (void)argv;
+
+    fd = connect(device);
+
+    check_mem_settings(fd);
+
+    printf("Date\tTime\tPilot\n");
+
+    tcflush(fd, TCIOFLUSH);
+    write(fd, cmd, sizeof(cmd));
+
+    for (;;) {
+        ret = read_full_crc(fd, record, sizeof(record));
+        if (ret < 0) {
+            fprintf(stderr, "failed to read from '%s': %s\n",
+                    device, strerror(errno));
+            _exit(1);
+        }
+
+        if (record[0] != 1)
+            break;
+
+        printf("%s\t%s-%s\t%s\n", record + 9, record + 18, record + 0x1b, record + 40);
+    }
+
+    return 0;
+}
+
+int main(int argc, char **argv) {
+    signal(SIGALRM, alarm_handler);
+
+    if (argc < 2) {
+        fprintf(stderr, "usage: filser command [arg ...]\n");
+        _exit(1);
+    }
+
+    if (strcmp(argv[1], "list") == 0) {
+        return flight_list(2, argc, argv);
+    } else {
+        fprintf(stderr, "usage: filser command [arg ...]\n");
+        _exit(1);
+    }
+}
