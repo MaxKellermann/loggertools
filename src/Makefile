@@ -20,7 +20,7 @@ clean:
 loggerconv: conv.cc tp.cc seeyou.cc cenfis.cc cenfisdb.cc filsertp.cc
 	$(CXX) $(CXXFLAGS) -o $@ $^ -lstdc++
 
-cenfistool: cenfistool.c cenfis.c
+cenfistool: cenfistool.c cenfis.c serialio.c
 	$(CC) $(CFLAGS) -o $@ $^
 
 hexfile: hexfile.c

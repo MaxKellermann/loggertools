@@ -21,18 +21,27 @@
 
 #include <sys/types.h>
 #include <fcntl.h>
+#ifndef _WINDOWS
 #include <unistd.h>
+#endif
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include <termios.h>
 #include <assert.h>
 #include <stdlib.h>
 
 #include "cenfis.h"
+#include "serialio.h"
+
+#ifdef _WINDOWS
+#include <windows.h>
+#include <io.h>
+#define write(fd, buffer, len) _write((fd), (buffer), (len))
+#endif
 
 struct cenfis {
-    int fd, dump_fd;
+    struct serialio *serio;
+    int dump_fd;
     cenfis_status_t status;
     unsigned buffer_pos;
     char buffer[2048];
@@ -40,50 +49,23 @@ struct cenfis {
 
 cenfis_status_t cenfis_open(const char *device,
                             struct cenfis **cenfisp) {
-    int fd, ret;
+    int ret;
+    struct serialio *serio;
     struct cenfis *cenfis;
-    struct termios attr;
 
-    fd = open(device, O_RDWR | O_NOCTTY);
-    if (fd < 0)
+    ret = serialio_open(device, &serio);
+    if (ret < 0)
         return CENFIS_STATUS_ERRNO;
-
-    ret = tcgetattr(fd, &attr);
-    if (ret < 0) {
-        int save_errno = errno;
-        close(fd);
-        errno = save_errno;
-        return CENFIS_STATUS_ERRNO;
-    }
-
-    attr.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
-    attr.c_oflag &= ~OPOST;
-    attr.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
-    attr.c_cflag &= ~(CSIZE | PARENB | CRTSCTS | IXON | IXOFF);
-    attr.c_cflag |= (CS8 | CLOCAL);
-    attr.c_cc[VMIN] = 0;
-    attr.c_cc[VTIME] = 1;
-    cfsetospeed(&attr, B57600);
-    cfsetispeed(&attr, B57600);
-    ret = tcsetattr(fd, TCSANOW, &attr);
-    if (ret < 0) {
-        int save_errno = errno;
-        close(fd);
-        errno = save_errno;
-        return CENFIS_STATUS_ERRNO;
-    }
-
-    tcflush(fd, TCOFLUSH);
 
     cenfis = calloc(1, sizeof(*cenfis));
     if (cenfis == NULL) {
         int save_errno = errno;
-        close(fd);
+        serialio_close(serio);
         errno = save_errno;
         return CENFIS_STATUS_ERRNO;
     }
 
-    cenfis->fd = fd;
+    cenfis->serio = serio;
     cenfis->dump_fd = -1;
     cenfis->status = CENFIS_STATUS_IDLE;
 
@@ -94,8 +76,8 @@ cenfis_status_t cenfis_open(const char *device,
 void cenfis_close(struct cenfis *cenfis) {
     assert(cenfis != NULL);
 
-    if (cenfis->fd >= 0)
-        close(cenfis->fd);
+    if (cenfis->serio != NULL)
+        serialio_close(cenfis->serio);
 
     free(cenfis);
 }
@@ -108,11 +90,12 @@ static void cenfis_invalidate(struct cenfis *cenfis) {
     int save_errno = errno;
 
     assert(cenfis != NULL);
-    assert(cenfis->fd >= 0);
+    assert(cenfis->serio != NULL);
     assert(!cenfis_is_error(cenfis->status));
 
-    close(cenfis->fd);
-    cenfis->fd = -1;
+    serialio_close(cenfis->serio);
+    cenfis->serio = NULL;
+
     cenfis->status = CENFIS_STATUS_INVALID;
 
     errno = save_errno;
@@ -120,18 +103,18 @@ static void cenfis_invalidate(struct cenfis *cenfis) {
 
 static void cenfis_flush(struct cenfis *cenfis) {
     assert(cenfis != NULL);
-    assert(cenfis->fd >= 0);
+    assert(cenfis->serio != NULL);
     assert(!cenfis_is_error(cenfis->status));
 
-    tcflush(cenfis->fd, TCIFLUSH);
+    serialio_flush(cenfis->serio, SERIALIO_FLUSH_INPUT);
+
     cenfis->buffer_pos = 0;
 }
 
 cenfis_status_t cenfis_select(struct cenfis *cenfis,
                               struct timeval *timeout) {
     int ret;
-    fd_set rfds;
-    ssize_t nbytes;
+    size_t nbytes;
     char *p;
 
     if (cenfis_is_error(cenfis->status) || timeout == NULL)
@@ -141,14 +124,9 @@ cenfis_status_t cenfis_select(struct cenfis *cenfis,
 
     do {
         /* select on file handle */
-        FD_ZERO(&rfds);
-        FD_SET(cenfis->fd, &rfds);
-
-        ret = select(cenfis->fd + 1, &rfds, NULL, NULL, timeout);
+        ret = serialio_select(cenfis->serio, SERIALIO_SELECT_AVAILABLE,
+                              timeout);
         if (ret < 0) {
-            if (errno == EINTR)
-                return CENFIS_STATUS_ERRNO;
-
             cenfis_invalidate(cenfis);
             return CENFIS_STATUS_ERRNO;
         }
@@ -164,9 +142,9 @@ cenfis_status_t cenfis_select(struct cenfis *cenfis,
             cenfis->buffer_pos -= sizeof(cenfis->buffer) / 4;
         }
 
-        nbytes = read(cenfis->fd, cenfis->buffer + cenfis->buffer_pos,
-                      sizeof(cenfis->buffer) - cenfis->buffer_pos);
-        if (nbytes < 0) {
+        nbytes = sizeof(cenfis->buffer) - cenfis->buffer_pos;
+        ret = serialio_read(cenfis->serio, cenfis->buffer + cenfis->buffer_pos, &nbytes);
+        if (ret < 0) {
             int save_errno = errno;
 
             if (save_errno == EINTR)
@@ -239,18 +217,20 @@ cenfis_status_t cenfis_select(struct cenfis *cenfis,
 
 static cenfis_status_t cenfis_write(struct cenfis *cenfis,
                                     const void *buf, size_t count) {
-    ssize_t nbytes;
+    int ret;
+    size_t written;
 
     assert(cenfis != NULL);
     assert(!cenfis_is_error(cenfis->status));
 
-    nbytes = write(cenfis->fd, buf, count);
-    if (nbytes < 0) {
+    written = count;
+    ret = serialio_write(cenfis->serio, buf, &written);
+    if (ret < 0) {
         cenfis_invalidate(cenfis);
         return CENFIS_STATUS_ERRNO;
     }
 
-    if ((size_t)nbytes != count) {
+    if (written != count) {
         cenfis_invalidate(cenfis);
         return CENFIS_STATUS_SHORT_WRITE;
     }
