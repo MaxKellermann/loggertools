@@ -23,9 +23,10 @@
 
 int main(int argc, char **argv) {
     SeeYouTurnPointFormat format;
+    CenfisTurnPointFormat format2;
     FILE *file = fopen("/home/max/dl/tp/alps.cup", "r");
     TurnPointReader *reader = format.createReader(file);
-    TurnPointWriter *writer = format.createWriter(stdout);
+    TurnPointWriter *writer = format2.createWriter(stdout);
     const TurnPoint *tp;
 
     (void)argc;

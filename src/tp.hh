@@ -26,20 +26,20 @@ private:
     char *latitude, *longitude;
     long altitude;
 public:
-    Position(void);
+    Position();
     Position(const char *_lat, const char *_long,
              long _alt);
     Position(const Position &position);
-    ~Position(void);
+    ~Position();
     void operator =(const Position &pos);
 public:
-    const char *getLatitude(void) const {
+    const char *getLatitude() const {
         return latitude;
     }
-    const char *getLongitude(void) const {
+    const char *getLongitude() const {
         return longitude;
     }
-    long getAltitude(void) const {
+    long getAltitude() const {
         return altitude;
     }
 };
@@ -53,7 +53,7 @@ private:
     unsigned length;
     char *frequency, *description;
 public:
-    TurnPoint(void);
+    TurnPoint();
     TurnPoint(const char *_title, const char *_code,
               const char *_country,
               const Position &_position,
@@ -62,7 +62,7 @@ public:
               unsigned _length,
               const char *_frequency,
               const char *_description);
-    ~TurnPoint(void);
+    ~TurnPoint();
 public:
     const char *getTitle() const {
         return title;
@@ -140,7 +140,7 @@ public:
     virtual ~TurnPointWriter();
 public:
     virtual void write(const TurnPoint &tp) = 0;
-    virtual void flush(void) = 0;
+    virtual void flush() = 0;
 };
 
 class TurnPointFormat {
@@ -152,6 +152,12 @@ public:
 };
 
 class SeeYouTurnPointFormat {
+public:
+    virtual TurnPointReader *createReader(FILE *file);
+    virtual TurnPointWriter *createWriter(FILE *file);
+};
+
+class CenfisTurnPointFormat {
 public:
     virtual TurnPointReader *createReader(FILE *file);
     virtual TurnPointWriter *createWriter(FILE *file);

@@ -165,7 +165,7 @@ TurnPointReaderException::TurnPointReaderException(const TurnPointReaderExceptio
     :msg(strdup(ex.getMessage())) {
 }
 
-TurnPointReaderException::~TurnPointReaderException() {
+TurnPointReaderException::~TurnPointReaderException(void) {
     if (msg != NULL)
         free(msg);
 }
@@ -184,17 +184,16 @@ TurnPointWriterException::TurnPointWriterException(const TurnPointWriterExceptio
     :msg(strdup(ex.getMessage())) {
 }
 
-TurnPointWriterException::~TurnPointWriterException() {
+TurnPointWriterException::~TurnPointWriterException(void) {
     if (msg != NULL)
         free(msg);
 }
 
-TurnPointReader::~TurnPointReader() {
+TurnPointReader::~TurnPointReader(void) {
 }
 
-TurnPointWriter::~TurnPointWriter() {
+TurnPointWriter::~TurnPointWriter(void) {
 }
 
-TurnPointFormat::~TurnPointFormat() {
+TurnPointFormat::~TurnPointFormat(void) {
 }
-

@@ -46,7 +46,7 @@ public:
     SeeYouTurnPointWriter(FILE *_file);
 public:
     virtual void write(const TurnPoint &tp);
-    virtual void flush(void);
+    virtual void flush();
 };
 
 unsigned count_columns(const char *p) {
@@ -255,7 +255,7 @@ void SeeYouTurnPointWriter::write(const TurnPoint &tp) {
     fputs("\r\n", file);
 }
 
-void SeeYouTurnPointWriter::flush(void) {
+void SeeYouTurnPointWriter::flush() {
     if (file == NULL)
         throw new TurnPointWriterException("already flushed");
 
