@@ -142,7 +142,7 @@ static BOOL send_button_pressed(HWND hDlg) {
 
     ret = SendMessage(GetDlgItem(hDlg, IDC_FILE), WM_GETTEXT,
                       sizeof(data_filename), (LPARAM)data_filename);
-    if (ret == 0 && 0) {
+    if (ret == 0) {
         MessageBox(hDlg, "Bitte waehlen Sie eine Datei aus, die in das Cenfis hochgeladen werden soll.",
                    "Keine Datei angegeben", MB_OK|MB_ICONWARNING);
         return FALSE;
