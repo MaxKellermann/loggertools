@@ -108,15 +108,9 @@ int serialio_select(struct serialio *serio, int options,
     unsigned long sleeps;
     int result;
 
-    if (1) /* XXX implement */
-        return options;
-
-    assert(serio != NULL);
-    assert(serio->hCom != NULL);
-
     sleeps = timeout == NULL
-        ? 0xffffffff
-        : ( timeout->tv_sec * 100 + timeout->tv_usec / 1000000);
+        ? (unsigned long)-1
+        : ( timeout->tv_sec * 1000 + timeout->tv_usec / 1000);
 
     for (;;) {
         ret = ClearCommError(serio->hCom, &dwErrorFlags, &comstat);
@@ -130,20 +124,11 @@ int serialio_select(struct serialio *serio, int options,
         /*if (comstat.cbOutQue > 0)
           result &= ~SERIALIO_SELECT_READY;*/
 
-        if (result != 0)
+        if (result != 0 || sleeps == 0)
             return result;
 
-        if (timeout->tv_usec < 100000 && timeout->tv_sec == 0)
-            return 0;
-
-        Sleep(10);
-
-        if (timeout->tv_usec < 1000000) {
-            if (timeout->tv_sec == 0)
-                return 0;
-            timeout->tv_sec--;
-            timeout->tv_usec = 9000000;
-        }
+        Sleep(1);
+        sleeps--;
     }
 }
 
