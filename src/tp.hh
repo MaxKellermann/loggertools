@@ -99,43 +99,68 @@ public:
     }
 };
 
+class Runway {
+public:
+    enum type_t {
+        TYPE_UNKNOWN,
+        TYPE_GRASS,
+        TYPE_ASPHALT
+    };
+private:
+    type_t type;
+    unsigned direction, length;
+public:
+    Runway();
+    Runway(type_t _type, unsigned _direction, unsigned _length);
+public:
+    bool defined() const;
+    type_t getType() const {
+        return type;
+    }
+    unsigned getDirection() const {
+        return direction;
+    }
+    unsigned getLength() const {
+        return length;
+    }
+};
+
 class TurnPoint {
 public:
-    enum style_t {
-        STYLE_UNKNOWN = 0,
-        STYLE_NORMAL = 1,
-        STYLE_AIRFIELD_GRASS = 2,
-        STYLE_OUTLANDING = 3,
-        STYLE_GLIDER_SITE = 4,
-        STYLE_AIRFIELD_SOLID = 5,
-        STYLE_MOUNTAIN_PASS = 6,
-        STYLE_MOUNTAIN_TOP = 7,
-        STYLE_SENDER = 8,
-        STYLE_VOR = 9,
-        STYLE_NDB = 10,
-        STYLE_COOL_TOWER = 11,
-        STYLE_DAM = 12,
-        STYLE_TUNNEL = 13,
-        STYLE_BRIDGE = 14,
-        STYLE_POWER_PLANT = 15,
-        STYLE_CASTLE = 16,
-        STYLE_INTERSECTION = 17
+    enum type_t {
+        TYPE_UNKNOWN,
+        TYPE_AIRFIELD,
+        TYPE_GLIDER_SITE,
+        TYPE_OUTLANDING,
+        TYPE_MOUNTAIN_PASS,
+        TYPE_MOUNTAIN_TOP,
+        TYPE_SENDER,
+        TYPE_VOR,
+        TYPE_NDB,
+        TYPE_COOL_TOWER,
+        TYPE_DAM,
+        TYPE_TUNNEL,
+        TYPE_BRIDGE,
+        TYPE_POWER_PLANT,
+        TYPE_CASTLE,
+        TYPE_CHURCH,
+        TYPE_INTERSECTION,
+        TYPE_THERMIK
     };
 private:
     char *title, *code, *country;
     Position position;
-    style_t style;
-    unsigned direction;
-    unsigned length, frequency;
+    type_t type;
+    Runway runway;
+    unsigned frequency;
     char *description;
 public:
     TurnPoint();
     TurnPoint(const char *_title, const char *_code,
               const char *_country,
               const Position &_position,
-              style_t _style,
-              unsigned _direction,
-              unsigned _length,
+              type_t _type,
+              const Runway &_runway,
               unsigned _frequency,
               const char *_description);
     ~TurnPoint();
@@ -156,18 +181,14 @@ public:
         return position;
     }
     void setPosition(const Position &_position);
-    style_t getStyle() const {
-        return style;
+    type_t getType() const {
+        return type;
     }
-    void setStyle(style_t _style);
-    unsigned getDirection() const {
-        return direction;
+    void setType(type_t _type);
+    const Runway &getRunway() const {
+        return runway;
     }
-    void setDirection(unsigned _direction);
-    unsigned getLength() const {
-        return length;
-    }
-    void setLength(unsigned _length);
+    void setRunway(const Runway &runway);
     unsigned getFrequency() const {
         return frequency;
     }

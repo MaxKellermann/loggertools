@@ -59,28 +59,37 @@ void Position::operator =(const Position &pos) {
     altitude = pos.getAltitude();
 }
 
+Runway::Runway()
+    :type(TYPE_UNKNOWN), direction(UINT_MAX), length(0) {
+}
+
+Runway::Runway(type_t _type, unsigned _direction, unsigned _length)
+    :type(_type), direction(_direction), length(_length) {
+}
+
+bool Runway::defined() const {
+    return direction != UINT_MAX;
+}
+
 TurnPoint::TurnPoint(void)
     :title(NULL), code(NULL), country(NULL),
-     style(STYLE_UNKNOWN),
-     direction(UINT_MAX), length(0),
+     type(TYPE_UNKNOWN),
      frequency(0), description(NULL) {
 }
 
 TurnPoint::TurnPoint(const char *_title, const char *_code,
                      const char *_country,
                      const Position &_position,
-                     style_t _style,
-                     unsigned _direction,
-                     unsigned _length,
+                     type_t _type,
+                     const Runway &_runway,
                      unsigned _frequency,
                      const char *_description)
     :title(copy_string(_title)),
      code(copy_string(_code)),
      country(copy_string(_country)),
      position(_position),
-     style(_style),
-     direction(_direction),
-     length(_length),
+     type(_type),
+     runway(_runway),
      frequency(_frequency),
      description(copy_string(_description)) {
 }
@@ -118,16 +127,12 @@ void TurnPoint::setPosition(const Position &_position) {
     position = _position;
 }
 
-void TurnPoint::setStyle(style_t _style) {
-    style = _style;
+void TurnPoint::setType(type_t _type) {
+    type = _type;
 }
 
-void TurnPoint::setDirection(unsigned _direction) {
-    direction = _direction;
-}
-
-void TurnPoint::setLength(unsigned _length) {
-    length = _length;
+void TurnPoint::setRunway(const Runway &_runway) {
+    runway = _runway;
 }
 
 void TurnPoint::setFrequency(unsigned _frequency) {

@@ -226,6 +226,8 @@ const TurnPoint *SeeYouTurnPointReader::read() {
     TurnPoint *tp = new TurnPoint();
     Angle *latitude = NULL, *longitude = NULL;
     Altitude *altitude = NULL;
+    Runway::type_t rwy_type = Runway::TYPE_UNKNOWN;
+    unsigned rwy_direction = UINT_MAX, rwy_length = 0;
 
     if (is_eof)
         return NULL;
@@ -273,14 +275,71 @@ const TurnPoint *SeeYouTurnPointReader::read() {
                 altitude = new Altitude(strtol(column, NULL, 10),
                                         Altitude::UNIT_METERS,
                                         Altitude::REF_MSL);
-        } else if (strcmp(columns[z], "Style") == 0)
-            tp->setStyle((TurnPoint::style_t)atoi(column));
-        else if (strcmp(columns[z], "Direction") == 0) {
-            if (*column)
-                tp->setDirection((unsigned)atoi(column));
-        } else if (strcmp(columns[z], "Length") == 0)
-            tp->setLength((unsigned)strtoul(column, NULL, 10));
-        else if (strcmp(columns[z], "Frequency") == 0)
+        } else if (strcmp(columns[z], "Style") == 0) {
+            TurnPoint::type_t type;
+
+            switch (atoi(column)) {
+            case 2:
+                rwy_type = Runway::TYPE_GRASS;
+                type = TurnPoint::TYPE_AIRFIELD;
+                break;
+            case 3:
+                type = TurnPoint::TYPE_OUTLANDING;
+                break;
+            case 4:
+                type = TurnPoint::TYPE_GLIDER_SITE;
+                break;
+            case 5:
+                rwy_type = Runway::TYPE_ASPHALT;
+                type = TurnPoint::TYPE_AIRFIELD;
+                break;
+            case 6:
+                type = TurnPoint::TYPE_MOUNTAIN_PASS;
+                break;
+            case 7:
+                type = TurnPoint::TYPE_MOUNTAIN_TOP;
+                break;
+            case 8:
+                type = TurnPoint::TYPE_SENDER;
+                break;
+            case 9:
+                type = TurnPoint::TYPE_VOR;
+                break;
+            case 10:
+                type = TurnPoint::TYPE_NDB;
+                break;
+            case 11:
+                type = TurnPoint::TYPE_COOL_TOWER;
+                break;
+            case 12:
+                type = TurnPoint::TYPE_DAM;
+                break;
+            case 13:
+                type = TurnPoint::TYPE_TUNNEL;
+                break;
+            case 14:
+                type = TurnPoint::TYPE_BRIDGE;
+                break;
+            case 15:
+                type = TurnPoint::TYPE_POWER_PLANT;
+                break;
+            case 16:
+                type = TurnPoint::TYPE_CASTLE;
+                break;
+            case 17:
+                type = TurnPoint::TYPE_INTERSECTION;
+                break;
+            default:
+                type = TurnPoint::TYPE_UNKNOWN;
+            }
+            tp->setType(type);
+        } else if (strcmp(columns[z], "Direction") == 0) {
+            if (*column != 0)
+                rwy_direction = (unsigned)atoi(column);
+        } else if (strcmp(columns[z], "Length") == 0) {
+            if (*column != 0)
+                rwy_length = (unsigned)atoi(column);
+        } else if (strcmp(columns[z], "Frequency") == 0)
             tp->setFrequency(parseFrequency(column));
         else if (strcmp(columns[z], "Description") == 0)
             tp->setDescription(column);
@@ -294,6 +353,8 @@ const TurnPoint *SeeYouTurnPointReader::read() {
                                  *longitude,
                                  *altitude));
 
+    tp->setRunway(Runway(rwy_type, rwy_direction, rwy_length));
+
     if (latitude != NULL)
         delete latitude;
     if (longitude != NULL)
@@ -306,6 +367,44 @@ const TurnPoint *SeeYouTurnPointReader::read() {
 SeeYouTurnPointWriter::SeeYouTurnPointWriter(FILE *_file)
     :file(_file) {
     fputs("Title,Code,Country,Latitude,Longitude,Elevation,Style,Direction,Length,Frequency,Description\r\n", file);
+}
+
+unsigned makeSeeYouStyle(const TurnPoint &tp) {
+    switch (tp.getType()) {
+    case TurnPoint::TYPE_AIRFIELD:
+        return tp.getRunway().getType() == Runway::TYPE_ASPHALT
+            ? 5 : 2;
+    case TurnPoint::TYPE_GLIDER_SITE:
+        return 4;
+    case TurnPoint::TYPE_OUTLANDING:
+        return 3;
+    case TurnPoint::TYPE_MOUNTAIN_PASS:
+        return 6;
+    case TurnPoint::TYPE_MOUNTAIN_TOP:
+        return 7;
+    case TurnPoint::TYPE_SENDER:
+        return 8;
+    case TurnPoint::TYPE_VOR:
+        return 9;
+    case TurnPoint::TYPE_NDB:
+        return 10;
+    case TurnPoint::TYPE_COOL_TOWER:
+        return 11;
+    case TurnPoint::TYPE_DAM:
+        return 12;
+    case TurnPoint::TYPE_TUNNEL:
+        return 13;
+    case TurnPoint::TYPE_BRIDGE:
+        return 14;
+    case TurnPoint::TYPE_POWER_PLANT:
+        return 15;
+    case TurnPoint::TYPE_CASTLE:
+        return 16;
+    case TurnPoint::TYPE_INTERSECTION:
+        return 17;
+    default:
+        return 1;
+    }
 }
 
 void SeeYouTurnPointWriter::write(const TurnPoint &tp) {
@@ -332,16 +431,15 @@ void SeeYouTurnPointWriter::write(const TurnPoint &tp) {
     fprintf(file, ",%s,%s,", latitude, longitude);
     if (tp.getPosition().getAltitude().defined())
         fprintf(file, "%luM",
-                tp.getPosition().getAltitude().getValue(),
-                tp.getStyle());
+                tp.getPosition().getAltitude().getValue());
     putc(',', file);
     fprintf(file, "%d,",
-            tp.getStyle());
-    if (tp.getDirection() != UINT_MAX)
-        fprintf(file, "%u", tp.getDirection());
+            makeSeeYouStyle(tp));
+    if (tp.getRunway().defined())
+        fprintf(file, "%u", tp.getRunway().getDirection());
     putc(',', file);
-    if (tp.getLength() > 0)
-        fprintf(file, "%u", tp.getLength());
+    if (tp.getRunway().getLength() > 0)
+        fprintf(file, "%u", tp.getRunway().getLength());
     putc(',', file);
     if (tp.getFrequency() > 0)
         fprintf(file, "%u.%03u",

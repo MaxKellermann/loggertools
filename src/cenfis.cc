@@ -228,22 +228,17 @@ TurnPoint *CenfisTurnPointReader::handleLine(char *line) {
     case 'T': /* type and description */
         line += 2;
 
-        if (strncmp(line, " # ", 3) == 0)
-            tp->setStyle(TurnPoint::STYLE_AIRFIELD_GRASS); /* XXX */
+        if (strncmp(line, " # ", 3) == 0 ||
+            strncmp(line, " #M", 3) == 0)
+            tp->setType(TurnPoint::TYPE_AIRFIELD);
         else if (strncmp(line, " #S", 3) == 0)
-            tp->setStyle(TurnPoint::STYLE_GLIDER_SITE);
-        else if (strncmp(line, " #M", 3) == 0)
-            tp->setStyle(TurnPoint::STYLE_AIRFIELD_SOLID); /* XXX */
+            tp->setType(TurnPoint::TYPE_GLIDER_SITE);
         else if (strncmp(line, "LW ", 3) == 0)
-            tp->setStyle(TurnPoint::STYLE_OUTLANDING);
+            tp->setType(TurnPoint::TYPE_OUTLANDING);
         else if (strncmp(line, "TQ ", 3) == 0)
-            tp->setStyle(TurnPoint::STYLE_POWER_PLANT); /* XXX */
-        else if (strncmp(line, "AL ", 3) == 0)
-            tp->setStyle(TurnPoint::STYLE_INTERSECTION); /* XXX */
-        else if (strncmp(line, "ZL ", 3) == 0)
-            tp->setStyle(TurnPoint::STYLE_INTERSECTION); /* XXX */
+            tp->setType(TurnPoint::TYPE_THERMIK);
         else
-            tp->setStyle(TurnPoint::STYLE_UNKNOWN);
+            tp->setType(TurnPoint::TYPE_UNKNOWN);
 
         line += 4;
 
@@ -343,14 +338,13 @@ CenfisTurnPointWriter::CenfisTurnPointWriter(FILE *_file)
     fprintf(file, "0 created by loggertools\n");
 }
 
-static const char *formatType(TurnPoint::style_t type) {
+static const char *formatType(TurnPoint::type_t type) {
     switch (type) {
-    case TurnPoint::STYLE_AIRFIELD_GRASS:
-    case TurnPoint::STYLE_AIRFIELD_SOLID:
+    case TurnPoint::TYPE_AIRFIELD:
         return " # ";
-    case TurnPoint::STYLE_GLIDER_SITE:
+    case TurnPoint::TYPE_GLIDER_SITE:
         return " #S";
-    case TurnPoint::STYLE_OUTLANDING:
+    case TurnPoint::TYPE_OUTLANDING:
         return "LW ";
     default:
         return "   ";
@@ -384,7 +378,7 @@ void CenfisTurnPointWriter::write(const TurnPoint &tp) {
     fprintf(file, "11 N %s\n", p);
 
     fprintf(file, "   T %3s",
-            formatType(tp.getStyle()));
+            formatType(tp.getType()));
 
     if (tp.getTitle() != NULL)
         fprintf(file, " %s", tp.getTitle());
@@ -427,13 +421,19 @@ void CenfisTurnPointWriter::write(const TurnPoint &tp) {
                 tp.getFrequency() / 1000000,
                 (tp.getFrequency() / 1000) % 1000);
 
-    if (tp.getDirection() != UINT_MAX) {
-        fprintf(file, "   R %02u", tp.getDirection() / 10);
+    if (tp.getRunway().defined()) {
+        fprintf(file, "   R %02u", tp.getRunway().getDirection() / 10);
 
-        if (tp.getStyle() == TurnPoint::STYLE_AIRFIELD_GRASS)
-            fprintf(file, "     Grass");
-        else if (tp.getStyle() == TurnPoint::STYLE_AIRFIELD_SOLID)
-            fprintf(file, "     Asphalt");
+        switch (tp.getRunway().getType()) {
+        case Runway::TYPE_UNKNOWN:
+            break;
+        case Runway::TYPE_GRASS:
+            fprintf(file, " grass");
+            break;
+        case Runway::TYPE_ASPHALT:
+            fprintf(file, " asphalt");
+            break;
+        }
 
         fprintf(file, "\n");
     }
