@@ -30,7 +30,7 @@
 #include "cenfistool.h"
 
 static HINSTANCE hInstance;
-static char data_filename[4096];
+static char data_filename[4096] = "";
 static char port_filename[32];
 static HANDLE comm_thread = NULL;
 static DWORD comm_thread_id = 0;
@@ -95,6 +95,8 @@ static BOOL drop_files(HWND hDlg, HDROP hDrop) {
     ret = DragQueryFile(hDrop, 0, filename, sizeof(filename));
     if (ret == 0)
         return TRUE;
+
+    strcpy(data_filename, filename);
 
     SendMessage(GetDlgItem(hDlg, IDC_FILE), WM_SETTEXT, 0, (LPARAM)filename);
 
@@ -161,6 +163,7 @@ static BOOL CALLBACK MainWinDlgProc(HWND hDlg, UINT uMsg,
     case WM_INITDIALOG:
         SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG,
                     (LPARAM)LoadIcon(hInstance, MAKEINTRESOURCE(IDI_CENFIS)));
+        SendMessage(GetDlgItem(hDlg, IDC_FILE), WM_SETTEXT, 0, (LPARAM)data_filename);
         make_comm_list(GetDlgItem(hDlg, IDC_PORT));
         return TRUE;
 
@@ -236,8 +239,6 @@ static DWORD WINAPI comm_thread_func(LPVOID ctx) {
             break;
         }
     }
-
-    strcpy(data_filename, "c:\\CFP_V35B.BHF");
 
     file = fopen(data_filename, "r");
     if (file == NULL) {
@@ -344,6 +345,28 @@ int WINAPI WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance,
     int ret;
 
     hInstance = _hInstance;
+    
+    if (lpCmdLine != NULL && *lpCmdLine) {
+        const char *p = lpCmdLine, *q;
+        size_t length;
+
+        if (p[0] == '"') {
+            p++;
+            q = strchr(p, '"');
+        } else {
+            q = strchr(p, ' ');
+        }
+
+        if (q == NULL)
+            length = strlen(p);
+        else
+           length = q - p;
+
+        if (length < sizeof(data_filename)) {
+            memcpy(data_filename, p, length);
+            data_filename[length] = 0;
+        }
+    }
 
     register_cenfistool();
 
