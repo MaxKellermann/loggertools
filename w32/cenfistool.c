@@ -57,26 +57,11 @@ static BOOL detect_cenfis(const char *filename) {
     return TRUE;
 }
 
-static BOOL find_cenfis(char *filename, size_t filename_max_len) {
-    unsigned port;
-
-    for (port = 1; port <= 4; port++) {
-        _snprintf(filename, filename_max_len, "COM%u", port);
-
-        if (detect_cenfis(filename))
-            return TRUE;
-    }
-
-    return FALSE;
-}
-
 static void make_comm_list(HWND hCombo) {
     unsigned port;
     char filename[32];
 
     SendMessage(hCombo, CB_RESETCONTENT, 0, 0);
-
-    SendMessage(hCombo, CB_ADDSTRING, 0, (LPARAM)"Auto");
 
     for (port = 1; port <= 4; port++) {
         _snprintf(filename, sizeof(filename), "COM%u", port);
@@ -103,26 +88,16 @@ static BOOL drop_files(HWND hDlg, HDROP hDrop) {
     return TRUE;
 }
 
-static BOOL autodetect_port(HWND hWnd, char *filename, size_t filename_max_len) {
-    if (find_cenfis(filename, filename_max_len)) {
-        return TRUE;
-    } else {
-        MessageBox(hWnd, "Es wurde kein Cenfis gefunden.",
-                   "Kein Cenfis gefunden", MB_OK|MB_ICONERROR);
-        return FALSE;
-    }
-}
-
 static BOOL get_selected_port(HWND hWnd, HWND hCombo, char *filename, size_t filename_max_len) {
     LRESULT sel, ret;
 
     sel = SendMessage(hCombo, CB_GETCURSEL, 0, 0);
-    if (sel == CB_ERR || sel == 0)
-        return autodetect_port(hWnd, filename, filename_max_len);
+    if (sel == CB_ERR)
+        return FALSE;
 
     ret = SendMessage(hCombo, CB_GETLBTEXTLEN, sel, 0);
     if (ret == CB_ERR || (size_t)ret >= filename_max_len)
-        return autodetect_port(hWnd, filename, filename_max_len);
+        return FALSE;
 
     ret = SendMessage(hCombo, CB_GETLBTEXT, sel, (LPARAM)(LPCSTR)filename);
     if (ret == CB_ERR)
