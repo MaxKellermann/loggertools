@@ -280,9 +280,10 @@ TurnPoint *CenfisTurnPointReader::handleLine(char *line) {
     case 'T': /* type and description */
         line += 2;
 
-        if (strncmp(line, " # ", 3) == 0 ||
-            strncmp(line, " #M", 3) == 0)
+        if (strncmp(line, " # ", 3) == 0)
             tp->setType(TurnPoint::TYPE_AIRFIELD);
+        else if (strncmp(line, " #M", 3) == 0)
+            tp->setType(TurnPoint::TYPE_MILITARY_AIRFIELD);
         else if (strncmp(line, " #S", 3) == 0)
             tp->setType(TurnPoint::TYPE_GLIDER_SITE);
         else if (strncmp(line, "LW ", 3) == 0)
@@ -402,6 +403,8 @@ static const char *formatType(TurnPoint::type_t type) {
     switch (type) {
     case TurnPoint::TYPE_AIRFIELD:
         return " # ";
+    case TurnPoint::TYPE_MILITARY_AIRFIELD:
+        return " #M";
     case TurnPoint::TYPE_GLIDER_SITE:
         return " #S";
     case TurnPoint::TYPE_OUTLANDING:

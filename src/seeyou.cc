@@ -376,6 +376,7 @@ SeeYouTurnPointWriter::SeeYouTurnPointWriter(FILE *_file)
 unsigned makeSeeYouStyle(const TurnPoint &tp) {
     switch (tp.getType()) {
     case TurnPoint::TYPE_AIRFIELD:
+    case TurnPoint::TYPE_MILITARY_AIRFIELD:
         return tp.getRunway().getType() == Runway::TYPE_ASPHALT
             ? 5 : 2;
     case TurnPoint::TYPE_GLIDER_SITE:

@@ -130,6 +130,7 @@ public:
     enum type_t {
         TYPE_UNKNOWN,
         TYPE_AIRFIELD,
+        TYPE_MILITARY_AIRFIELD,
         TYPE_GLIDER_SITE,
         TYPE_OUTLANDING,
         TYPE_MOUNTAIN_PASS,
