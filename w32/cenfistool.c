@@ -189,6 +189,7 @@ static DWORD WINAPI comm_thread_func(LPVOID ctx) {
     HWND hDlg = (HWND)ctx;
     HWND hText = GetDlgItem(hDlg, IDC_TEXT);
     HWND hProgress = GetDlgItem(hDlg, IDC_PROGRESS);
+    HWND hCancel = GetDlgItem(hDlg, IDCANCEL);
     cenfis_status_t status;
     struct cenfis *cenfis;
     struct timeval tv;
@@ -197,7 +198,7 @@ static DWORD WINAPI comm_thread_func(LPVOID ctx) {
     size_t length;
     unsigned long file_size, file_done;
 
-    SendMessage(hText, WM_SETTEXT, 0, (LPARAM)"Opening Cenfis device...");
+    SendMessage(hText, WM_SETTEXT, 0, (LPARAM)"Cenfis wird initialisiert...");
 
     status = cenfis_open(port_filename, &cenfis);
     if (cenfis_is_error(status)) {
@@ -205,7 +206,7 @@ static DWORD WINAPI comm_thread_func(LPVOID ctx) {
         return 1;
     }
 
-    SendMessage(hText, WM_SETTEXT, 0, (LPARAM)"Waiting for Cenfis device...");
+    SendMessage(hText, WM_SETTEXT, 0, (LPARAM)"Bitte Cenfis einschalten und bestaetigen!");
     while (1) {
         tv.tv_sec = 1;
         tv.tv_usec = 0;
@@ -218,7 +219,7 @@ static DWORD WINAPI comm_thread_func(LPVOID ctx) {
         }
 
         if (status == CENFIS_STATUS_DIALOG_CONFIRM) {
-            SendMessage(hText, WM_SETTEXT, 0, (LPARAM)"Sending 'Y' to confirm");
+            SendMessage(hText, WM_SETTEXT, 0, (LPARAM)"Sende 'Y'...");
 
             status = cenfis_confirm(cenfis);
             if (cenfis_is_error(status)) {
@@ -227,7 +228,7 @@ static DWORD WINAPI comm_thread_func(LPVOID ctx) {
                 return 1;
             }
         } else if (status == CENFIS_STATUS_DIALOG_SELECT) {
-            SendMessage(hText, WM_SETTEXT, 0, (LPARAM)"Sending 'P' response");
+            SendMessage(hText, WM_SETTEXT, 0, (LPARAM)"Sende 'P'...");
 
             status = cenfis_dialog_respond(cenfis, 'P');
             if (cenfis_is_error(status)) {
@@ -242,7 +243,7 @@ static DWORD WINAPI comm_thread_func(LPVOID ctx) {
 
     file = fopen(data_filename, "r");
     if (file == NULL) {
-        SendMessage(hText, WM_SETTEXT, 0, (LPARAM)"Failed to open data file");
+        SendMessage(hText, WM_SETTEXT, 0, (LPARAM)"Konnte Hexfile nicht oeffnen.");
         cenfis_close(cenfis);
         return 1;
     }
@@ -252,7 +253,7 @@ static DWORD WINAPI comm_thread_func(LPVOID ctx) {
     fseek(file, 0, SEEK_SET);
     file_done = 0;
 
-    SendMessage(hText, WM_SETTEXT, 0, (LPARAM)"sending");
+    SendMessage(hText, WM_SETTEXT, 0, (LPARAM)"Sende Daten...");
     SendMessage(hProgress, PBM_SETRANGE, 0, MAKELPARAM(0, file_size / 1024));
 
     while (fgets(line, sizeof(line) - 2, file) != NULL) {
@@ -304,7 +305,8 @@ static DWORD WINAPI comm_thread_func(LPVOID ctx) {
     cenfis_close(cenfis);
 
     SendMessage(hProgress, PBM_SETPOS, file_size / 1024, 0);
-    SendMessage(hText, WM_SETTEXT, 0, (LPARAM)"Done");
+    SendMessage(hText, WM_SETTEXT, 0, (LPARAM)"Fertig.");
+    SendMessage(hCancel, WM_SETTEXT, 0, (LPARAM)"Schliessen");
 
     return 0;
 }
