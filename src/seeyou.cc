@@ -154,13 +154,58 @@ SeeYouTurnPointReader::SeeYouTurnPointReader(FILE *_file)
     }
 }
 
+static Angle *parseAngle(const char *p, const char *letters) {
+    unsigned long n1, n2;
+    int sign, degrees;
+    char *endptr;
+
+    if (p == NULL || *p == 0)
+        return NULL;
+
+    n1 = strtoul(p, &endptr, 10);
+    if (endptr == NULL || *endptr != '.')
+        return NULL;
+
+    n2 = strtoul(endptr + 1, &endptr, 10);
+    if (n2 >= 1000 || endptr == NULL)
+        return NULL;
+
+    if (*endptr == letters[0])
+        sign = -1;
+    else if (*endptr == letters[1])
+        sign = 1;
+    else
+        return NULL;
+
+    degrees = (int)n1 / 100;
+    n1 %= 100;
+
+    if (degrees > 180 || n1 >= 60)
+        return NULL;
+
+    return new Angle(sign * (((degrees * 60) + n1) * 1000 + n2));
+}
+
+static char *formatAngle(char *buffer, size_t buffer_max_len,
+                         const Angle &angle, const char *letters) {
+    int value = angle.getValue();
+    int a = abs(value);
+
+    snprintf(buffer, buffer_max_len, "%02u%02u.%03u%c",
+             a / 60 / 1000, (a / 1000) % 60,
+             a % 1000,
+             value < 0 ? letters[0] : letters[1]);
+
+    return buffer;
+}
+
 const TurnPoint *SeeYouTurnPointReader::read() {
     char line[4096], column[1024];
     const char *p;
     unsigned z;
     int ret;
     TurnPoint *tp = new TurnPoint();
-    std::string latitude, longitude;
+    Angle *latitude = NULL, *longitude = NULL;
     Altitude *altitude = NULL;
 
     if (is_eof)
@@ -191,11 +236,15 @@ const TurnPoint *SeeYouTurnPointReader::read() {
             tp->setCode(column);
         else if (strcmp(columns[z], "Country") == 0)
             tp->setCountry(column);
-        else if (strcmp(columns[z], "Latitude") == 0)
-            latitude = column;
-        else if (strcmp(columns[z], "Longitude") == 0)
-            longitude = column;
-        else if (strcmp(columns[z], "Elevation") == 0) {
+        else if (strcmp(columns[z], "Latitude") == 0) {
+            if (latitude != NULL)
+                delete latitude;
+            latitude = parseAngle(column, "SN");
+        } else if (strcmp(columns[z], "Longitude") == 0) {
+            if (longitude != NULL)
+                delete longitude;
+            longitude = parseAngle(column, "EW");
+        } else if (strcmp(columns[z], "Elevation") == 0) {
             if (altitude != NULL)
                 delete altitude;
 
@@ -220,10 +269,15 @@ const TurnPoint *SeeYouTurnPointReader::read() {
     if (altitude == NULL)
         altitude = new Altitude();
 
-    tp->setPosition(Position(latitude.data(),
-                             longitude.data(),
-                             *altitude));
+    if (latitude != NULL && longitude != NULL)
+        tp->setPosition(Position(*latitude,
+                                 *longitude,
+                                 *altitude));
 
+    if (latitude != NULL)
+        delete latitude;
+    if (longitude != NULL)
+        delete longitude;
     delete altitude;
 
     return tp;
@@ -235,19 +289,27 @@ SeeYouTurnPointWriter::SeeYouTurnPointWriter(FILE *_file)
 }
 
 void SeeYouTurnPointWriter::write(const TurnPoint &tp) {
+    char latitude[16], longitude[16];
+
     if (file == NULL)
         throw new TurnPointWriterException("already flushed");
+
+    if (tp.getPosition().defined()) {
+        formatAngle(latitude, sizeof(latitude),
+                    tp.getPosition().getLatitude(), "SN");
+        formatAngle(longitude, sizeof(longitude),
+                    tp.getPosition().getLongitude(), "EW");
+    } else {
+        latitude[0] = 0;
+        longitude[0] = 0;
+    }
 
     write_column(file, tp.getTitle());
     putc(',', file);
     write_column(file, tp.getCode());
     putc(',', file);
     write_column(file, tp.getCountry());
-    putc(',', file);
-    write_column(file, tp.getPosition().getLatitude());
-    putc(',', file);
-    write_column(file, tp.getPosition().getLongitude());
-    putc(',', file);
+    fprintf(file, ",%s,%s,", latitude, longitude);
     if (tp.getPosition().getAltitude().defined())
         fprintf(file, "%luM",
                 tp.getPosition().getAltitude().getValue(),

@@ -40,34 +40,22 @@ Altitude::Altitude(long _value, unit_t _unit, ref_t _ref)
     :value(_value), unit(_unit), ref(_ref) {
 }
 
-Position::Position(void)
-    :latitude(NULL), longitude(NULL) {
-}
-
-Position::Position(const char *_lat, const char *_long,
+Position::Position(const Angle &_lat, const Angle &_lon,
                    const Altitude &_alt)
-    :latitude(copy_string(_lat)),
-     longitude(copy_string(_long)),
+    :latitude(_lat),
+     longitude(_lon),
      altitude(_alt) {
 }
 
 Position::Position(const Position &position)
-    :latitude(copy_string(position.getLatitude())),
-     longitude(copy_string(position.getLongitude())),
+    :latitude(position.getLatitude()),
+     longitude(position.getLongitude()),
      altitude(position.getAltitude()) {
 }
 
-Position::~Position(void) {
-    free(latitude);
-    free(longitude);
-}
-
 void Position::operator =(const Position &pos) {
-    free(latitude);
-    free(longitude);
-
-    latitude = copy_string(pos.getLatitude());
-    longitude = copy_string(pos.getLongitude());
+    latitude = pos.getLatitude();
+    longitude = pos.getLongitude();
     altitude = pos.getAltitude();
 }
 

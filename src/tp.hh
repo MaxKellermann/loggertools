@@ -57,22 +57,41 @@ public:
     }
 };
 
+class Angle {
+private:
+    int value;
+public:
+    Angle():value(0) {}
+    Angle(int _value):value(_value) {}
+public:
+    bool defined() const {
+        /* XXX */
+        return value != 0;
+    }
+    int getValue() const {
+        return value;
+    }
+};
+
 class Position {
 private:
-    char *latitude, *longitude;
+    Angle latitude, longitude;
     Altitude altitude;
 public:
-    Position();
-    Position(const char *_lat, const char *_long,
+    Position() {}
+    Position(const Angle &_lat, const Angle &_lon,
              const Altitude &_alt);
     Position(const Position &position);
-    ~Position();
     void operator =(const Position &pos);
 public:
-    const char *getLatitude() const {
+    bool defined() const {
+        return latitude.defined() &&
+            longitude.defined();
+    }
+    const Angle &getLatitude() const {
         return latitude;
     }
-    const char *getLongitude() const {
+    const Angle &getLongitude() const {
         return longitude;
     }
     const Altitude &getAltitude() const {
