@@ -29,6 +29,11 @@
 #include <termios.h>
 #include <signal.h>
 #include <time.h>
+#include <stdlib.h>
+
+struct flight_index {
+    unsigned char data[0x5f];
+};
 
 static void alarm_handler(int dummy) {
     (void)dummy;
@@ -119,16 +124,15 @@ static int connect(const char *device) {
 static ssize_t read_full(int fd, unsigned char *buffer, size_t len) {
     ssize_t nbytes;
     size_t pos = 0;
-    time_t timeout = time(NULL) + 10;
+    time_t timeout = time(NULL) + 40;
 
-    alarm(10);
+    alarm(40);
 
     for (;;) {
         nbytes = read(fd, buffer + pos, len - pos);
-        if (nbytes < 0) {
-            alarm(0);
+        alarm(0);
+        if (nbytes < 0)
             return (int)nbytes;
-        }
 
         pos += (size_t)nbytes;
         if (pos >= len)
@@ -204,16 +208,20 @@ static unsigned char calc_crc(const unsigned char *buffer, size_t len) {
 }
 
 
-static ssize_t read_full_crc(int fd, unsigned char *buffer, size_t len) {
+static ssize_t read_full_crc(int fd, void *buffer, size_t len) {
     ssize_t nbytes;
-    unsigned char crc;
+    unsigned char crc1, crc2;
 
-    nbytes = read_full(fd, buffer, len);
+    nbytes = read_full(fd, (unsigned char*)buffer, len);
     if (nbytes < 0)
         return nbytes;
 
-    crc = calc_crc(buffer, len - 1);
-    if (crc != buffer[len - 1]) {
+    nbytes = read_full(fd, &crc1, sizeof(crc1));
+    if (nbytes < 0)
+        return nbytes;
+
+    crc2 = calc_crc((unsigned char*)buffer, len);
+    if (crc2 != crc1) {
         fprintf(stderr, "CRC error\n");
         _exit(1);
     }
@@ -250,11 +258,11 @@ static int communicate(int fd, unsigned char cmd,
 
     nbytes = write(fd, &prefix, sizeof(prefix));
     if (nbytes <= 0)
-        return (int)nbytes;
+        return -1;
 
     nbytes = write(fd, &cmd, sizeof(cmd));
     if (nbytes <= 0)
-        return (int)nbytes;
+        return -1;
 
     ret = read_full_crc(fd, buffer, buffer_len);
     if (ret < 0)
@@ -265,7 +273,7 @@ static int communicate(int fd, unsigned char cmd,
 
 static int check_mem_settings(int fd) {
     int ret;
-    unsigned char buffer[7];
+    unsigned char buffer[6];
 
     ret = communicate(fd, 'Q' | 0x80,
                       buffer, sizeof(buffer));
@@ -323,12 +331,37 @@ static int raw(int argpos, int argc, char **argv) {
     return 0;
 }
 
+static int open_flight_list(int fd) {
+    unsigned char cmd[] = { 0x02, 'M' | 0x80 };
+    ssize_t nbytes;
+
+    syn_ack_wait(fd);
+
+    tcflush(fd, TCIOFLUSH);
+    nbytes = write(fd, cmd, sizeof(cmd));
+    if (nbytes < 0)
+        return -1;
+
+    return 0;
+}
+
+static int next_flight(int fd, struct flight_index *flight) {
+    int ret;
+
+    ret = read_full_crc(fd, (unsigned char*)flight, sizeof(*flight));
+    if (ret < 0)
+        return -1;
+
+    if (flight->data[0] != 1)
+        return 0;
+
+    return 1;
+}
+
 static int flight_list(int argpos, int argc, char **argv) {
     const char *device = "/dev/ttyS0";
-    unsigned char cmd[] = { 0x02, 'M' | 0x80 };
-    int fd;
-    unsigned char record[0x60];
-    int ret;
+    int fd, ret;
+    struct flight_index flight;
 
     (void)argpos;
     (void)argc;
@@ -338,21 +371,23 @@ static int flight_list(int argpos, int argc, char **argv) {
 
     check_mem_settings(fd);
 
-    tcflush(fd, TCIOFLUSH);
-    write(fd, cmd, sizeof(cmd));
+    ret = open_flight_list(fd);
+    if (ret < 0) {
+        fprintf(stderr, "io error: %s\n", strerror(errno));
+        _exit(1);
+    }
 
     for (;;) {
-        ret = read_full_crc(fd, record, sizeof(record));
+        ret = next_flight(fd, &flight);
         if (ret < 0) {
-            fprintf(stderr, "failed to read from '%s': %s\n",
-                    device, strerror(errno));
+            fprintf(stderr, "io error: %s\n", strerror(errno));
             _exit(1);
         }
 
-        if (record[0] != 1)
+        if (ret == 0)
             break;
 
-        printf("%s\t%s-%s\t%s\n", record + 9, record + 18, record + 0x1b, record + 40);
+        printf("%s\t%s-%s\t%s\n", flight.data + 9, flight.data + 18, flight.data + 0x1b, flight.data + 40);
     }
 
     return 0;
@@ -423,6 +458,183 @@ static int get_flight_info(int argpos, int argc, char **argv) {
     return 0;
 }
 
+static int seek_mem(int fd, struct flight_index *flight) {
+    unsigned char cmd[] = { 0x02, 'N' | 0x80, };
+    unsigned char buffer[7];
+    ssize_t nbytes;
+    unsigned char response;
+
+    /* ignore highest byte here, the same as in kflog */
+
+    /* start address */
+    buffer[0] = flight->data[2];
+    buffer[1] = flight->data[1];
+    buffer[2] = flight->data[4];
+
+    /* end address */
+    buffer[3] = flight->data[6];
+    buffer[4] = flight->data[5];
+    buffer[5] = flight->data[8];
+
+    buffer[6] = calc_crc((unsigned char*)buffer, 6);
+
+    tcflush(fd, TCIOFLUSH);
+
+    nbytes = write(fd, cmd, sizeof(cmd));
+    if (nbytes <= 0)
+        return -1;
+
+    nbytes = write(fd, buffer, sizeof(buffer));
+    if (nbytes <= 0)
+        return -1;
+
+    nbytes = read_full(fd, &response, sizeof(response));
+    if (nbytes <= 0)
+        return -1;
+
+    /* 0x06 = ACK */
+    if (response != 0x06) {
+        fprintf(stderr, "no ack in seek_mem\n");
+        _exit(1);
+    }
+
+    return 0;
+}
+
+static int get_mem_section(int fd, size_t section_lengths[0x10],
+                           size_t *overall_lengthp) {
+    unsigned char cmd[] = { 0x02, 'L' | 0x80, };
+    unsigned char mem_section[0x20];
+    ssize_t nbytes;
+    unsigned z;
+
+    tcflush(fd, TCIOFLUSH);
+
+    nbytes = write(fd, cmd, sizeof(cmd));
+    if (nbytes <= 0)
+        return -1;
+
+    nbytes = read_full_crc(fd, mem_section, sizeof(mem_section));
+    if (nbytes <= 0)
+        return -1;
+
+    *overall_lengthp = 0;
+
+    for (z = 0; z < 0x10; z++) {
+        section_lengths[z] = (mem_section[z * 2] << 8) +
+            mem_section[z * 2 + 1];
+        (*overall_lengthp) += section_lengths[z];
+    }
+
+    return 0;
+}
+
+static int download_section(int fd, unsigned section,
+                            unsigned char *buffer, size_t length) {
+    unsigned char cmd[] = { 0x02, ('f' | 0x80), };
+    ssize_t nbytes;
+
+    tcflush(fd, TCIOFLUSH);
+
+    cmd[1] += section;
+    nbytes = write(fd, cmd, sizeof(cmd));
+    if (nbytes <= 0)
+        return -1;
+
+    nbytes = read_full_crc(fd, buffer, length);
+    if (nbytes < 0)
+        return -1;
+
+    return 0;
+}
+
+static int download_flight(int argpos, int argc, char **argv) {
+    const char *device = "/dev/ttyS0";
+    int fd, ret, fd2;
+    struct flight_index buffer, flight, flight2;
+    size_t section_lengths[0x10], overall_length;
+    unsigned char *data, *p;
+    unsigned z;
+
+    (void)argpos;
+    (void)argc;
+    (void)argv;
+
+    fd = connect(device);
+
+    check_mem_settings(fd);
+
+    syn_ack_wait(fd);
+
+    ret = open_flight_list(fd);
+    if (ret < 0) {
+        fprintf(stderr, "io error: %s\n", strerror(errno));
+        _exit(1);
+    }
+
+    for (;;) {
+        ret = next_flight(fd, &buffer);
+        if (ret < 0) {
+            fprintf(stderr, "io error: %s\n", strerror(errno));
+            _exit(1);
+        }
+
+        if (ret == 0)
+            break;
+
+        flight = flight2;
+        flight2 = buffer;
+
+        printf("%s\t%s-%s\t%s\n", flight.data + 9, flight.data + 18, flight.data + 0x1b, flight.data + 40);
+    }
+
+    printf("seek_mem\n");
+    ret = seek_mem(fd, &flight);
+    if (ret < 0) {
+        fprintf(stderr, "io error: %s\n", strerror(errno));
+        _exit(1);
+    }
+
+    printf("get_mem_section\n");
+    ret = get_mem_section(fd, section_lengths, &overall_length);
+    if (ret < 0) {
+        fprintf(stderr, "io error: %s\n", strerror(errno));
+        _exit(1);
+    }
+
+    data = malloc(overall_length);
+    if (data == NULL) {
+        fprintf(stderr, "out of memory\n");
+        _exit(1);
+    }
+
+    fd2 = open("/tmp/foo", O_WRONLY|O_CREAT|O_TRUNC, 0666);
+    printf("fd2=%d\n", fd2);
+
+    for (z = 0, p = data; z < 0x10; z++) {
+        if (section_lengths[z] == 0)
+            break;
+
+        printf("downloading section %u, %u bytes\n",
+               z, section_lengths[z]);
+
+        ret = download_section(fd, z,
+                               p, section_lengths[z]);
+        if (ret < 0) {
+            fprintf(stderr, "io error: %s\n", strerror(errno));
+            _exit(1);
+        }
+
+        write(fd2, p, section_lengths[z]);
+
+        p += section_lengths[z];
+    }
+
+    close(fd2);
+
+    return 0;
+}
+
 int main(int argc, char **argv) {
     signal(SIGALRM, alarm_handler);
 
@@ -439,6 +651,8 @@ int main(int argc, char **argv) {
         return get_basic_data(2, argc, argv);
     } else if (strcmp(argv[1], "flight") == 0) {
         return get_flight_info(2, argc, argv);
+    } else if (strcmp(argv[1], "download") == 0) {
+        return download_flight(2, argc, argv);
     } else {
         fprintf(stderr, "usage: filser command [arg ...]\n");
         _exit(1);

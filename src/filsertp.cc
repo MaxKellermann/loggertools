@@ -29,12 +29,19 @@ struct turn_point {
     char valid;
     char code[8];
     char zero1[1];
-    char reserved[21];
+    char reserved1[3];
+    char fortytwo;
+    char reserved2[10];
+    char zero2[3];
+    char n_47_49[2];
+    char zero3[2];
 };
 
 class FilserTurnPointReader : public TurnPointReader {
 private:
     FILE *file;
+    unsigned long counts[sizeof(struct turn_point)];
+    unsigned c;
 public:
     FilserTurnPointReader(FILE *_file);
 public:
@@ -54,6 +61,8 @@ public:
 
 FilserTurnPointReader::FilserTurnPointReader(FILE *_file)
     :file(_file) {
+    memset(counts, 0, sizeof(counts));
+    c = 0;
 }
 
 const TurnPoint *FilserTurnPointReader::read() {
@@ -62,12 +71,21 @@ const TurnPoint *FilserTurnPointReader::read() {
     TurnPoint *tp;
     char code[sizeof(data.code) + 1];
     size_t length;
+    const unsigned char *p = (const unsigned char*)(const void*)&data;
 
     do {
         nmemb = fread(&data, sizeof(data), 1, file);
         if (nmemb != 1)
             return NULL;
     } while (data.valid != 1);
+
+    fprintf(stderr, "avg:");
+    c++;
+    for (length = 0; length < sizeof(data); length++) {
+        counts[length] += p[length];
+        fprintf(stderr, " %lx", counts[length] / c);
+    }
+    fprintf(stderr, "\n");
 
     /* create object */
     tp = new TurnPoint();
