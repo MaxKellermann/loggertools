@@ -58,7 +58,8 @@ struct turn_point {
     __uint8_t freq[3];
     char code[14];
     char title[14];
-    char foo2[5];
+    __uint8_t rwy1, rwy2;
+    char foo2[3];
 };
 
 struct foo {
@@ -252,6 +253,10 @@ const TurnPoint *CenfisDatabaseReader::read() {
     if (title[0] != 0)
         tp->setTitle(title);
 
+    /* runway */
+    if (data.rwy1 > 0)
+        tp->setRunway(Runway(Runway::TYPE_UNKNOWN, data.rwy1 * 10, 0));
+
     return tp;
 }
 
@@ -297,25 +302,50 @@ void CenfisDatabaseWriter::write(const TurnPoint &tp) {
     if (file == NULL)
         throw new TurnPointWriterException("already flushed");
 
+    memset(&data, 0, sizeof(data));
+
     /* append index to table */
     switch (tp.getType()) {
     case TurnPoint::TYPE_AIRFIELD:
         table = 1;
+        data.type = 1;
+        break;
+    case TurnPoint::TYPE_MILITARY_AIRFIELD:
+        table = 1;
+        data.type = 3;
         break;
     case TurnPoint::TYPE_GLIDER_SITE:
         table = 2;
+        data.type = 2;
         break;
     case TurnPoint::TYPE_OUTLANDING:
         table = 3;
+        data.type = 4;
+        break;
+    case TurnPoint::TYPE_THERMIK:
+        table = 0;
+        data.type = 5;
         break;
     default:
         table = 0;
+        data.type = 0;
     }
 
     offsets[table].push_back(ftell(file));
 
     /* fill out entry */
-    memset(&data, 0, sizeof(data));
+    if (tp.getPosition().defined()) {
+        data.latitude = htonl((tp.getPosition().getLatitude().getValue() * 600) / 1000);
+        data.longitude = htonl((tp.getPosition().getLongitude().getValue() * 600) / 1000);
+        data.altitude = htons(tp.getPosition().getAltitude().getValue());
+    }
+
+    if (tp.getFrequency() > 0) {
+        unsigned freq = tp.getFrequency() / 1000;
+        data.freq[0] = freq >> 16;
+        data.freq[1] = freq >> 8;
+        data.freq[2] = freq;
+    }
 
     length = strlen(tp.getCode());
     if (length > sizeof(data.code))
@@ -324,6 +354,17 @@ void CenfisDatabaseWriter::write(const TurnPoint &tp) {
     memcpy(data.code, tp.getCode(), length);
     memset(data.code + length, ' ', sizeof(data.code) - length);
 
+    length = strlen(tp.getTitle());
+    if (length > sizeof(data.title))
+        length = sizeof(data.title);
+
+    memcpy(data.title, tp.getTitle(), length);
+    memset(data.title + length, ' ', sizeof(data.title) - length);
+
+    if (tp.getRunway().defined())
+        data.rwy1 = tp.getRunway().getDirection() / 10;
+
+    /* write entry */
     nmemb = fwrite(&data, sizeof(data), 1, file);
     if (nmemb != 1)
         throw new TurnPointWriterException("failed to write record");
