@@ -19,12 +19,10 @@
  * $Id$
  */
 
-#include <errno.h>
 #include <string.h>
 #include <stdlib.h>
+#include <limits.h>
 #include <ctype.h>
-
-#include <string>
 
 #include "tp.hh"
 

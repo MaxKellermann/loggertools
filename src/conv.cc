@@ -158,17 +158,17 @@ int main(int argc, char **argv) {
         }
 
         writer->flush();
-    } catch (const TurnPointReaderException &e) {
+    } catch (TurnPointReaderException *e) {
         delete writer;
         delete reader;
         unlink(out_filename);
-        fprintf(stderr, "%s\n", e.getMessage());
+        fprintf(stderr, "%s\n", e->getMessage());
         _exit(1);
-    } catch (const TurnPointWriterException &e) {
+    } catch (TurnPointWriterException *e) {
         delete writer;
         delete reader;
         unlink(out_filename);
-        fprintf(stderr, "%s\n", e.getMessage());
+        fprintf(stderr, "%s\n", e->getMessage());
         _exit(1);
     }
 

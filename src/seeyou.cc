@@ -22,8 +22,7 @@
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
-
-#include <string>
+#include <limits.h>
 
 #include "tp.hh"
 
@@ -35,6 +34,7 @@ private:
     char **columns;
 public:
     SeeYouTurnPointReader(FILE *_file);
+    virtual ~SeeYouTurnPointReader();
 public:
     virtual const TurnPoint *read();
 };
@@ -152,6 +152,10 @@ SeeYouTurnPointReader::SeeYouTurnPointReader(FILE *_file)
         else
             columns[z] = strdup(column);
     }
+}
+
+SeeYouTurnPointReader::~SeeYouTurnPointReader() {
+    free(columns);
 }
 
 static Angle *parseAngle(const char *p, const char *letters) {

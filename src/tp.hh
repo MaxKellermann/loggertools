@@ -260,4 +260,10 @@ public:
     virtual TurnPointWriter *createWriter(FILE *file);
 };
 
+class CenfisDatabaseFormat : public TurnPointFormat {
+public:
+    virtual TurnPointReader *createReader(FILE *file);
+    virtual TurnPointWriter *createWriter(FILE *file);
+};
+
 TurnPointFormat *getTurnPointFormat(const char *ext);
