@@ -227,14 +227,16 @@ public:
     virtual TurnPointWriter *createWriter(FILE *file) = 0;
 };
 
-class SeeYouTurnPointFormat {
+class SeeYouTurnPointFormat : public TurnPointFormat {
 public:
     virtual TurnPointReader *createReader(FILE *file);
     virtual TurnPointWriter *createWriter(FILE *file);
 };
 
-class CenfisTurnPointFormat {
+class CenfisTurnPointFormat : public TurnPointFormat {
 public:
     virtual TurnPointReader *createReader(FILE *file);
     virtual TurnPointWriter *createWriter(FILE *file);
 };
+
+TurnPointFormat *getTurnPointFormat(const char *ext);

@@ -186,3 +186,17 @@ TurnPointWriter::~TurnPointWriter(void) {
 
 TurnPointFormat::~TurnPointFormat(void) {
 }
+
+static SeeYouTurnPointFormat seeYouFormat;
+static CenfisTurnPointFormat cenfisFormat;
+
+TurnPointFormat *getTurnPointFormat(const char *ext) {
+    if (strcasecmp(ext, "cup") == 0)
+        return &seeYouFormat;
+    else if (strcasecmp(ext, "cdb") == 0 ||
+             strcasecmp(ext, "idb") == 0)
+        return &cenfisFormat;
+    else
+        return NULL;
+}
+
