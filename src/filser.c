@@ -142,6 +142,43 @@ static ssize_t read_full(int fd, unsigned char *buffer, size_t len) {
     }
 }
 
+static ssize_t read_timeout(int fd, unsigned char *buffer,
+                            size_t len) {
+    ssize_t nbytes;
+    size_t pos = 0;
+    time_t timeout = time(NULL) + 10, timeout2 = 0;
+
+    for (;;) {
+        alarm(1);
+        nbytes = read(fd, buffer + pos, len - pos);
+        alarm(0);
+        if (nbytes < 0)
+            return errno == EINTR
+                ? (ssize_t)pos
+                : nbytes;
+
+        if (timeout2 == 0) {
+            if (nbytes == 0)
+                timeout2 = time(NULL) + 1;
+        } else {
+            if (nbytes > 0)
+                timeout2 = 0;
+        }
+
+        pos += (size_t)nbytes;
+        if (pos >= len)
+            return (ssize_t)pos;
+
+        if (timeout2 > 0 && time(NULL) >= timeout2)
+            return pos;
+
+        if (time(NULL) >= timeout) {
+            errno = EINTR;
+            return -1;
+        }
+    }
+}
+
 static unsigned char calc_crc_char(unsigned char d, unsigned char crc) {
     unsigned char tmp;
     const unsigned char crcpoly = 0x69;
@@ -177,6 +214,23 @@ static ssize_t read_full_crc(int fd, unsigned char *buffer, size_t len) {
 
     crc = calc_crc(buffer, len - 1);
     if (crc != buffer[len - 1]) {
+        fprintf(stderr, "CRC error\n");
+        _exit(1);
+    }
+
+    return nbytes;
+}
+
+static ssize_t read_timeout_crc(int fd, unsigned char *buffer, size_t len) {
+    ssize_t nbytes;
+    unsigned char crc;
+
+    nbytes = read_timeout(fd, buffer, len);
+    if (nbytes < 0)
+        return nbytes;
+
+    crc = calc_crc(buffer, nbytes - 1);
+    if (crc != buffer[nbytes - 1]) {
         fprintf(stderr, "CRC error\n");
         _exit(1);
     }
@@ -229,6 +283,46 @@ static int check_mem_settings(int fd) {
     return 0;
 }
 
+static int raw(int argpos, int argc, char **argv) {
+    const char *device = "/dev/ttyS0";
+    int fd;
+    unsigned char buffer[0x4000];
+    ssize_t nbytes1, nbytes2;
+
+    (void)argpos;
+    (void)argc;
+    (void)argv;
+
+    fd = connect(device);
+
+    check_mem_settings(fd);
+
+    nbytes1 = read_timeout(0, buffer, sizeof(buffer));
+    if (nbytes1 < 0) {
+        fprintf(stderr, "failed to read from stdin: %s\n",
+                strerror(errno));
+        _exit(1);
+    }
+
+    nbytes2 = write(fd, buffer, (size_t)nbytes1);
+    if (nbytes2 < 0) {
+        fprintf(stderr, "failed to write to '%s': %s\n",
+                device, strerror(errno));
+        _exit(1);
+    }
+
+    nbytes1 = read_timeout(fd, buffer, sizeof(buffer));
+    if (nbytes1 < 0) {
+        fprintf(stderr, "failed to read from '%s': %s\n",
+                device, strerror(errno));
+        _exit(1);
+    }
+
+    write(1, buffer, (size_t)nbytes1);
+
+    return 0;
+}
+
 static int flight_list(int argpos, int argc, char **argv) {
     const char *device = "/dev/ttyS0";
     unsigned char cmd[] = { 0x02, 'M' | 0x80 };
@@ -243,8 +337,6 @@ static int flight_list(int argpos, int argc, char **argv) {
     fd = connect(device);
 
     check_mem_settings(fd);
-
-    printf("Date\tTime\tPilot\n");
 
     tcflush(fd, TCIOFLUSH);
     write(fd, cmd, sizeof(cmd));
@@ -266,6 +358,71 @@ static int flight_list(int argpos, int argc, char **argv) {
     return 0;
 }
 
+static int get_basic_data(int argpos, int argc, char **argv) {
+    const char *device = "/dev/ttyS0";
+    unsigned char cmd[] = { 0x02, 0xc4 };
+    int fd;
+    unsigned char buffer[0x200];
+    ssize_t nbytes;
+    unsigned z;
+
+    (void)argpos;
+    (void)argc;
+    (void)argv;
+
+    fd = connect(device);
+
+    check_mem_settings(fd);
+
+    tcflush(fd, TCIOFLUSH);
+    write(fd, cmd, sizeof(cmd));
+
+    nbytes = read_timeout(fd, buffer, sizeof(buffer));
+    if (nbytes < 0) {
+        fprintf(stderr, "failed to read from '%s': %s\n",
+                device, strerror(errno));
+        _exit(1);
+    }
+
+    for (z = 0; z < (unsigned)nbytes; z++)
+        putchar(buffer[z]);
+
+    return 0;
+}
+
+static int get_flight_info(int argpos, int argc, char **argv) {
+    const char *device = "/dev/ttyS0";
+    unsigned char cmd[] = { 0x02, 0xc9 };
+    int fd;
+    unsigned char buffer[0x200];
+    ssize_t nbytes;
+
+    (void)argpos;
+    (void)argc;
+    (void)argv;
+
+    fd = connect(device);
+
+    check_mem_settings(fd);
+
+    tcflush(fd, TCIOFLUSH);
+    write(fd, cmd, sizeof(cmd));
+
+    nbytes = read_timeout_crc(fd, buffer, sizeof(buffer));
+    if (nbytes < 0) {
+        fprintf(stderr, "failed to read from '%s': %s\n",
+                device, strerror(errno));
+        _exit(1);
+    }
+
+    printf("Pilot: %s\n", buffer + 0x03);
+    printf("Model: %s\n", buffer + 0x16);
+    printf("ID: %s\n", buffer + 0x22);
+    printf("ID2: %s\n", buffer + 0x2a);
+
+    return 0;
+}
+
 int main(int argc, char **argv) {
     signal(SIGALRM, alarm_handler);
 
@@ -274,8 +431,14 @@ int main(int argc, char **argv) {
         _exit(1);
     }
 
-    if (strcmp(argv[1], "list") == 0) {
+    if (strcmp(argv[1], "raw") == 0) {
+        return raw(2, argc, argv);
+    } else if (strcmp(argv[1], "list") == 0) {
         return flight_list(2, argc, argv);
+    } else if (strcmp(argv[1], "basic") == 0) {
+        return get_basic_data(2, argc, argv);
+    } else if (strcmp(argv[1], "flight") == 0) {
+        return get_flight_info(2, argc, argv);
     } else {
         fprintf(stderr, "usage: filser command [arg ...]\n");
         _exit(1);
