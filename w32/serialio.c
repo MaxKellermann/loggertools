@@ -124,8 +124,8 @@ int serialio_select(struct serialio *serio, int options,
 
         if (comstat.cbInQue == 0)
             result &= ~SERIALIO_SELECT_AVAILABLE;
-        /*if (comstat.cbOutQue > 0)
-          result &= ~SERIALIO_SELECT_READY;*/
+        if (comstat.cbOutQue > 0)
+          result &= ~SERIALIO_SELECT_READY;
 
         if (result != 0 || sleeps == 0)
             return result;
