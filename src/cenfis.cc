@@ -22,6 +22,7 @@
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #include <string>
 
@@ -177,6 +178,59 @@ static unsigned parseFrequency(const char *p) {
     return (unsigned)(n1 * 1000 + n2) * 1000;
 }
 
+static char *nextWord(char **p) {
+    char *ret;
+
+    if (**p == 0)
+        return NULL;
+
+    while (**p == ' ')
+        (*p)++;
+
+    if (**p == 0)
+        return NULL;
+
+    ret = *p;
+
+    while (**p != ' ') {
+        (*p)++;
+        if (**p == 0)
+            return ret;
+    }
+
+    **p = 0;
+    (*p)++;
+
+    return ret;
+}
+
+static Runway *parseRunway(char *p) {
+    unsigned long u;
+    Runway::type_t type = Runway::TYPE_UNKNOWN;
+    unsigned direction = UINT_MAX, length = 0;
+    char *word, *endptr;
+
+    while ((word = nextWord(&p)) != NULL) {
+        u = strtoul(word, &endptr, 10);
+        if (endptr == word) {
+            if (strncasecmp(word, "GR", 2) == 0)
+                type = Runway::TYPE_GRASS;
+            else if (strncasecmp(word, "AS" ,2) == 0 ||
+                     strncasecmp(word, "SO", 2) == 0)
+                type = Runway::TYPE_ASPHALT;
+        } else {
+            if (u < 100) {
+                if (direction == UINT_MAX)
+                    direction = (unsigned)u * 10;
+            } else {
+                length = (unsigned)u;
+            }
+        }
+    }
+
+    return new Runway(type, direction, length);
+}
+
 TurnPoint *CenfisTurnPointReader::handleLine(char *line) {
     TurnPoint *ret;
     char *p;
@@ -308,7 +362,15 @@ TurnPoint *CenfisTurnPointReader::handleLine(char *line) {
         break;
 
     case 'R': /* runway */
-        
+        {
+            Runway *rwy;
+
+            rwy = parseRunway(line + 2);
+            if (rwy != NULL) {
+                tp->setRunway(*rwy);
+                delete rwy;
+            }
+        }
         break;
     }
 
@@ -428,10 +490,10 @@ void CenfisTurnPointWriter::write(const TurnPoint &tp) {
         case Runway::TYPE_UNKNOWN:
             break;
         case Runway::TYPE_GRASS:
-            fprintf(file, " grass");
+            fprintf(file, " GR");
             break;
         case Runway::TYPE_ASPHALT:
-            fprintf(file, " asphalt");
+            fprintf(file, " AS");
             break;
         }
 
