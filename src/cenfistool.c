@@ -146,12 +146,12 @@ int main(int argc, char **argv) {
     signal(SIGALRM, alarm_handler);
 
     if (argc != 3) {
-        fprintf(stderr, "usage: cenfis send filename.bhf\n");
+        fprintf(stderr, "usage: cenfistool send filename.bhf\n");
         _exit(1);
     }
 
     if (strcmp(argv[1], "send") != 0) {
-        fprintf(stderr, "usage: cenfis send filename.bhf\n");
+        fprintf(stderr, "usage: cenfistool send filename.bhf\n");
         _exit(1);
     }
 
