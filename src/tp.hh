@@ -45,10 +45,31 @@ public:
 };
 
 class TurnPoint {
+public:
+    enum style_t {
+        STYLE_UNKNOWN = 0,
+        STYLE_NORMAL = 1,
+        STYLE_AIRFIELD_GRASS = 2,
+        STYLE_OUTLANDING = 3,
+        STYLE_GLIDER_SITE = 4,
+        STYLE_AIRFIELD_SOLID = 5,
+        STYLE_MOUNTAIN_PASS = 6,
+        STYLE_MOUNTAIN_TOP = 7,
+        STYLE_SENDER = 8,
+        STYLE_VOR = 9,
+        STYLE_NDB = 10,
+        STYLE_COOL_TOWER = 11,
+        STYLE_DAM = 12,
+        STYLE_TUNNEL = 13,
+        STYLE_BRIDGE = 14,
+        STYLE_POWER_PLANT = 15,
+        STYLE_CASTLE = 16,
+        STYLE_INTERSECTION = 17
+    };
 private:
     char *title, *code, *country;
     Position position;
-    int style;
+    style_t style;
     char *direction;
     unsigned length;
     char *frequency, *description;
@@ -57,7 +78,7 @@ public:
     TurnPoint(const char *_title, const char *_code,
               const char *_country,
               const Position &_position,
-              int _style,
+              style_t _style,
               const char *_direction,
               unsigned _length,
               const char *_frequency,
@@ -80,10 +101,10 @@ public:
         return position;
     }
     void setPosition(const Position &_position);
-    int getStyle() const {
+    style_t getStyle() const {
         return style;
     }
-    void setStyle(int _style);
+    void setStyle(style_t _style);
     const char *getDirection() const {
         return direction;
     }

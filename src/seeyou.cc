@@ -201,7 +201,7 @@ const TurnPoint *SeeYouTurnPointReader::read() {
             else
                 elevation = strtol(column, NULL, 10);
         } else if (strcmp(columns[z], "Style") == 0)
-            tp->setStyle(atoi(column));
+            tp->setStyle((TurnPoint::style_t)atoi(column));
         else if (strcmp(columns[z], "Direction") == 0)
             tp->setDirection(column);
         else if (strcmp(columns[z], "Length") == 0)

@@ -65,14 +65,14 @@ void Position::operator =(const Position &pos) {
 
 TurnPoint::TurnPoint(void)
     :title(NULL), code(NULL), country(NULL),
-     style(0), direction(NULL), length(0),
+     style(STYLE_UNKNOWN), direction(NULL), length(0),
      frequency(NULL), description(NULL) {
 }
 
 TurnPoint::TurnPoint(const char *_title, const char *_code,
                      const char *_country,
                      const Position &_position,
-                     int _style,
+                     style_t _style,
                      const char *_direction,
                      unsigned _length,
                      const char *_frequency,
@@ -125,7 +125,7 @@ void TurnPoint::setPosition(const Position &_position) {
     position = _position;
 }
 
-void TurnPoint::setStyle(int _style) {
+void TurnPoint::setStyle(style_t _style) {
     style = _style;
 }
 
