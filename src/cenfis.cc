@@ -219,7 +219,10 @@ TurnPoint *CenfisTurnPointReader::handleLine(char *line) {
     /* check field */
     switch (*line) {
     case 'N': /* name */
-        tp->setCode(line + 2);
+        line += 2;
+
+        if (*line != 0)
+            tp->setCode(line);
         break;
 
     case 'T': /* type and description */
@@ -244,7 +247,8 @@ TurnPoint *CenfisTurnPointReader::handleLine(char *line) {
 
         line += 4;
 
-        tp->setTitle(line);
+        if (*line != 0)
+            tp->setTitle(line);
 
         break;
 
@@ -309,6 +313,7 @@ TurnPoint *CenfisTurnPointReader::handleLine(char *line) {
         break;
 
     case 'R': /* runway */
+        
         break;
     }
 
