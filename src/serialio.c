@@ -83,7 +83,7 @@ int serialio_open(const char *device,
     serio->fd = fd;
 
     *serialiop = serio;
-    return -1;
+    return 0;
 }
 
 void serialio_close(struct serialio *serialio) {
