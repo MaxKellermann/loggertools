@@ -59,15 +59,120 @@ CenfisTurnPointReader::~CenfisTurnPointReader() {
         delete tp;
 }
 
+static Angle *parseAngle(char **pp, const char *letters) {
+    const char *p = *pp;
+    unsigned long n1, n2, n3;
+    int sign;
+    char *endptr;
+
+    if (p == NULL || p[0] == 0 || p[1] != ' ' || p[2] == 0)
+        return NULL;
+
+    if (*p == letters[0])
+        sign = -1;
+    else if (*p == letters[1])
+        sign = 1;
+    else
+        return NULL;
+
+    p += 2;
+
+    n1 = strtoul(p, &endptr, 10);
+    if (n1 > 180 || endptr == NULL ||
+        endptr[0] != ' ' || endptr[1] == 0)
+        return NULL;
+
+    n2 = strtoul(endptr + 1, &endptr, 10);
+    if (n2 >= 60 || endptr == NULL ||
+        endptr[0] != ' ' || endptr[1] == 0)
+        return NULL;
+
+    n3 = strtoul(endptr + 1, &endptr, 10);
+    if (n2 >= 1000 || endptr == NULL ||
+        endptr[0] != ' ' || endptr[1] == 0)
+        return NULL;
+
+    *pp = endptr + 1;
+
+    return new Angle(sign * (((n1 * 60) + n2) * 1000 + n3));
+}
+
+static Angle *parseAngle60(char **pp, const char *letters) {
+    const char *p = *pp;
+    unsigned long n1, n2, n3;
+    int sign;
+    char *endptr;
+
+    if (p == NULL || p[0] == 0 || p[1] != ' ' || p[2] == 0)
+        return NULL;
+
+    if (*p == letters[0])
+        sign = -1;
+    else if (*p == letters[1])
+        sign = 1;
+    else
+        return NULL;
+
+    p += 2;
+
+    n1 = strtoul(p, &endptr, 10);
+    if (n1 > 180 || endptr == NULL ||
+        endptr[0] != ' ' || endptr[1] == 0)
+        return NULL;
+
+    n2 = strtoul(endptr + 1, &endptr, 10);
+    if (n2 >= 60 || endptr == NULL ||
+        endptr[0] != ' ' || endptr[1] == 0)
+        return NULL;
+
+    n3 = strtoul(endptr + 1, &endptr, 10);
+    if (n2 >= 60 || endptr == NULL ||
+        endptr[0] != ' ' || endptr[1] == 0)
+        return NULL;
+
+    *pp = endptr + 1;
+
+    return new Angle(sign * (((n1 * 60) + n2) * 1000 + ((n3 * 1000) / 60)));
+}
+
+static Altitude *parseAltitude(const char *p) {
+    Altitude::unit_t unit;
+    long value;
+    char *endptr;
+
+    if (p == NULL || p[0] == 0 || p[1] != ' ' || p[2] == 0)
+        return NULL;
+
+    switch (p[0]) {
+    case 'M':
+        unit = Altitude::UNIT_METERS;
+        break;
+    case 'F':
+        unit = Altitude::UNIT_FEET;
+        break;
+    case 'U':
+        unit = Altitude::UNIT_UNKNOWN;
+        break;
+    default:
+        return NULL;
+    }
+
+    value = strtol(p + 2, &endptr, 10);
+    if (endptr != NULL && *endptr)
+        return NULL;
+
+    return new Altitude((long)value, unit, Altitude::REF_MSL);
+}
+
 static unsigned parseFrequency(const char *p) {
     unsigned long n1, n2;
     char *endptr;
 
     n1 = strtoul(p, &endptr, 10);
-    if (endptr == NULL || *endptr != ' ')
+    if (endptr == NULL || (*endptr != ' ' && *endptr != '.'))
         return (unsigned)n1 * 1000000;
 
-    n2 = strtoul(p, NULL, 10);
+    n2 = strtoul(endptr + 1, NULL, 10);
 
     return (unsigned)(n1 * 1000 + n2) * 1000;
 }
@@ -77,35 +182,44 @@ TurnPoint *CenfisTurnPointReader::handleLine(char *line) {
     char *p;
     size_t length;
 
+    /* remove comments after semicolon */
     p = strchr(line, ';');
     if (p != NULL)
         *p = 0;
 
+    /* rtrim */
     length = strlen(line);
     while (length > 0 &&
            line[length - 1] > 0 &&
-           line[length - 1] <= ' ') {
+           line[length - 1] < ' ') {
+        /* no, don't delete the whitespace please */
         length--;
         line[length] = 0;
     }
 
-    if (strcmp(line, "11 ") == 0) {
+    /* check code */
+    if (strncmp(line, "11 ", 3) == 0) {
         ret = tp;
         tp = new TurnPoint();
-    } else if (strcmp(line, "   ") == 0) {
+    } else if (strncmp(line, "   ", 3) == 0) {
         ret = NULL;
-    } else
+    } else if (*line == 0 || *line == ' ') {
         return NULL;
+    } else {
+        ret = tp;
+        tp = NULL;
+        return ret;
+    }
 
     line += 3;
 
-    if (line[0] == 0 || line[1] != ' ' ||
-        line[2] == 0 || line[3] != ' ')
+    if (line[0] == 0 || line[1] != ' ')
         return ret;
 
+    /* check field */
     switch (*line) {
     case 'N': /* name */
-        tp->setTitle(line + 2);
+        tp->setCode(line + 2);
         break;
 
     case 'T': /* type and description */
@@ -130,16 +244,64 @@ TurnPoint *CenfisTurnPointReader::handleLine(char *line) {
 
         line += 4;
 
-        tp->setDescription(line);
+        tp->setTitle(line);
 
         break;
 
     case 'C': /* position */
-        
+        {
+            Angle *longitude, *latitude;
+            Altitude *altitude;
+
+            line += 2;
+
+            latitude = parseAngle60(&line, "SN");
+            if (latitude == NULL)
+                break;
+
+            longitude = parseAngle60(&line, "WE");
+            if (longitude == NULL) {
+                delete latitude;
+                break;
+            }
+
+            altitude = parseAltitude(line);
+            if (altitude == NULL)
+                altitude = new Altitude();
+
+            tp->setPosition(Position(*latitude, *longitude, *altitude));
+            delete latitude;
+            delete longitude;
+            delete altitude;
+        }
         break;
 
     case 'K': /* position */
+        {
+            Angle *longitude, *latitude;
+            Altitude *altitude;
 
+            line += 2;
+
+            latitude = parseAngle(&line, "SN");
+            if (latitude == NULL)
+                break;
+
+            longitude = parseAngle(&line, "WE");
+            if (longitude == NULL) {
+                delete latitude;
+                break;
+            }
+
+            altitude = parseAltitude(line);
+            if (altitude == NULL)
+                altitude = new Altitude();
+
+            tp->setPosition(Position(*latitude, *longitude, *altitude));
+            delete latitude;
+            delete longitude;
+            delete altitude;
+        }
         break;
 
     case 'F': /* frequency */
@@ -155,7 +317,7 @@ TurnPoint *CenfisTurnPointReader::handleLine(char *line) {
 
 const TurnPoint *CenfisTurnPointReader::read() {
     char line[1024];
-    TurnPoint *ret;
+    TurnPoint *ret = NULL;
 
     while ((fgets(line, sizeof(line), file)) != NULL) {
         TurnPoint *ret = handleLine(line);
@@ -204,13 +366,25 @@ static char *formatAngle(char *buffer, size_t buffer_max_len,
 }
 
 void CenfisTurnPointWriter::write(const TurnPoint &tp) {
+    const char *p;
+
     if (file == NULL)
         throw new TurnPointWriterException("already flushed");
 
-    fprintf(file, "11 N %s\n", tp.getCode());
-    fprintf(file, "   T %3s %s\n",
-            formatType(tp.getStyle()),
-            tp.getTitle());
+    p = tp.getCode();
+    if (p == NULL)
+        p = tp.getTitle();
+    if (p == NULL)
+        p = "unknown";
+    fprintf(file, "11 N %s\n", p);
+
+    fprintf(file, "   T %3s",
+            formatType(tp.getStyle()));
+
+    if (tp.getTitle() != NULL)
+        fprintf(file, " %s", tp.getTitle());
+
+    fputs("\n", file);
 
     if (tp.getPosition().defined()) {
         char latitude[16], longitude[16];
@@ -235,7 +409,7 @@ void CenfisTurnPointWriter::write(const TurnPoint &tp) {
             default:
                 letter = 'U';
             }
-            fprintf(file, " %c %5u", letter,
+            fprintf(file, " %c %u", letter,
                     tp.getPosition().getAltitude().getValue());
         } else
             fputs(" U     0", file);

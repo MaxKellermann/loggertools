@@ -262,7 +262,7 @@ const TurnPoint *SeeYouTurnPointReader::read() {
         } else if (strcmp(columns[z], "Longitude") == 0) {
             if (longitude != NULL)
                 delete longitude;
-            longitude = parseAngle(column, "EW");
+            longitude = parseAngle(column, "WE");
         } else if (strcmp(columns[z], "Elevation") == 0) {
             if (altitude != NULL)
                 delete altitude;
@@ -318,7 +318,7 @@ void SeeYouTurnPointWriter::write(const TurnPoint &tp) {
         formatAngle(latitude, sizeof(latitude),
                     tp.getPosition().getLatitude(), "SN");
         formatAngle(longitude, sizeof(longitude),
-                    tp.getPosition().getLongitude(), "EW");
+                    tp.getPosition().getLongitude(), "WE");
     } else {
         latitude[0] = 0;
         longitude[0] = 0;
