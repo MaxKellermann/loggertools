@@ -32,6 +32,8 @@ static void usage(void) {
     printf("commands:\n");
     printf("  send <filename.bhf>\n");
     printf("      directly send the specified file to the Cenfis device\n");
+    printf("  upload <filename.bhf>\n");
+    printf("      wait for the Cenfis device to be ready, then upload the specified hexfile\n");
     printf("  help\n");
     printf("      print this help page\n");
 }
@@ -44,6 +46,90 @@ static void arg_error(const char *msg) {
 }
 
 static void command_send(int argc, char **argv, int pos) {
+    const char *filename = NULL;
+    const char *device = "/dev/ttyS0";
+    FILE *file;
+    char line[256];
+    size_t length;
+    cenfis_status_t status;
+    struct cenfis *cenfis;
+    struct timeval tv;
+
+    if (pos >= argc)
+        arg_error("Please provide a file name");
+
+    if (pos < argc - 1)
+        arg_error("Too many arguments after command");
+
+    filename = argv[pos];
+
+    file = fopen(filename, "r");
+    if (file == NULL) {
+        fprintf(stderr, "failed to open '%s': %s\n",
+                filename, strerror(errno));
+        _exit(1);
+    }
+
+    status = cenfis_open(device, &cenfis);
+    if (cenfis_is_error(status)) {
+        if (status == CENFIS_STATUS_ERRNO) {
+            fprintf(stderr, "failed to open '%s': %s\n",
+                    device, strerror(errno));
+        } else {
+            fprintf(stderr, "cenfis_open('%s') failed with status %d\n",
+                    device, status);
+        }
+        _exit(1);
+    }
+
+    printf("Sending data to device\n");
+
+    /* it's data time. read the input file */
+    while (fgets(line, sizeof(line) - 2, file) != NULL) {
+        /* format the line */
+        length = strlen(line);
+        while (length > 0 && line[length - 1] >= 0 &&
+               line[length - 1] <= ' ')
+            length--;
+
+        if (length == 0)
+            continue;
+
+        line[length++] = '\r';
+        line[length++] = '\n';
+
+        /* write line to device */
+        status = cenfis_write_data(cenfis, line, length);
+        if (cenfis_is_error(status)) {
+            fprintf(stderr, "cenfis_write_data failed with status %d\n",
+                    status);
+            _exit(1);
+        }
+
+        /* wait for ACK from device */
+        tv.tv_sec = 2;
+        tv.tv_usec = 0;
+
+        status = cenfis_select(cenfis, &tv);
+        if (cenfis_is_error(status)) {
+            fprintf(stderr, "cenfis_select failed with status %d\n", status);
+            _exit(1);
+        }
+
+        if (status == CENFIS_STATUS_WAIT_ACK) {
+            fprintf(stderr, "no ack from device\n");
+            _exit(1);
+        } else if (status == CENFIS_STATUS_DATA) {
+            printf(".");
+            fflush(stdout);
+        } else {
+            fprintf(stderr, "wrong status %d\n", status);
+            _exit(1);
+        }
+    }
+}
+
+static void command_upload(int argc, char **argv, int pos) {
     const char *filename = NULL;
     const char *device = "/dev/ttyS0";
     FILE *file;
@@ -174,6 +260,8 @@ int main(int argc, char **argv) {
 
     if (strcmp(argv[1], "send") == 0) {
         command_send(argc, argv, 2);
+    } else if (strcmp(argv[1], "upload") == 0) {
+        command_upload(argc, argv, 2);
     } else if (strcmp(argv[1], "help") == 0 ||
                strcmp(argv[1], "--help") == 0 ||
                strcmp(argv[1], "-h") == 0) {
