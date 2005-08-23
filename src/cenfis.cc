@@ -471,7 +471,7 @@ void CenfisTurnPointWriter::write(const TurnPoint &tp) {
             default:
                 letter = 'U';
             }
-            fprintf(file, " %c %u", letter,
+            fprintf(file, " %c %ld", letter,
                     tp.getPosition().getAltitude().getValue());
         } else
             fputs(" U     0", file);
