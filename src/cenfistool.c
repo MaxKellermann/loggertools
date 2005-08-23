@@ -27,7 +27,23 @@
 
 #include "cenfis.h"
 
-int main(int argc, char **argv) {
+static void usage(void) {
+    printf("usage: cenfistool <command> <arguments...>\n");
+    printf("commands:\n");
+    printf("  send <filename.bhf>\n");
+    printf("      directly send the specified file to the Cenfis device\n");
+    printf("  help\n");
+    printf("      print this help page\n");
+}
+
+static void arg_error(const char *msg) __attribute__ ((noreturn));
+static void arg_error(const char *msg) {
+    fprintf(stderr, "cenfistool: %s\n", msg);
+    fprintf(stderr, "Try 'cenfistool --help' for more information.\n");
+    _exit(1);
+}
+
+static void command_send(int argc, char **argv, int pos) {
     const char *filename = NULL;
     const char *device = "/dev/ttyS0";
     FILE *file;
@@ -37,17 +53,13 @@ int main(int argc, char **argv) {
     struct cenfis *cenfis;
     struct timeval tv;
 
-    if (argc != 3) {
-        fprintf(stderr, "usage: cenfistool send filename.bhf\n");
-        _exit(1);
-    }
+    if (pos >= argc)
+        arg_error("Please provide a file name");
 
-    if (strcmp(argv[1], "send") != 0) {
-        fprintf(stderr, "usage: cenfistool send filename.bhf\n");
-        _exit(1);
-    }
+    if (pos < argc - 1)
+        arg_error("Too many arguments after command");
 
-    filename = argv[2];
+    filename = argv[pos];
 
     file = fopen(filename, "r");
     if (file == NULL) {
@@ -151,6 +163,23 @@ int main(int argc, char **argv) {
             fprintf(stderr, "wrong status %d\n", status);
             _exit(1);
         }
+    }
+}
+
+int main(int argc, char **argv) {
+    if (argc < 2) {
+        usage();
+        _exit(0);
+    }
+
+    if (strcmp(argv[1], "send") == 0) {
+        command_send(argc, argv, 2);
+    } else if (strcmp(argv[1], "help") == 0 ||
+               strcmp(argv[1], "--help") == 0 ||
+               strcmp(argv[1], "-h") == 0) {
+        usage();
+    } else {
+        arg_error("Unknown command");
     }
 
     return 0;
