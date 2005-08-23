@@ -278,7 +278,7 @@ cenfis_status_t cenfis_write_data(struct cenfis *cenfis,
     if (cenfis_is_error(cenfis->status))
         return cenfis->status;
 
-    if (cenfis->status != CENFIS_STATUS_DATA)
+    if (cenfis->status != CENFIS_STATUS_DATA && cenfis->status != CENFIS_STATUS_IDLE)
         return CENFIS_STATUS_CONTEXT;
 
     status = cenfis_write(cenfis, buf, count);
