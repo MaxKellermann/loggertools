@@ -616,7 +616,7 @@ static int download_flight(int argpos, int argc, char **argv) {
             break;
 
         printf("downloading section %u, %lu bytes\n",
-               z, section_lengths[z]);
+               z, (unsigned long)section_lengths[z]);
 
         ret = download_section(fd, z,
                                p, section_lengths[z]);
