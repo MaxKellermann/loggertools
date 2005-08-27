@@ -137,4 +137,25 @@ struct filser_flight_index {
     unsigned char flight_no; /* ? */
 } __attribute__((packed));
 
+enum filser_command {
+    FILSER_PREFIX = 0x02,
+    FILSER_ACK = 0x06,
+    FILSER_SYN = 0x16,
+    FILSER_READ_TP_TSK = 0x52,
+    FILSER_WRITE_TP_TSK = 0x57,
+    FILSER_READ_BASIC_DATA = 0xc4,
+    FILSER_READ_SETUP = 0xc5,
+    FILSER_WRITE_SETUP = 0xc6,
+    FILSER_READ_FLIGHT_INFO = 0xc9,
+    FILSER_WRITE_FLIGHT_INFO = 0xca,
+    FILSER_READ_EXTRA_DATA = 0xcb,
+    FILSER_GET_MEM_SECTION = 0xcc,
+    FILSER_READ_FLIGHT_LIST = 0xcd,
+    FILSER_DEF_MEM = 0xce,
+    FILSER_READ_CONTEST_CLASS = 0xcf,
+    FILSER_WRITE_CONTEST_CLASS = 0xd0,
+    FILSER_CHECK_MEM_SETTINGS = 0xd1,
+    FILSER_READ_LOGGER_DATA = 0xe6,
+};
+
 #endif

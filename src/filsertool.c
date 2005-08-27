@@ -38,7 +38,7 @@ static void alarm_handler(int dummy) {
 }
 
 static int syn_ack(int fd) {
-    const char syn = 0x16, ack = 0x06;
+    const char syn = FILSER_SYN, ack = FILSER_ACK;
     char buffer;
     ssize_t nbytes;
 
@@ -246,7 +246,7 @@ static ssize_t read_timeout_crc(int fd, unsigned char *buffer, size_t len) {
 
 static int communicate(int fd, unsigned char cmd,
                        unsigned char *buffer, size_t buffer_len) {
-    const unsigned char prefix = 0x02;
+    const unsigned char prefix = FILSER_PREFIX;
     ssize_t nbytes;
     int ret;
 
@@ -273,7 +273,7 @@ static int check_mem_settings(int fd) {
     int ret;
     unsigned char buffer[6];
 
-    ret = communicate(fd, 'Q' | 0x80,
+    ret = communicate(fd, FILSER_CHECK_MEM_SETTINGS,
                       buffer, sizeof(buffer));
     if (ret < 0) {
         fprintf(stderr, "failed to communicate: %s\n",
@@ -330,7 +330,7 @@ static int raw(int argpos, int argc, char **argv) {
 }
 
 static int open_flight_list(int fd) {
-    unsigned char cmd[] = { 0x02, 'M' | 0x80 };
+    unsigned char cmd[] = { FILSER_PREFIX, FILSER_READ_FLIGHT_LIST };
     ssize_t nbytes;
 
     syn_ack_wait(fd);
@@ -395,7 +395,7 @@ static int flight_list(int argpos, int argc, char **argv) {
 
 static int get_basic_data(int argpos, int argc, char **argv) {
     const char *device = "/dev/ttyS0";
-    unsigned char cmd[] = { 0x02, 0xc4 };
+    unsigned char cmd[] = { FILSER_PREFIX, FILSER_READ_BASIC_DATA };
     int fd;
     unsigned char buffer[0x200];
     ssize_t nbytes;
@@ -427,7 +427,7 @@ static int get_basic_data(int argpos, int argc, char **argv) {
 
 static int get_flight_info(int argpos, int argc, char **argv) {
     const char *device = "/dev/ttyS0";
-    unsigned char cmd[] = { 0x02, 0xc9 };
+    unsigned char cmd[] = { FILSER_PREFIX, FILSER_READ_FLIGHT_INFO };
     int fd;
     unsigned char buffer[0x200];
     ssize_t nbytes;
@@ -459,7 +459,7 @@ static int get_flight_info(int argpos, int argc, char **argv) {
 }
 
 static int seek_mem(int fd, struct filser_flight_index *flight) {
-    unsigned char cmd[] = { 0x02, 'N' | 0x80, };
+    unsigned char cmd[] = { FILSER_PREFIX, FILSER_DEF_MEM, };
     unsigned char buffer[7];
     ssize_t nbytes;
     unsigned char response;
@@ -492,8 +492,7 @@ static int seek_mem(int fd, struct filser_flight_index *flight) {
     if (nbytes <= 0)
         return -1;
 
-    /* 0x06 = ACK */
-    if (response != 0x06) {
+    if (response != FILSER_ACK) {
         fprintf(stderr, "no ack in seek_mem\n");
         _exit(1);
     }
@@ -503,7 +502,7 @@ static int seek_mem(int fd, struct filser_flight_index *flight) {
 
 static int get_mem_section(int fd, size_t section_lengths[0x10],
                            size_t *overall_lengthp) {
-    unsigned char cmd[] = { 0x02, 'L' | 0x80, };
+    unsigned char cmd[] = { FILSER_PREFIX, FILSER_GET_MEM_SECTION, };
     unsigned char mem_section[0x20];
     ssize_t nbytes;
     unsigned z;
@@ -531,7 +530,7 @@ static int get_mem_section(int fd, size_t section_lengths[0x10],
 
 static int download_section(int fd, unsigned section,
                             unsigned char *buffer, size_t length) {
-    unsigned char cmd[] = { 0x02, ('f' | 0x80), };
+    unsigned char cmd[] = { FILSER_PREFIX, FILSER_READ_LOGGER_DATA, };
     ssize_t nbytes;
 
     tcflush(fd, TCIOFLUSH);
