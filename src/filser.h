@@ -158,4 +158,6 @@ enum filser_command {
     FILSER_READ_LOGGER_DATA = 0xe6,
 };
 
+unsigned char filser_calc_crc(const void *p0, size_t len);
+
 #endif

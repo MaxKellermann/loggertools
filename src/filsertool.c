@@ -181,31 +181,6 @@ static ssize_t read_timeout(int fd, unsigned char *buffer,
     }
 }
 
-static unsigned char calc_crc_char(unsigned char d, unsigned char crc) {
-    unsigned char tmp;
-    const unsigned char crcpoly = 0x69;
-    int count;
-
-    for (count = 8; --count >= 0; d <<= 1) {
-        tmp = crc ^ d;
-        crc <<= 1;
-        if (tmp & 0x80)
-            crc ^= crcpoly;
-    }
-    return crc;
-}
-
-static unsigned char calc_crc(const unsigned char *buffer, size_t len) {
-    unsigned z;
-    unsigned char crc = 0xff;
-
-    for(z = 0; z < len; z++)
-        crc = calc_crc_char(buffer[z], crc);
-
-    return crc;
-}
-
-
 static ssize_t read_full_crc(int fd, void *buffer, size_t len) {
     ssize_t nbytes;
     unsigned char crc1, crc2;
@@ -218,7 +193,7 @@ static ssize_t read_full_crc(int fd, void *buffer, size_t len) {
     if (nbytes < 0)
         return nbytes;
 
-    crc2 = calc_crc((unsigned char*)buffer, len);
+    crc2 = filser_calc_crc((unsigned char*)buffer, len);
     if (crc2 != crc1) {
         fprintf(stderr, "CRC error\n");
         _exit(1);
@@ -235,7 +210,7 @@ static ssize_t read_timeout_crc(int fd, unsigned char *buffer, size_t len) {
     if (nbytes < 0)
         return nbytes;
 
-    crc = calc_crc(buffer, nbytes - 1);
+    crc = filser_calc_crc(buffer, nbytes - 1);
     if (crc != buffer[nbytes - 1]) {
         fprintf(stderr, "CRC error\n");
         _exit(1);
@@ -476,7 +451,7 @@ static int seek_mem(int fd, struct filser_flight_index *flight) {
     buffer[4] = flight->end_address1;
     buffer[5] = flight->end_address2;
 
-    buffer[6] = calc_crc((unsigned char*)buffer, 6);
+    buffer[6] = filser_calc_crc((unsigned char*)buffer, 6);
 
     tcflush(fd, TCIOFLUSH);
 

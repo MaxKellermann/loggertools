@@ -26,5 +26,5 @@ cenfistool: cenfistool.c cenfis.c serialio.c
 hexfile: hexfile.c
 	$(CC) $(CFLAGS) -o $@ $^
 
-filser: filser.c
+filsertool: filsertool.c filser.c
 	$(CC) $(CFLAGS) -o $@ $^
