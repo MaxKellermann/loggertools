@@ -7,15 +7,15 @@ COMMON_CFLAGS += -Werror -pedantic-errors
 
 CFLAGS = $(COMMON_CFLAGS)
 CFLAGS += -std=gnu99
-CFLAGS += -Wmissing-prototypes -Wwrite-strings -Wcast-qual -Wfloat-equal -Wshadow -Wpointer-arith -Wbad-function-cast -Wsign-compare -Waggregate-return -Wmissing-declarations -Wmissing-noreturn -Wmissing-format-attribute -Wpacked -Wredundant-decls -Wnested-externs -Winline -Wdisabled-optimization -Wno-long-long -Wstrict-prototypes -Wundef
+CFLAGS += -Wmissing-prototypes -Wwrite-strings -Wcast-qual -Wfloat-equal -Wshadow -Wpointer-arith -Wbad-function-cast -Wsign-compare -Waggregate-return -Wmissing-declarations -Wmissing-noreturn -Wmissing-format-attribute -Wredundant-decls -Wnested-externs -Winline -Wdisabled-optimization -Wno-long-long -Wstrict-prototypes -Wundef
 
 CXXFLAGS += $(COMMON_CFLAGS)
-CXXFLAGS += -Wwrite-strings -Wcast-qual -Wfloat-equal -Wshadow -Wpointer-arith -Wsign-compare -Wmissing-noreturn -Wmissing-format-attribute -Wpacked -Wredundant-decls -Winline -Wdisabled-optimization -Wno-long-long -Wundef
+CXXFLAGS += -Wwrite-strings -Wcast-qual -Wfloat-equal -Wshadow -Wpointer-arith -Wsign-compare -Wmissing-noreturn -Wmissing-format-attribute -Wredundant-decls -Winline -Wdisabled-optimization -Wno-long-long -Wundef
 
-all: loggerconv cenfistool hexfile filser
+all: loggerconv cenfistool hexfile filsertool
 
 clean:
-	rm -f loggerconv cenfistool hexfile filser *.o
+	rm -f loggerconv cenfistool hexfile filsertool *.o
 
 loggerconv: conv.cc tp.cc seeyou.cc cenfis.cc cenfisdb.cc filsertp.cc
 	$(CXX) $(CXXFLAGS) -o $@ $^ -lstdc++
