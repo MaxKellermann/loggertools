@@ -1,6 +1,6 @@
 /*
  * loggertools
- * Copyright (C) 2004 Max Kellermann (max@duempel.org)
+ * Copyright (C) 2004-2005 Max Kellermann (max@duempel.org)
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -31,9 +31,7 @@
 #include <time.h>
 #include <stdlib.h>
 
-struct flight_index {
-    unsigned char data[0x5f];
-};
+#include "filser.h"
 
 static void alarm_handler(int dummy) {
     (void)dummy;
@@ -345,14 +343,14 @@ static int open_flight_list(int fd) {
     return 0;
 }
 
-static int next_flight(int fd, struct flight_index *flight) {
+static int next_flight(int fd, struct filser_flight_index *flight) {
     int ret;
 
     ret = read_full_crc(fd, (unsigned char*)flight, sizeof(*flight));
     if (ret < 0)
         return -1;
 
-    if (flight->data[0] != 1)
+    if (flight->valid != 1)
         return 0;
 
     return 1;
@@ -361,7 +359,7 @@ static int next_flight(int fd, struct flight_index *flight) {
 static int flight_list(int argpos, int argc, char **argv) {
     const char *device = "/dev/ttyS0";
     int fd, ret;
-    struct flight_index flight;
+    struct filser_flight_index flight;
 
     (void)argpos;
     (void)argc;
@@ -387,7 +385,9 @@ static int flight_list(int argpos, int argc, char **argv) {
         if (ret == 0)
             break;
 
-        printf("%s\t%s-%s\t%s\n", flight.data + 9, flight.data + 18, flight.data + 0x1b, flight.data + 40);
+        printf("%s\t%s-%s\t%s\n",
+               flight.date, flight.start_time,
+               flight.stop_time, flight.pilot);
     }
 
     return 0;
@@ -458,7 +458,7 @@ static int get_flight_info(int argpos, int argc, char **argv) {
     return 0;
 }
 
-static int seek_mem(int fd, struct flight_index *flight) {
+static int seek_mem(int fd, struct filser_flight_index *flight) {
     unsigned char cmd[] = { 0x02, 'N' | 0x80, };
     unsigned char buffer[7];
     ssize_t nbytes;
@@ -467,14 +467,14 @@ static int seek_mem(int fd, struct flight_index *flight) {
     /* ignore highest byte here, the same as in kflog */
 
     /* start address */
-    buffer[0] = flight->data[2];
-    buffer[1] = flight->data[1];
-    buffer[2] = flight->data[4];
+    buffer[0] = flight->start_address0;
+    buffer[1] = flight->start_address1;
+    buffer[2] = flight->start_address2;
 
     /* end address */
-    buffer[3] = flight->data[6];
-    buffer[4] = flight->data[5];
-    buffer[5] = flight->data[8];
+    buffer[3] = flight->end_address0;
+    buffer[4] = flight->end_address1;
+    buffer[5] = flight->end_address2;
 
     buffer[6] = calc_crc((unsigned char*)buffer, 6);
 
@@ -551,7 +551,7 @@ static int download_section(int fd, unsigned section,
 static int download_flight(int argpos, int argc, char **argv) {
     const char *device = "/dev/ttyS0";
     int fd, ret, fd2;
-    struct flight_index buffer, flight, flight2;
+    struct filser_flight_index buffer, flight, flight2;
     size_t section_lengths[0x10], overall_length;
     unsigned char *data, *p;
     unsigned z;
@@ -585,7 +585,9 @@ static int download_flight(int argpos, int argc, char **argv) {
         flight = flight2;
         flight2 = buffer;
 
-        printf("%s\t%s-%s\t%s\n", buffer.data + 9, buffer.data + 18, buffer.data + 0x1b, buffer.data + 40);
+        printf("%s\t%s-%s\t%s\n",
+               buffer.date, buffer.start_time,
+               buffer.stop_time, buffer.pilot);
     }
 
     printf("seek_mem\n");
