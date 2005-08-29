@@ -33,6 +33,17 @@
 
 #include "filser.h"
 
+static void usage(void) {
+    printf("usage: fakefilser\n");
+}
+
+static void arg_error(const char *msg) __attribute__ ((noreturn));
+static void arg_error(const char *msg) {
+    fprintf(stderr, "fakefilser: %s\n", msg);
+    fprintf(stderr, "Try 'fakefilser --help' for more information.\n");
+    _exit(1);
+}
+
 static void alarm_handler(int dummy) {
     (void)dummy;
 }
@@ -614,10 +625,8 @@ static int download_flight(int argpos, int argc, char **argv) {
 int main(int argc, char **argv) {
     signal(SIGALRM, alarm_handler);
 
-    if (argc < 2) {
-        fprintf(stderr, "usage: filser command [arg ...]\n");
-        _exit(1);
-    }
+    if (argc < 2)
+        arg_error("no command specified");
 
     if (strcmp(argv[1], "raw") == 0) {
         return raw(2, argc, argv);
@@ -629,8 +638,11 @@ int main(int argc, char **argv) {
         return get_flight_info(2, argc, argv);
     } else if (strcmp(argv[1], "download") == 0) {
         return download_flight(2, argc, argv);
+    } else if (strcmp(argv[1], "help") == 0 ||
+               strcmp(argv[1], "--help") == 0) {
+        usage();
+        return 0;
     } else {
-        fprintf(stderr, "usage: filser command [arg ...]\n");
-        _exit(1);
+        arg_error("unknown command");
     }
 }
