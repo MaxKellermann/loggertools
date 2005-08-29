@@ -205,24 +205,18 @@ static ssize_t read_timeout(int fd, unsigned char *buffer,
 }
 
 static ssize_t read_full_crc(int fd, void *buffer, size_t len) {
-    ssize_t nbytes;
-    unsigned char crc1, crc2;
+    int ret;
 
-    nbytes = read_full(fd, (unsigned char*)buffer, len);
-    if (nbytes < 0)
-        return nbytes;
-
-    nbytes = read_full(fd, &crc1, sizeof(crc1));
-    if (nbytes < 0)
-        return nbytes;
-
-    crc2 = filser_calc_crc((unsigned char*)buffer, len);
-    if (crc2 != crc1) {
+    ret = filser_read_crc(fd, buffer, len, 40);
+    if (ret == -2) {
         fprintf(stderr, "CRC error\n");
         _exit(1);
     }
 
-    return nbytes;
+    if (ret <= 0)
+        return -1;
+
+    return (ssize_t)len;
 }
 
 static ssize_t read_timeout_crc(int fd, unsigned char *buffer, size_t len) {

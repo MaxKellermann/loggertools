@@ -21,6 +21,7 @@
 
 #include <sys/types.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "filser.h"
 
@@ -62,6 +63,45 @@ int filser_write_crc(int fd, const void *p0, size_t length) {
 
     if ((size_t)nbytes != sizeof(crc))
         return 0;
+
+    return 1;
+}
+
+int filser_read_crc(int fd, void *p0, size_t length,
+                    time_t timeout) {
+    unsigned char *p = p0;
+    ssize_t nbytes;
+    size_t pos = 0;
+    unsigned char crc;
+    time_t end_time;
+
+    if (timeout > 0)
+        end_time = time(NULL) + timeout;
+
+    for (;;) {
+        nbytes = read(fd, p + pos, length - pos);
+        if (nbytes < 0)
+            return -1;
+
+        if (nbytes > 0)
+            end_time = time(NULL) + timeout;
+
+        pos += (size_t)nbytes;
+        if (pos >= length)
+            break;
+
+        if (timeout > 0 && time(NULL) > end_time)
+            return 0;
+    }
+
+    nbytes = read(fd, &crc, sizeof(crc));
+    if (nbytes < 0)
+        return -1;
+    if ((size_t)nbytes < sizeof(crc))
+        return 0;
+
+    if (crc != filser_calc_crc(p0, length))
+        return -2;
 
     return 1;
 }
