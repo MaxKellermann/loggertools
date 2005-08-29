@@ -263,6 +263,52 @@ static int communicate(int fd, unsigned char cmd,
     return 1;
 }
 
+static int filser_send(int fd, unsigned char cmd,
+                       const void *buffer, size_t buffer_len) {
+    const unsigned char prefix = FILSER_PREFIX;
+    ssize_t nbytes;
+    unsigned char crc, response;
+
+    syn_ack_wait(fd);
+
+    tcflush(fd, TCIOFLUSH);
+
+    nbytes = write(fd, &prefix, sizeof(prefix));
+    if (nbytes <= 0)
+        return -1;
+
+    nbytes = write(fd, &cmd, sizeof(cmd));
+    if (nbytes <= 0)
+        return -1;
+
+    nbytes = write(fd, buffer, buffer_len);
+    if (nbytes < 0 || (size_t)nbytes < buffer_len)
+        return -1;
+
+    fprintf(stderr, "sent %lu bytes\n", (unsigned long)nbytes);
+
+    crc = filser_calc_crc(buffer, buffer_len);
+    nbytes = write(fd, &crc, sizeof(crc));
+    if (nbytes <= 0)
+        return -1;
+
+    nbytes = read(fd, &response, sizeof(response));
+    if (nbytes < 0)
+        return -1;
+
+    if ((size_t)nbytes < sizeof(response)) {
+        fprintf(stderr, "no response\n");
+        _exit(1);
+    }
+
+    if (response != FILSER_ACK) {
+        fprintf(stderr, "no ACK\n");
+        _exit(1);
+    }
+
+    return 1;
+}
+
 static int check_mem_settings(int fd) {
     int ret;
     unsigned char buffer[6];
@@ -787,8 +833,6 @@ static int cmd_read_tp_tsk(int argpos, int argc, char **argv) {
 
     fd = connect(device);
 
-    syn_ack_wait(fd);
-
     ret = communicate(fd, FILSER_READ_TP_TSK,
                       (unsigned char*)&tp_tsk, sizeof(tp_tsk));
     if (ret < 0) {
@@ -799,6 +843,39 @@ static int cmd_read_tp_tsk(int argpos, int argc, char **argv) {
     write(1, &tp_tsk, sizeof(tp_tsk));
 
     close(fd);
+
+    return 0;
+}
+
+static int cmd_write_tp_tsk(int argpos, int argc, char **argv) {
+    const char *device = "/dev/ttyS0";
+    int fd, ret;
+    ssize_t nbytes;
+    struct filser_tp_tsk tp_tsk;
+
+    (void)argpos;
+    (void)argc;
+    (void)argv;
+
+    nbytes = read(0, &tp_tsk, sizeof(tp_tsk));
+    if (nbytes < 0) {
+        fprintf(stderr, "read() failed: %s\n", strerror(errno));
+        return 1;
+    }
+
+    if ((size_t)nbytes < sizeof(tp_tsk)) {
+        fprintf(stderr, "short read()\n");
+        return 1;
+    }
+
+    fd = connect(device);
+
+    ret = filser_send(fd, FILSER_WRITE_TP_TSK,
+                      (const unsigned char*)&tp_tsk, sizeof(tp_tsk));
+    if (ret < 0) {
+        fprintf(stderr, "io error: %s\n", strerror(errno));
+        return 1;
+    }
 
     return 0;
 }
@@ -825,6 +902,8 @@ int main(int argc, char **argv) {
         return download_flight(2, argc, argv);
     } else if (strcmp(argv[1], "read_tp_tsk") == 0) {
         return cmd_read_tp_tsk(2, argc, argv);
+    } else if (strcmp(argv[1], "write_tp_tsk") == 0) {
+        return cmd_write_tp_tsk(2, argc, argv);
     } else if (strcmp(argv[1], "help") == 0 ||
                strcmp(argv[1], "--help") == 0) {
         usage();
