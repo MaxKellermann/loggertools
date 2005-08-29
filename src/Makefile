@@ -26,8 +26,8 @@ cenfistool: cenfistool.c cenfis.c serialio.c
 hexfile: hexfile.c
 	$(CC) $(CFLAGS) -o $@ $^
 
-filsertool: filsertool.c filser.c
+filsertool: filsertool.c filser.c filserio.c
 	$(CC) $(CFLAGS) -o $@ $^
 
-fakefilser: fakefilser.c filser.c
+fakefilser: fakefilser.c filser.c filserio.c
 	$(CC) $(CFLAGS) -o $@ $^

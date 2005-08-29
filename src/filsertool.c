@@ -271,7 +271,8 @@ static int filser_send(int fd, unsigned char cmd,
                        const void *buffer, size_t buffer_len) {
     const unsigned char prefix = FILSER_PREFIX;
     ssize_t nbytes;
-    unsigned char crc, response;
+    unsigned char response;
+    int ret;
 
     syn_ack_wait(fd);
 
@@ -285,15 +286,8 @@ static int filser_send(int fd, unsigned char cmd,
     if (nbytes <= 0)
         return -1;
 
-    nbytes = write(fd, buffer, buffer_len);
-    if (nbytes < 0 || (size_t)nbytes < buffer_len)
-        return -1;
-
-    fprintf(stderr, "sent %lu bytes\n", (unsigned long)nbytes);
-
-    crc = filser_calc_crc(buffer, buffer_len);
-    nbytes = write(fd, &crc, sizeof(crc));
-    if (nbytes <= 0)
+    ret = filser_write_crc(fd, buffer, buffer_len);
+    if (ret <= 0)
         return -1;
 
     nbytes = read(fd, &response, sizeof(response));

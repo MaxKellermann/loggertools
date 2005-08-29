@@ -166,6 +166,8 @@ extern "C" {
 
 unsigned char filser_calc_crc(const void *p0, size_t len);
 
+int filser_write_crc(int fd, const void *p, size_t length);
+
 
 #ifdef __cplusplus
 }

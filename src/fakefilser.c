@@ -95,46 +95,16 @@ static void default_filser(struct filser *filser) {
     */
 }
 
-static void write_crc(int fd, const unsigned char *buffer, size_t length) {
-    ssize_t nbytes;
-    unsigned char crc;
-    size_t pos, sublen;
+static void write_crc(int fd, const void *buffer, size_t length) {
+    int ret;
 
-    for (pos = 0; pos < length; pos += sublen) {
-        if (pos > 0) {
-            struct timeval tv;
-
-            /* we have to throttle here ... */
-            tv.tv_sec = 0;
-            tv.tv_usec = 50000;
-            select(0, NULL, NULL, NULL, &tv);
-        }
-
-        sublen = length - pos;
-        if (sublen > 1024)
-            sublen = 1024;
-
-        nbytes = write(fd, buffer, sublen);
-        if (nbytes < 0) {
-            fprintf(stderr, "write failed: %s\n", strerror(errno));
-            _exit(1);
-        }
-
-        if ((size_t)nbytes != sublen) {
-            fprintf(stderr, "short write\n");
-            _exit(1);
-        }
-    }
-
-    crc = filser_calc_crc(buffer, length);
-
-    nbytes = write(fd, &crc, sizeof(crc));
-    if (nbytes < 0) {
+    ret = filser_write_crc(fd, buffer, length);
+    if (ret < 0) {
         fprintf(stderr, "write failed: %s\n", strerror(errno));
         _exit(1);
     }
 
-    if ((size_t)nbytes != sizeof(crc)) {
+    if (ret == 0) {
         fprintf(stderr, "short write\n");
         _exit(1);
     }
