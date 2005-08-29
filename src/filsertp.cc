@@ -1,6 +1,6 @@
 /*
  * loggertools
- * Copyright (C) 2004 Max Kellermann (max@duempel.org)
+ * Copyright (C) 2004-2005 Max Kellermann (max@duempel.org)
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -30,6 +30,7 @@
 class FilserTurnPointReader : public TurnPointReader {
 private:
     FILE *file;
+    unsigned count;
 public:
     FilserTurnPointReader(FILE *_file);
 public:
@@ -48,7 +49,7 @@ public:
 };
 
 FilserTurnPointReader::FilserTurnPointReader(FILE *_file)
-    :file(_file) {
+    :file(_file), count(0) {
 }
 
 const TurnPoint *FilserTurnPointReader::read() {
@@ -58,10 +59,15 @@ const TurnPoint *FilserTurnPointReader::read() {
     char code[sizeof(data.code) + 1];
     size_t length;
 
+    if (count >= 600)
+        return NULL;
+
     do {
         nmemb = fread(&data, sizeof(data), 1, file);
         if (nmemb != 1)
             return NULL;
+
+        count++;
     } while (data.valid != 1);
 
     /* create object */
@@ -94,6 +100,9 @@ void FilserTurnPointWriter::write(const TurnPoint &tp) {
     if (file == NULL)
         throw new TurnPointWriterException("already flushed");
 
+    if (count >= 600)
+        throw new TurnPointWriterException("Filser databases cannot hold more than 600 turn points");
+
     memset(&data, 0, sizeof(data));
 
     length = strlen(tp.getCode());
@@ -120,7 +129,7 @@ void FilserTurnPointWriter::flush() {
         throw new TurnPointWriterException("already flushed");
 
     memset(&data, 0, sizeof(data));
-    for (; count < 6200; count++) {
+    for (; count < 600; count++) {
         nmemb = fwrite(&data, sizeof(data), 1, file);
         if (nmemb != 1)
             throw new TurnPointWriterException("failed to write record");
