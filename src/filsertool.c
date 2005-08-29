@@ -776,6 +776,33 @@ static int download_flight(int argpos, int argc, char **argv) {
     return 0;
 }
 
+static int cmd_read_tp_tsk(int argpos, int argc, char **argv) {
+    const char *device = "/dev/ttyS0";
+    int fd, ret;
+    struct filser_tp_tsk tp_tsk;
+
+    (void)argpos;
+    (void)argc;
+    (void)argv;
+
+    fd = connect(device);
+
+    syn_ack_wait(fd);
+
+    ret = communicate(fd, FILSER_READ_TP_TSK,
+                      (unsigned char*)&tp_tsk, sizeof(tp_tsk));
+    if (ret < 0) {
+        fprintf(stderr, "io error: %s\n", strerror(errno));
+        _exit(1);
+    }
+
+    write(1, &tp_tsk, sizeof(tp_tsk));
+
+    close(fd);
+
+    return 0;
+}
+
 int main(int argc, char **argv) {
     signal(SIGALRM, alarm_handler);
 
@@ -796,6 +823,8 @@ int main(int argc, char **argv) {
         return cmd_raw_mem(2, argc, argv);
     } else if (strcmp(argv[1], "download") == 0) {
         return download_flight(2, argc, argv);
+    } else if (strcmp(argv[1], "read_tp_tsk") == 0) {
+        return cmd_read_tp_tsk(2, argc, argv);
     } else if (strcmp(argv[1], "help") == 0 ||
                strcmp(argv[1], "--help") == 0) {
         usage();
