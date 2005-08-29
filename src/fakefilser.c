@@ -110,29 +110,19 @@ static void write_crc(int fd, const void *buffer, size_t length) {
     }
 }
 
-static ssize_t read_full(int fd, unsigned char *buffer, size_t len) {
-    ssize_t nbytes;
-    size_t pos = 0;
-    time_t timeout = time(NULL) + 40;
+static ssize_t read_full_crc(int fd, void *buffer, size_t len) {
+    int ret;
 
-    alarm(40);
-
-    for (;;) {
-        nbytes = read(fd, buffer + pos, len - pos);
-        alarm(0);
-        if (nbytes < 0)
-            return nbytes;
-
-        pos += (size_t)nbytes;
-        if (pos >= len)
-            return (ssize_t)pos;
-
-        if (time(NULL) > timeout) {
-            alarm(0);
-            errno = EINTR;
-            return -1;
-        }
+    ret = filser_read_crc(fd, buffer, len, 40);
+    if (ret == -2) {
+        fprintf(stderr, "CRC error\n");
+        _exit(1);
     }
+
+    if (ret <= 0)
+        return -1;
+
+    return (ssize_t)len;
 }
 
 static void dump_line(size_t offset,
@@ -187,33 +177,6 @@ static void dump_buffer_crc(const void *q,
     dump_buffer(q, length);
     printf("crc = %02x\n",
            filser_calc_crc((const unsigned char*)q, length));
-}
-
-static ssize_t read_full_crc(int fd, void *buffer, size_t len) {
-    ssize_t nbytes, nbytes2;
-    unsigned char crc1, crc2;
-
-    nbytes = read_full(fd, (unsigned char*)buffer, len);
-    if (nbytes < 0)
-        return nbytes;
-    if ((size_t)nbytes != len) {
-        fprintf(stderr, "short read %lu, wanted %lu\n",
-                (unsigned long)nbytes, (unsigned long)len);
-        _exit(1);
-    }
-
-    nbytes2 = read_full(fd, &crc1, sizeof(crc1));
-    if (nbytes2 < 0)
-        return nbytes2;
-
-    crc2 = filser_calc_crc((unsigned char*)buffer, len);
-    if (crc2 != crc1) {
-        dump_buffer_crc(buffer, len);
-        fprintf(stderr, "CRC error, %02x vs %02x\n", crc1, crc2);
-        _exit(1);
-    }
-
-    return nbytes;
 }
 
 static void dump_timeout(struct filser *filser) {
