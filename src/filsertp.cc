@@ -25,22 +25,12 @@
 
 #include "tp.hh"
 
-struct turn_point {
-    char valid;
-    char code[8];
-    char zero1[1];
-    char reserved1[3];
-    char fortytwo;
-    char reserved2[10];
-    char zero2[3];
-    char n_47_49[2];
-    char zero3[2];
-};
+#include "filser.h"
 
 class FilserTurnPointReader : public TurnPointReader {
 private:
     FILE *file;
-    unsigned long counts[sizeof(struct turn_point)];
+    unsigned long counts[sizeof(struct filser_turn_point)];
     unsigned c;
 public:
     FilserTurnPointReader(FILE *_file);
@@ -66,7 +56,7 @@ FilserTurnPointReader::FilserTurnPointReader(FILE *_file)
 }
 
 const TurnPoint *FilserTurnPointReader::read() {
-    struct turn_point data;
+    struct filser_turn_point data;
     size_t nmemb;
     TurnPoint *tp;
     char code[sizeof(data.code) + 1];
@@ -111,7 +101,7 @@ FilserTurnPointWriter::FilserTurnPointWriter(FILE *_file)
 }
 
 void FilserTurnPointWriter::write(const TurnPoint &tp) {
-    struct turn_point data;
+    struct filser_turn_point data;
     size_t length, nmemb;
 
     if (file == NULL)
@@ -135,7 +125,7 @@ void FilserTurnPointWriter::write(const TurnPoint &tp) {
 }
 
 void FilserTurnPointWriter::flush() {
-    struct turn_point data;
+    struct filser_turn_point data;
     size_t nmemb;
     char zero[6900];
 

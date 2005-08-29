@@ -155,9 +155,21 @@ enum filser_command {
     FILSER_READ_CONTEST_CLASS = 0xcf,
     FILSER_WRITE_CONTEST_CLASS = 0xd0,
     FILSER_CHECK_MEM_SETTINGS = 0xd1,
-    FILSER_READ_LOGGER_DATA = 0xe6,
+    FILSER_READ_LOGGER_DATA = 0xe6
 };
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 unsigned char filser_calc_crc(const void *p0, size_t len);
+
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif
