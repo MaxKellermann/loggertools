@@ -34,7 +34,11 @@
 #include "filser.h"
 
 static void usage(void) {
-    printf("usage: fakefilser\n");
+    printf("usage: filsertool <command>\n"
+           "valid commands:\n"
+           "  list\n"
+           "        print a list of flights\n"
+           );
 }
 
 static void arg_error(const char *msg) __attribute__ ((noreturn));
