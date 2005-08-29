@@ -293,8 +293,18 @@ static void dump_timeout(struct filser *filser) {
 
 static void send_ack(struct filser *filser) {
     static const unsigned char ack = 0x06;
+    ssize_t nbytes;
 
-    write(filser->fd, &ack, sizeof(ack));
+    nbytes = write(filser->fd, &ack, sizeof(ack));
+    if (nbytes < 0) {
+        fprintf(stderr, "write() failed: %s\n", strerror(errno));
+        _exit(1);
+    }
+
+    if ((size_t)nbytes < sizeof(ack)) {
+        fprintf(stderr, "short write()\n");
+        _exit(1);
+    }
 }
 
 static void handle_syn(struct filser *filser) {
