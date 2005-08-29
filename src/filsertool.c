@@ -38,6 +38,10 @@ static void usage(void) {
            "valid commands:\n"
            "  list\n"
            "        print a list of flights\n"
+           "  read_tp_tsk <out_filename.da4>\n"
+           "        read the TP and TSK database from the device\n"
+           "  write_tp_tsk <in_filename.da4>\n"
+           "        write the TP and TSK database to the device\n"
            "  mem_section <start_adddress> <end_address>\n"
            "        print memory section info\n"
            "  raw_mem <start_adddress> <end_address>\n"
@@ -823,13 +827,17 @@ static int download_flight(int argpos, int argc, char **argv) {
 }
 
 static int cmd_read_tp_tsk(int argpos, int argc, char **argv) {
+    const char *filename;
     const char *device = "/dev/ttyS0";
     int fd, ret;
     struct filser_tp_tsk tp_tsk;
 
-    (void)argpos;
-    (void)argc;
-    (void)argv;
+    if (argc - argpos < 1)
+        arg_error("No file name specified");
+    if (argc - argpos > 1)
+        arg_error("Too many arguments");
+
+    filename = argv[argpos];
 
     fd = connect(device);
 
@@ -840,33 +848,65 @@ static int cmd_read_tp_tsk(int argpos, int argc, char **argv) {
         _exit(1);
     }
 
-    write(1, &tp_tsk, sizeof(tp_tsk));
-
     close(fd);
+
+    if (strcmp(filename, "-") == 0) {
+        fd = 1;
+    } else {
+        fd = open(filename, O_WRONLY | O_CREAT, 0666);
+        if (fd < 0) {
+            fprintf(stderr, "failed to create %s: %s",
+                    filename, strerror(errno));
+            _exit(1);
+        }
+    }
+
+    write(fd, &tp_tsk, sizeof(tp_tsk));
+
+    if (fd != 1)
+        close(fd);
 
     return 0;
 }
 
 static int cmd_write_tp_tsk(int argpos, int argc, char **argv) {
+    const char *filename;
     const char *device = "/dev/ttyS0";
     int fd, ret;
     ssize_t nbytes;
     struct filser_tp_tsk tp_tsk;
 
-    (void)argpos;
-    (void)argc;
-    (void)argv;
+    if (argc - argpos < 1)
+        arg_error("No file name specified");
+    if (argc - argpos > 1)
+        arg_error("Too many arguments");
 
-    nbytes = read(0, &tp_tsk, sizeof(tp_tsk));
+    filename = argv[argpos];
+
+    if (strcmp(filename, "-") == 0) {
+        fd = 0;
+    } else {
+        fd = open(filename, O_RDONLY);
+        if (fd < 0) {
+            fprintf(stderr, "failed to open %s: %s",
+                    filename, strerror(errno));
+            _exit(1);
+        }
+    }
+
+    nbytes = read(fd, &tp_tsk, sizeof(tp_tsk));
     if (nbytes < 0) {
         fprintf(stderr, "read() failed: %s\n", strerror(errno));
-        return 1;
+        _exit(1);
     }
 
     if ((size_t)nbytes < sizeof(tp_tsk)) {
         fprintf(stderr, "short read()\n");
-        return 1;
+        _exit(1);
     }
+
+    if (fd != 0)
+        close(fd);
 
     fd = connect(device);
 
@@ -876,6 +916,8 @@ static int cmd_write_tp_tsk(int argpos, int argc, char **argv) {
         fprintf(stderr, "io error: %s\n", strerror(errno));
         return 1;
     }
+
+    close(fd);
 
     return 0;
 }
