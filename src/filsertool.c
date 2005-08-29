@@ -38,6 +38,10 @@ static void usage(void) {
            "valid commands:\n"
            "  list\n"
            "        print a list of flights\n"
+           "  mem_section <start_adddress> <end_address>\n"
+           "        print memory section info\n"
+           "  raw_mem <start_adddress> <end_address>\n"
+           "        download raw memory\n"
            );
 }
 
@@ -346,6 +350,20 @@ static int next_flight(int fd, struct filser_flight_index *flight) {
     return 1;
 }
 
+static unsigned filser_get_start_address(const struct filser_flight_index *flight) {
+    return flight->start_address3 << 24
+        | flight->start_address2 << 16
+        | flight->start_address1 << 8
+        | flight->start_address0;
+}
+
+static unsigned filser_get_end_address(const struct filser_flight_index *flight) {
+    return flight->end_address3 << 24
+        | flight->end_address2 << 16
+        | flight->end_address1 << 8
+        | flight->end_address0;
+}
+
 static int flight_list(int argpos, int argc, char **argv) {
     const char *device = "/dev/ttyS0";
     int fd, ret;
@@ -375,9 +393,11 @@ static int flight_list(int argpos, int argc, char **argv) {
         if (ret == 0)
             break;
 
-        printf("%s\t%s-%s\t%s\n",
+        printf("%s\t%s-%s\t%s\t0x%lx-0x%lx\n",
                flight.date, flight.start_time,
-               flight.stop_time, flight.pilot);
+               flight.stop_time, flight.pilot,
+               (unsigned long)filser_get_start_address(&flight),
+               (unsigned long)filser_get_end_address(&flight));
     }
 
     return 0;
@@ -444,6 +464,48 @@ static int get_flight_info(int argpos, int argc, char **argv) {
     printf("Model: %s\n", buffer + 0x16);
     printf("ID: %s\n", buffer + 0x22);
     printf("ID2: %s\n", buffer + 0x2a);
+
+    return 0;
+}
+
+static int seek_mem_x(int fd, unsigned start_address, unsigned end_address) {
+    unsigned char cmd[] = { FILSER_PREFIX, FILSER_DEF_MEM, };
+    unsigned char buffer[7];
+    ssize_t nbytes;
+    unsigned char response;
+
+    /* ignore highest byte here, the same as in kflog */
+
+    /* start address */
+    buffer[0] = start_address & 0xff;
+    buffer[1] = (start_address >> 8) & 0xff;
+    buffer[2] = (start_address >> 16) & 0xff;
+
+    /* end address */
+    buffer[3] = end_address & 0xff;
+    buffer[4] = (end_address >> 8) & 0xff;
+    buffer[5] = (end_address >> 16) & 0xff;
+
+    buffer[6] = filser_calc_crc(buffer, 6);
+
+    tcflush(fd, TCIOFLUSH);
+
+    nbytes = write(fd, cmd, sizeof(cmd));
+    if (nbytes <= 0)
+        return -1;
+
+    nbytes = write(fd, buffer, sizeof(buffer));
+    if (nbytes <= 0)
+        return -1;
+
+    nbytes = read_full(fd, &response, sizeof(response));
+    if (nbytes <= 0)
+        return -1;
+
+    if (response != FILSER_ACK) {
+        fprintf(stderr, "no ack in seek_mem\n");
+        _exit(1);
+    }
 
     return 0;
 }
@@ -533,6 +595,94 @@ static int download_section(int fd, unsigned section,
     nbytes = read_full_crc(fd, buffer, length);
     if (nbytes < 0)
         return -1;
+
+    return 0;
+}
+
+static int cmd_mem_section(int argpos, int argc, char **argv) {
+    const char *device = "/dev/ttyS0";
+    int fd, ret;
+    unsigned start_address, end_address;
+    size_t section_lengths[0x10], overall_length;
+    unsigned z;
+
+    if (argc - argpos != 2)
+        arg_error("wrong number of arguments after 'mem_section'");
+
+    start_address = (unsigned)strtoul(argv[argpos++], NULL, 0);
+    end_address = (unsigned)strtoul(argv[argpos++], NULL, 0);
+
+    fd = connect(device);
+
+    check_mem_settings(fd);
+
+    syn_ack_wait(fd);
+
+    seek_mem_x(fd, start_address, end_address);
+
+    printf("seeking = 0x%lx\n", (unsigned long)(end_address - start_address));
+
+    ret = get_mem_section(fd, section_lengths, &overall_length);
+    if (ret < 0) {
+        fprintf(stderr, "io error: %s\n", strerror(errno));
+        _exit(1);
+    }
+
+    for (z = 0; z < 0x10 && section_lengths[z] > 0; z++) {
+        printf("section %u = 0x%lx\n", z, (unsigned long)section_lengths[z]);
+    }
+
+    printf("overall = 0x%lx\n", (unsigned long)overall_length);
+
+    return 0;
+}
+
+static int cmd_raw_mem(int argpos, int argc, char **argv) {
+    const char *device = "/dev/ttyS0";
+    int fd, ret;
+    unsigned start_address, end_address;
+    size_t section_lengths[0x10], overall_length;
+    unsigned z;
+
+    if (argc - argpos != 2)
+        arg_error("wrong number of arguments after 'raw_mem'");
+
+    start_address = (unsigned)strtoul(argv[argpos++], NULL, 0);
+    end_address = (unsigned)strtoul(argv[argpos++], NULL, 0);
+
+    fd = connect(device);
+
+    check_mem_settings(fd);
+
+    syn_ack_wait(fd);
+
+    seek_mem_x(fd, start_address, end_address);
+
+    ret = get_mem_section(fd, section_lengths, &overall_length);
+    if (ret < 0) {
+        fprintf(stderr, "io error: %s\n", strerror(errno));
+        _exit(1);
+    }
+
+    for (z = 0; z < 0x10 && section_lengths[z] > 0; z++) {
+        void *p;
+
+        p = malloc(section_lengths[z]);
+        if (p == NULL) {
+            fprintf(stderr, "out of memory\n");
+            _exit(1);
+        }
+
+        ret = download_section(fd, z, p, section_lengths[z]);
+        if (ret < 0) {
+            fprintf(stderr, "io error: %s\n", strerror(errno));
+            _exit(1);
+        }
+
+        write(1, p, section_lengths[z]);
+
+        free(p);
+    }
 
     return 0;
 }
@@ -640,6 +790,10 @@ int main(int argc, char **argv) {
         return get_basic_data(2, argc, argv);
     } else if (strcmp(argv[1], "flight") == 0) {
         return get_flight_info(2, argc, argv);
+    } else if (strcmp(argv[1], "mem_section") == 0) {
+        return cmd_mem_section(2, argc, argv);
+    } else if (strcmp(argv[1], "raw_mem") == 0) {
+        return cmd_raw_mem(2, argc, argv);
     } else if (strcmp(argv[1], "download") == 0) {
         return download_flight(2, argc, argv);
     } else if (strcmp(argv[1], "help") == 0 ||
