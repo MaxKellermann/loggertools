@@ -12,10 +12,10 @@ CFLAGS += -Wmissing-prototypes -Wwrite-strings -Wcast-qual -Wfloat-equal -Wshado
 CXXFLAGS += $(COMMON_CFLAGS)
 CXXFLAGS += -Wwrite-strings -Wcast-qual -Wfloat-equal -Wshadow -Wpointer-arith -Wsign-compare -Wmissing-noreturn -Wmissing-format-attribute -Wredundant-decls -Winline -Wdisabled-optimization -Wno-long-long -Wundef
 
-all: loggerconv cenfistool hexfile filsertool
+all: loggerconv cenfistool hexfile filsertool fakefilser
 
 clean:
-	rm -f loggerconv cenfistool hexfile filsertool *.o
+	rm -f loggerconv cenfistool hexfile filsertool fakefilser *.o
 
 loggerconv: conv.cc tp.cc seeyou.cc cenfis.cc cenfisdb.cc filsertp.cc
 	$(CXX) $(CXXFLAGS) -o $@ $^ -lstdc++
@@ -27,4 +27,7 @@ hexfile: hexfile.c
 	$(CC) $(CFLAGS) -o $@ $^
 
 filsertool: filsertool.c filser.c
+	$(CC) $(CFLAGS) -o $@ $^
+
+fakefilser: fakefilser.c filser.c
 	$(CC) $(CFLAGS) -o $@ $^
