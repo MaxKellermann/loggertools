@@ -105,11 +105,16 @@ void FilserTurnPointWriter::write(const TurnPoint &tp) {
 
     memset(&data, 0, sizeof(data));
 
-    length = strlen(tp.getCode());
-    if (length > sizeof(data.code))
-        length = sizeof(data.code);
+    if (tp.getCode() != NULL) {
+        length = strlen(tp.getCode());
+        if (length > sizeof(data.code))
+            length = sizeof(data.code);
 
-    memcpy(data.code, tp.getCode(), length);
+        memcpy(data.code, tp.getCode(), length);
+    } else {
+        length = 0;
+    }
+
     memset(data.code + length, ' ', sizeof(data.code) - length);
 
     /* write entry */
