@@ -196,6 +196,7 @@ static SeeYouTurnPointFormat seeYouFormat;
 static CenfisTurnPointFormat cenfisFormat;
 static CenfisDatabaseFormat cenfisDatabaseFormat;
 static FilserTurnPointFormat filserFormat;
+static ZanderTurnPointFormat zanderFormat;
 
 TurnPointFormat *getTurnPointFormat(const char *ext) {
     if (strcasecmp(ext, "cup") == 0)
@@ -207,6 +208,8 @@ TurnPointFormat *getTurnPointFormat(const char *ext) {
         return &cenfisDatabaseFormat;
     else if (strcasecmp(ext, "da4") == 0)
         return &filserFormat;
+    else if (strcasecmp(ext, "wz") == 0)
+        return &zanderFormat;
     else
         return NULL;
 }

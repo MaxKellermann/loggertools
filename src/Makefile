@@ -17,7 +17,7 @@ all: loggerconv cenfistool hexfile filsertool fakefilser
 clean:
 	rm -f loggerconv cenfistool hexfile filsertool fakefilser *.o
 
-loggerconv: conv.cc tp.cc seeyou.cc cenfis.cc cenfisdb.cc filsertp.cc
+loggerconv: conv.cc tp.cc seeyou.cc cenfis.cc cenfisdb.cc filsertp.cc zander-tp-reader.cc zander-tp-writer.cc
 	$(CXX) $(CXXFLAGS) -o $@ $^ -lstdc++
 
 cenfistool: cenfistool.c cenfis.c serialio.c
