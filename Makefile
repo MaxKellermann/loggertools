@@ -17,7 +17,13 @@ all: src/loggerconv src/cenfistool src/hexfile src/filsertool src/fakefilser
 clean:
 	rm -f src/loggerconv src/cenfistool src/hexfile src/filsertool src/fakefilser src/*.o
 
-src/loggerconv: $(addprefix src/,conv.cc tp.cc seeyou.cc cenfis.cc cenfisdb.cc filsertp.cc zander-tp-reader.cc zander-tp-writer.cc)
+loggerconv_SOURCES = $(addprefix src/,conv.cc tp.cc seeyou.cc cenfis.cc cenfisdb.cc filsertp.cc zander-tp-reader.cc zander-tp-writer.cc)
+loggerconv_OBJECTS = $(patsubst %.cc,%.o,$(loggerconv_SOURCES))
+
+$(loggerconv_OBJECTS): %.o: %.cc
+	$(CXX) -c $(CXXFLAGS) -o $@ $^
+
+src/loggerconv: $(loggerconv_OBJECTS)
 	$(CXX) $(CXXFLAGS) -o $@ $^ -lstdc++
 
 src/cenfistool: src/cenfistool.c src/cenfis.c src/serialio.c
