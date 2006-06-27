@@ -49,7 +49,7 @@ public:
     virtual void flush();
 };
 
-unsigned count_columns(const char *p) {
+static unsigned count_columns(const char *p) {
     unsigned count = 1;
     int in_string = 0;
 
@@ -63,7 +63,7 @@ unsigned count_columns(const char *p) {
     return count;
 }
 
-int read_column(const char **line, char *column, size_t column_max_len) {
+static int read_column(const char **line, char *column, size_t column_max_len) {
     if (**line == 0)
         return 0;
 
@@ -114,7 +114,7 @@ int read_column(const char **line, char *column, size_t column_max_len) {
     return 1;
 }
 
-void write_column(FILE *file, const char *value) {
+static void write_column(FILE *file, const char *value) {
     if (value == NULL || *value == 0)
         return;
     putc('"', file);
