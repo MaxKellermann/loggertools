@@ -12,22 +12,22 @@ CFLAGS += -Wmissing-prototypes -Wwrite-strings -Wcast-qual -Wfloat-equal -Wshado
 CXXFLAGS += $(COMMON_CFLAGS)
 CXXFLAGS += -Wwrite-strings -Wcast-qual -Wfloat-equal -Wshadow -Wpointer-arith -Wsign-compare -Wmissing-noreturn -Wmissing-format-attribute -Wredundant-decls -Winline -Wdisabled-optimization -Wno-long-long -Wundef
 
-all: loggerconv cenfistool hexfile filsertool fakefilser
+all: src/loggerconv src/cenfistool src/hexfile src/filsertool src/fakefilser
 
 clean:
-	rm -f loggerconv cenfistool hexfile filsertool fakefilser *.o
+	rm -f src/loggerconv src/cenfistool src/hexfile src/filsertool src/fakefilser src/*.o
 
-loggerconv: conv.cc tp.cc seeyou.cc cenfis.cc cenfisdb.cc filsertp.cc zander-tp-reader.cc zander-tp-writer.cc
+src/loggerconv: $(addprefix src/,conv.cc tp.cc seeyou.cc cenfis.cc cenfisdb.cc filsertp.cc zander-tp-reader.cc zander-tp-writer.cc)
 	$(CXX) $(CXXFLAGS) -o $@ $^ -lstdc++
 
-cenfistool: cenfistool.c cenfis.c serialio.c
+src/cenfistool: src/cenfistool.c src/cenfis.c src/serialio.c
 	$(CC) $(CFLAGS) -o $@ $^
 
-hexfile: hexfile.c
+src/hexfile: src/hexfile.c
 	$(CC) $(CFLAGS) -o $@ $^
 
-filsertool: filsertool.c filser.c filserio.c
+src/filsertool: src/filsertool.c src/filser.c src/filserio.c
 	$(CC) $(CFLAGS) -o $@ $^
 
-fakefilser: fakefilser.c filser.c filserio.c
+src/fakefilser: src/fakefilser.c src/filser.c src/filserio.c
 	$(CC) $(CFLAGS) -o $@ $^
