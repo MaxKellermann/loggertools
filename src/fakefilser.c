@@ -476,9 +476,40 @@ static void handle_write_contest_class(struct filser *filser) {
     send_ack(filser);
 }
 
+static int open_virtual(const char *symlink_path) {
+    int fd, ret;
+
+    fd = open("/dev/ptmx", O_RDWR|O_NOCTTY);
+    if (fd < 0) {
+        fprintf(stderr, "failed to open /dev/ptmx: %s\n",
+                strerror(errno));
+        _exit(1);
+    }
+
+    ret = unlockpt(fd);
+    if (ret < 0) {
+        fprintf(stderr, "failed to unlockpt(): %s\n",
+                strerror(errno));
+        _exit(1);
+    }
+
+    printf("Slave terminal is %s\n", ptsname(fd));
+
+    unlink(symlink_path);
+    ret = symlink(ptsname(fd), symlink_path);
+    if (ret < 0) {
+        fprintf(stderr, "symlink() failed: %s\n",
+                strerror(errno));
+        _exit(1);
+    }
+
+    printf("Symlinked to %s\n", symlink_path);
+
+    return fd;
+}
+
 int main(int argc, char **argv) {
     struct filser filser;
-    int ret;
 
     (void)argv;
 
@@ -495,28 +526,7 @@ int main(int argc, char **argv) {
 
     default_filser(&filser);
 
-    filser.fd = open("/dev/ptmx", O_RDWR|O_NOCTTY);
-    if (filser.fd < 0) {
-        fprintf(stderr, "failed to open /dev/ptmx: %s\n", strerror(errno));
-        _exit(1);
-    }
-
-    ret = unlockpt(filser.fd);
-    if (ret < 0) {
-        fprintf(stderr, "failed to unlockpt(): %s\n", strerror(errno));
-        _exit(1);
-    }
-
-    printf("Slave terminal is %s\n", ptsname(filser.fd));
-
-    unlink("/tmp/fakefilser");
-    ret = symlink(ptsname(filser.fd), "/tmp/fakefilser");
-    if (ret < 0) {
-        fprintf(stderr, "symlink() failed: %s\n", strerror(errno));
-        _exit(1);
-    }
-
-    printf("Symlinked to /tmp/fakefilser\n");
+    filser.fd = open_virtual("/tmp/fakefilser");
 
     while (1) {
         unsigned char cmd;
