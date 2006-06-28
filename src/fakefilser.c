@@ -309,15 +309,12 @@ static void handle_get_flight_info(struct filser *filser) {
 }
 
 static void handle_get_mem_section(struct filser *filser) {
-    unsigned char mem_section[0x20];
+    struct filser_packet_mem_section packet;
 
-    memset(mem_section, 0, sizeof(mem_section));
-    mem_section[0] = 0x07;
-    mem_section[1] = 0x40;
-    mem_section[2] = 0x09;
-    mem_section[3] = 0xef;
+    memset(&packet, 0, sizeof(packet));
+    packet.section_lengths[0] = htons(0x4000);
 
-    write_crc(filser->fd, mem_section, sizeof(mem_section));
+    write_crc(filser->fd, &packet, sizeof(packet));
 }
 
 static void handle_def_mem(struct filser *filser) {
