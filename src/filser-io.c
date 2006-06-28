@@ -53,13 +53,13 @@ int filser_write_crc(int fd, const void *p0, size_t length) {
 
             /* we have to throttle here ... */
             tv.tv_sec = 0;
-            tv.tv_usec = 50000;
+            tv.tv_usec = 10000;
             select(0, NULL, NULL, NULL, &tv);
         }
 
         sublen = length - pos;
-        if (sublen > 1024)
-            sublen = 1024;
+        if (sublen > 256)
+            sublen = 256;
 
         nbytes = write(fd, p + pos, sublen);
         if (nbytes < 0)
