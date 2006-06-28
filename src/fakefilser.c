@@ -490,16 +490,23 @@ static void handle_30(struct filser *filser) {
     write_crc(filser->fd, foo, sizeof(foo));
 }
 
-static void handle_61_down(struct filser *filser) {
+static void handle_apt_download(struct filser *filser,
+                                unsigned idx) {
     char foo[16000];
+
+    (void)idx;
+
     write_crc(filser->fd, foo, 8164);
 }
 
-static void handle_61_up(struct filser *filser) {
-    char foo[0x8000];
+static void handle_apt_upload(struct filser *filser,
+                              unsigned idx) {
+    char data[0x8000];
     int ret;
 
-    ret = filser_read_crc(filser->fd, foo, sizeof(foo), 15);
+    (void)idx;
+
+    ret = filser_read_crc(filser->fd, data, sizeof(data), 15);
     if (ret <= 0) {
         fprintf(stderr, "61UP error\n");
         _exit(1);
@@ -508,7 +515,7 @@ static void handle_61_up(struct filser *filser) {
     send_ack(filser);
 }
 
-static void handle_68(struct filser *filser) {
+static void handle_apt_state(struct filser *filser) {
     char foo[0xa07];
     int ret;
 
@@ -698,18 +705,20 @@ int main(int argc, char **argv) {
                 send_ack(&filser);
                 break;
 
-            case 0x61:
-            case 0x62:
-            case 0x63:
-            case 0x64:
+            case FILSER_APT_1:
+            case FILSER_APT_2:
+            case FILSER_APT_3:
+            case FILSER_APT_4:
                 if (was_70)
-                    handle_61_up(&filser);
+                    handle_apt_upload(&filser,
+                                      cmd - FILSER_APT_1);
                 else
-                    handle_61_down(&filser);
+                    handle_apt_download(&filser,
+                                        cmd - FILSER_APT_1);
                 break;
 
-            case 0x68: /* APT state block */
-                handle_68(&filser);
+            case FILSER_APT_STATE:
+                handle_apt_state(&filser);
                 break;
 
             case 0x70:
