@@ -52,8 +52,8 @@ static void usage(void) {
 
 static void arg_error(const char *msg) __attribute__ ((noreturn));
 static void arg_error(const char *msg) {
-    fprintf(stderr, "fakefilser: %s\n", msg);
-    fprintf(stderr, "Try 'fakefilser --help' for more information.\n");
+    fprintf(stderr, "filsertool: %s\n", msg);
+    fprintf(stderr, "Try 'filsertool --help' for more information.\n");
     _exit(1);
 }
 
