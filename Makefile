@@ -32,7 +32,7 @@ src/cenfistool: src/cenfistool.c src/cenfis.c src/serialio.c
 src/hexfile: src/hexfile.c
 	$(CC) $(CFLAGS) -o $@ $^
 
-src/filsertool: src/filsertool.c src/filser-crc.c src/filser-io.c
+src/filsertool: src/filsertool.c src/filser-crc.c src/filser-open.c src/filser-io.c
 	$(CC) $(CFLAGS) -o $@ $^
 
 src/fakefilser: src/fakefilser.c src/filser-crc.c src/filser-io.c

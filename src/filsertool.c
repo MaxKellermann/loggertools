@@ -106,43 +106,6 @@ static void syn_ack_wait(int fd) {
     }
 }
 
-static int _connect(const char *device) {
-    int fd, ret;
-    struct termios attr;
-
-    fd = open(device, O_RDWR | O_NOCTTY);
-    if (fd < 0) {
-        fprintf(stderr, "failed to open '%s': %s\n",
-                device, strerror(errno));
-        _exit(1);
-    }
-
-    ret = tcgetattr(fd, &attr);
-    if (ret < 0) {
-        fprintf(stderr, "tcgetattr failed: %s\n",
-                strerror(errno));
-        _exit(1);
-    }
-
-    attr.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
-    attr.c_oflag &= ~OPOST;
-    attr.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
-    attr.c_cflag &= ~(CSIZE | PARENB | CRTSCTS | IXON | IXOFF);
-    attr.c_cflag |= (CS8 | CLOCAL);
-    attr.c_cc[VMIN] = 0;
-    attr.c_cc[VTIME] = 1;
-    cfsetospeed(&attr, B19200);
-    cfsetispeed(&attr, B19200);
-    ret = tcsetattr(fd, TCSANOW, &attr);
-    if (ret < 0) {
-        fprintf(stderr, "tcsetattr failed: %s\n",
-                strerror(errno));
-        _exit(1);
-    }
-
-    return fd;
-}
-
 static ssize_t read_full(int fd, unsigned char *buffer, size_t len) {
     ssize_t nbytes;
     size_t pos = 0;
@@ -318,7 +281,12 @@ static int raw(int argpos, int argc, char **argv) {
     (void)argc;
     (void)argv;
 
-    fd = connect(device);
+    fd = filser_open(device);
+    if (fd < 0) {
+        fprintf(stderr, "filser_open failed: %s\n",
+                strerror(errno));
+        _exit(1);
+    }
 
     check_mem_settings(fd);
 
@@ -398,7 +366,12 @@ static int flight_list(int argpos, int argc, char **argv) {
     (void)argc;
     (void)argv;
 
-    fd = connect(device);
+    fd = filser_open(device);
+    if (fd < 0) {
+        fprintf(stderr, "filser_open failed: %s\n",
+                strerror(errno));
+        _exit(1);
+    }
 
     check_mem_settings(fd);
 
@@ -440,7 +413,12 @@ static int get_basic_data(int argpos, int argc, char **argv) {
     (void)argc;
     (void)argv;
 
-    fd = connect(device);
+    fd = filser_open(device);
+    if (fd < 0) {
+        fprintf(stderr, "filser_open failed: %s\n",
+                strerror(errno));
+        _exit(1);
+    }
 
     check_mem_settings(fd);
 
@@ -471,7 +449,12 @@ static int get_flight_info(int argpos, int argc, char **argv) {
     (void)argc;
     (void)argv;
 
-    fd = connect(device);
+    fd = filser_open(device);
+    if (fd < 0) {
+        fprintf(stderr, "filser_open failed: %s\n",
+                strerror(errno));
+        _exit(1);
+    }
 
     check_mem_settings(fd);
 
@@ -635,7 +618,12 @@ static int cmd_mem_section(int argpos, int argc, char **argv) {
     start_address = (unsigned)strtoul(argv[argpos++], NULL, 0);
     end_address = (unsigned)strtoul(argv[argpos++], NULL, 0);
 
-    fd = connect(device);
+    fd = filser_open(device);
+    if (fd < 0) {
+        fprintf(stderr, "filser_open failed: %s\n",
+                strerror(errno));
+        _exit(1);
+    }
 
     check_mem_settings(fd);
 
@@ -673,7 +661,12 @@ static int cmd_raw_mem(int argpos, int argc, char **argv) {
     start_address = (unsigned)strtoul(argv[argpos++], NULL, 0);
     end_address = (unsigned)strtoul(argv[argpos++], NULL, 0);
 
-    fd = connect(device);
+    fd = filser_open(device);
+    if (fd < 0) {
+        fprintf(stderr, "filser_open failed: %s\n",
+                strerror(errno));
+        _exit(1);
+    }
 
     check_mem_settings(fd);
 
@@ -722,7 +715,12 @@ static int download_flight(int argpos, int argc, char **argv) {
     (void)argc;
     (void)argv;
 
-    fd = connect(device);
+    fd = filser_open(device);
+    if (fd < 0) {
+        fprintf(stderr, "filser_open failed: %s\n",
+                strerror(errno));
+        _exit(1);
+    }
 
     check_mem_settings(fd);
 
@@ -812,7 +810,12 @@ static int cmd_read_tp_tsk(int argpos, int argc, char **argv) {
 
     filename = argv[argpos];
 
-    fd = connect(device);
+    fd = filser_open(device);
+    if (fd < 0) {
+        fprintf(stderr, "filser_open failed: %s\n",
+                strerror(errno));
+        _exit(1);
+    }
 
     ret = communicate(fd, FILSER_READ_TP_TSK,
                       (unsigned char*)&tp_tsk, sizeof(tp_tsk));
@@ -881,7 +884,12 @@ static int cmd_write_tp_tsk(int argpos, int argc, char **argv) {
     if (fd != 0)
         close(fd);
 
-    fd = connect(device);
+    fd = filser_open(device);
+    if (fd < 0) {
+        fprintf(stderr, "filser_open failed: %s\n",
+                strerror(errno));
+        _exit(1);
+    }
 
     ret = filser_send(fd, FILSER_WRITE_TP_TSK,
                       (const unsigned char*)&tp_tsk, sizeof(tp_tsk));

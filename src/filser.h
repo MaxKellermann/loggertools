@@ -176,6 +176,10 @@ extern "C" {
 
 unsigned char filser_calc_crc(const void *p0, size_t len);
 
+/* filser-open.c */
+
+int filser_open(const char *device);
+
 /* filser-io.c */
 
 int filser_write_cmd(int fd, unsigned char cmd);
