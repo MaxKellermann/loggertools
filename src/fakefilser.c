@@ -321,16 +321,26 @@ static void handle_get_mem_section(struct filser *filser) {
 }
 
 static void handle_def_mem(struct filser *filser) {
-    unsigned char address[6];
+    struct filser_packet_def_mem packet;
 
-    read_full_crc(filser->fd, address, sizeof(address));
+    read_full_crc(filser->fd, &packet, sizeof(packet));
 
-    filser->start_address = address[2] + (address[1] << 8) + (address[0] << 16);
-    filser->end_address = address[5] + (address[4] << 8) + (address[3] << 16);
+    filser->start_address
+        = packet.start_address[2]
+        + (packet.start_address[1] << 8)
+        + (packet.start_address[0] << 16);
+    filser->end_address
+        = packet.end_address[2]
+        + (packet.end_address[1] << 8)
+        + (packet.end_address[0] << 16);
 
     printf("def_mem: address = %02x %02x %02x %02x %02x %02x\n",
-           address[0], address[1], address[2],
-           address[3], address[4], address[5]);
+           packet.start_address[0],
+           packet.start_address[1],
+           packet.start_address[2],
+           packet.end_address[0],
+           packet.end_address[1],
+           packet.end_address[2]);
 
     printf("def_mem: address = %06x %06x\n",
            filser->start_address, filser->end_address);
