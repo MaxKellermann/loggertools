@@ -137,6 +137,11 @@ struct filser_flight_index {
     unsigned char flight_no; /* ? */
 } __attribute__((packed));
 
+struct filser_packet_def_mem {
+    unsigned char start_address[3];
+    unsigned char end_address[3];
+} __attribute__((packed));
+
 enum filser_command {
     FILSER_PREFIX = 0x02,
     FILSER_ACK = 0x06,
