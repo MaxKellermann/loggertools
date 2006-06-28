@@ -238,20 +238,14 @@ static ssize_t read_timeout_crc(int fd, unsigned char *buffer, size_t len) {
 
 static int communicate(int fd, unsigned char cmd,
                        unsigned char *buffer, size_t buffer_len) {
-    const unsigned char prefix = FILSER_PREFIX;
-    ssize_t nbytes;
     int ret;
 
     syn_ack_wait(fd);
 
     tcflush(fd, TCIOFLUSH);
 
-    nbytes = write(fd, &prefix, sizeof(prefix));
-    if (nbytes <= 0)
-        return -1;
-
-    nbytes = write(fd, &cmd, sizeof(cmd));
-    if (nbytes <= 0)
+    ret = filser_write_cmd(fd, cmd);
+    if (ret <= 0)
         return -1;
 
     ret = read_full_crc(fd, buffer, buffer_len);
@@ -263,7 +257,6 @@ static int communicate(int fd, unsigned char cmd,
 
 static int filser_send(int fd, unsigned char cmd,
                        const void *buffer, size_t buffer_len) {
-    const unsigned char prefix = FILSER_PREFIX;
     ssize_t nbytes;
     unsigned char response;
     int ret;
@@ -272,12 +265,8 @@ static int filser_send(int fd, unsigned char cmd,
 
     tcflush(fd, TCIOFLUSH);
 
-    nbytes = write(fd, &prefix, sizeof(prefix));
-    if (nbytes <= 0)
-        return -1;
-
-    nbytes = write(fd, &cmd, sizeof(cmd));
-    if (nbytes <= 0)
+    ret = filser_write_cmd(fd, cmd);
+    if (ret <= 0)
         return -1;
 
     ret = filser_write_crc(fd, buffer, buffer_len);

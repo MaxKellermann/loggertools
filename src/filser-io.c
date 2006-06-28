@@ -25,6 +25,21 @@
 
 #include "filser.h"
 
+int filser_write_cmd(int fd, unsigned char cmd) {
+    static const unsigned char prefix = FILSER_PREFIX;
+    ssize_t nbytes;
+
+    nbytes = write(fd, &prefix, sizeof(prefix));
+    if (nbytes <= 0)
+        return (int)nbytes;
+
+    nbytes = write(fd, &cmd, sizeof(cmd));
+    if (nbytes <= 0)
+        return (int)nbytes;
+
+    return 1;
+}
+
 int filser_write_crc(int fd, const void *p0, size_t length) {
     const unsigned char *p = p0;
     ssize_t nbytes;
