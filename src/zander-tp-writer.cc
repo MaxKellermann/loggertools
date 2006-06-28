@@ -119,12 +119,22 @@ unsigned makeZanderStyle(const TurnPoint &tp) {
     }
 }
 
-static char formatRunway(const Runway &rwy) {
-    switch (rwy.getType()) {
-    case Runway::TYPE_GRASS:
-        return 'G';
-    case Runway::TYPE_ASPHALT:
-        return 'A';
+static char formatType(const TurnPoint &tp) {
+    switch (tp.getType()) {
+    case TurnPoint::TYPE_AIRFIELD:
+    case TurnPoint::TYPE_MILITARY_AIRFIELD:
+    case TurnPoint::TYPE_GLIDER_SITE:
+        switch (tp.getRunway().getType()) {
+        case Runway::TYPE_GRASS:
+            return 'G';
+        case Runway::TYPE_ASPHALT:
+            return 'A';
+        default:
+            return 'V';
+        }
+        break;
+    case TurnPoint::TYPE_OUTLANDING:
+        return 'S';
     default:
         return ' ';
     }
@@ -161,7 +171,7 @@ void ZanderTurnPointWriter::write(const TurnPoint &tp) {
     else
         fputs("1      ", file);
     fputc(' ', file);
-    fputc(formatRunway(tp.getRunway()), file);
+    fputc(formatType(tp), file);
     fputc(' ', file);
     write_column(file, tp.getCountry(), 2);
     fputs("\r\n", file);

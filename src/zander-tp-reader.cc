@@ -159,9 +159,13 @@ const TurnPoint *ZanderTurnPointReader::read() {
         if (*q == 'G') {
             rwy_type = Runway::TYPE_GRASS;
             tp->setType(TurnPoint::TYPE_AIRFIELD);
-        } else if (*q == 'A') {
+        } else if (*q == 'A' || *q == 'C') {
             rwy_type = Runway::TYPE_ASPHALT;
             tp->setType(TurnPoint::TYPE_AIRFIELD);
+        } else if (*q == 'V') {
+            tp->setType(TurnPoint::TYPE_AIRFIELD);
+        } else if (*q == 'S') {
+            tp->setType(TurnPoint::TYPE_OUTLANDING);
         }
     }
     tp->setRunway(Runway(rwy_type, UINT_MAX, 0));
