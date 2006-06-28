@@ -46,10 +46,9 @@ struct filser_wtf37 {
 
 struct filser {
     int fd;
+    const char *data_path;
     struct filser_flight_info flight_info;
-    struct filser_contest_class contest_class;
     struct filser_setup setup;
-    struct filser_tp_tsk tp_tsk;
     unsigned start_address, end_address;
 };
 
@@ -77,8 +76,6 @@ static void default_filser(struct filser *filser) {
     strcpy(filser->flight_info.model, "G103");
     strcpy(filser->flight_info.registration, "D-3322");
     strcpy(filser->flight_info.number, "2H");
-
-    strcpy(filser->contest_class.contest_class, "FOOBAR");
 
     filser->setup.sampling_rate_normal = 5;
     filser->setup.sampling_rate_near_tp = 1;
@@ -241,6 +238,137 @@ static void send_ack(struct filser *filser) {
     }
 }
 
+static char *make_path(struct filser *filser,
+                       const char *filename) {
+    size_t l1, l2;
+    char *p;
+
+    l1 = strlen(filser->data_path);
+    l2 = strlen(filename);
+
+    p = (char*)malloc(l1 + 1 + l2 + 1);
+    if (p == NULL) {
+        fprintf(stderr, "out of memory\n");
+        abort();
+    }
+
+    memcpy(p, filser->data_path, l1);
+    p[l1] = '/';
+    memcpy(p + l1 + 1, filename, l2);
+    p[l1 + 1 + l2] = 0;
+
+    return p;
+}
+
+static void download_to_file(struct filser *filser,
+                             const char *filename,
+                             size_t length) {
+    void *buffer;
+    char *path;
+    int fd, ret;
+    ssize_t nbytes;
+
+    buffer = malloc(length);
+    if (buffer == NULL) {
+        fprintf(stderr, "out of memory\n");
+        abort();
+    }
+
+    ret = filser_read_crc(filser->fd, buffer, length, 10);
+    if (ret <= 0) {
+        fprintf(stderr, "error during filser_read_crc\n");
+        exit(2);
+    }
+
+    path = make_path(filser, filename);
+    fd = open(path, O_CREAT|O_TRUNC|O_WRONLY, 0666);
+    if (fd < 0) {
+        fprintf(stderr, "failed to create %s: %s\n",
+                path, strerror(errno));
+        exit(2);
+    }
+
+    nbytes = write(fd, buffer, length);
+    if (nbytes < 0) {
+        fprintf(stderr, "failed to write to %s: %s\n",
+                path, strerror(errno));
+        exit(2);
+    }
+
+    if ((size_t)nbytes < length) {
+        fprintf(stderr, "short write to %s\n",
+                path);
+        exit(2);
+    }
+
+    close(fd);
+
+    free(buffer);
+    free(path);
+}
+
+static void upload_from_file(struct filser *filser,
+                             const char *filename,
+                             size_t length) {
+    char *path;
+    int fd, ret;
+    struct stat st;
+    void *buffer;
+    ssize_t nbytes;
+
+    buffer = malloc(length);
+    if (buffer == NULL) {
+        fprintf(stderr, "out of memory\n");
+        abort();
+    }
+
+    path = make_path(filser, filename);
+    ret = stat(path, &st);
+    if (ret < 0) {
+        if (errno != ENOENT)
+            fprintf(stderr, "failed to stat %s: %s\n",
+                    path, strerror(errno));
+
+        memset(buffer, 0, length);
+        write_crc(filser->fd, buffer, length);
+        free(buffer);
+        return;
+    }
+
+    if (st.st_size != (off_t)length) {
+        fprintf(stderr, "wrong length %s: should be %zu\n",
+                path, length);
+        exit(2);
+    }
+
+    fd = open(path, O_RDONLY);
+    if (fd < 0) {
+        fprintf(stderr, "failed to open %s: %s\n",
+                path, strerror(errno));
+        exit(2);
+    }
+
+    nbytes = read(fd, buffer, length);
+    if (nbytes < 0) {
+        fprintf(stderr, "failed to read from %s: %s\n",
+                path, strerror(errno));
+        exit(2);
+    }
+
+    if ((size_t)nbytes < length) {
+        fprintf(stderr, "short read from %s\n",
+                path);
+        exit(2);
+    }
+
+    close(fd);
+
+    write_crc(filser->fd, buffer, length);
+
+    free(buffer);
+    free(path);
+}
+
 static void handle_syn(struct filser *filser) {
     send_ack(filser);
 }
@@ -398,33 +526,11 @@ static void handle_write_flight_info(struct filser *filser) {
 }
 
 static void handle_read_tp_tsk(struct filser *filser) {
-    char buffer[0x5528];
-    /*fprintf(stderr, "write_tp_tsk: %zx\n", sizeof(filser->tp_tsk));
-    write_crc(filser->fd, (const unsigned char*)&filser->tp_tsk,
-              sizeof(filser->tp_tsk));
-    */
-    buffer[0x48a4]=0x47;
-    buffer[0x48a5]=0x48;
-    fprintf(stderr, "write_tp_tsk: 0x%zx\n", sizeof(buffer));
-    memset(&buffer, 0, sizeof(buffer));
-    write_crc(filser->fd, buffer, sizeof(buffer));
+    upload_from_file(filser, "tp_tsk", 0x5528);
 }
 
 static void handle_write_tp_tsk(struct filser *filser) {
-    struct filser_tp_tsk tp_tsk;
-    ssize_t nbytes;
-
-    nbytes = read_full_crc(filser->fd, &tp_tsk, sizeof(tp_tsk));
-    if (nbytes < 0) {
-        fprintf(stderr, "read failed: %s\n", strerror(errno));
-        _exit(1);
-    }
-    if ((size_t)nbytes < sizeof(tp_tsk)) {
-        fprintf(stderr, "short read\n");
-        _exit(1);
-    }
-
-    filser->tp_tsk = tp_tsk;
+    download_to_file(filser, "tp_tsk", 0x5528);
 
     send_ack(filser);
 }
@@ -454,9 +560,8 @@ static void handle_write_setup(struct filser *filser) {
 }
 
 static void handle_read_contest_class(struct filser *filser) {
-    write_crc(filser->fd, (const unsigned char*)&filser->contest_class,
-              sizeof(filser->contest_class));
-    dump_buffer_crc(&filser->contest_class, sizeof(filser->contest_class));
+    upload_from_file(filser, "contest_class",
+                     sizeof(struct filser_contest_class));
 }
 
 static void handle_get_extra_data(struct filser *filser) {
@@ -466,20 +571,8 @@ static void handle_get_extra_data(struct filser *filser) {
 }
 
 static void handle_write_contest_class(struct filser *filser) {
-    struct filser_contest_class contest_class;
-    ssize_t nbytes;
-
-    nbytes = read_full_crc(filser->fd, &contest_class, sizeof(contest_class));
-    if (nbytes < 0) {
-        fprintf(stderr, "read failed: %s\n", strerror(errno));
-        _exit(1);
-    }
-    if ((size_t)nbytes < sizeof(contest_class)) {
-        fprintf(stderr, "short read\n");
-        _exit(1);
-    }
-
-    filser->contest_class = contest_class;
+    download_to_file(filser, "contest_class",
+                     sizeof(struct filser_contest_class));
 
     send_ack(filser);
 }
@@ -501,29 +594,16 @@ static void handle_apt_download(struct filser *filser,
 
 static void handle_apt_upload(struct filser *filser,
                               unsigned idx) {
-    char data[0x8000];
-    int ret;
+    char filename[] = "apt_X";
 
-    (void)idx;
-
-    ret = filser_read_crc(filser->fd, data, sizeof(data), 15);
-    if (ret <= 0) {
-        fprintf(stderr, "61UP error\n");
-        _exit(1);
-    }
+    filename[4] = '0' + idx;
+    download_to_file(filser, filename, 0x8000);
 
     send_ack(filser);
 }
 
 static void handle_apt_state(struct filser *filser) {
-    char foo[0xa07];
-    int ret;
-
-    ret = filser_read_crc(filser->fd, foo, sizeof(foo), 15);
-    if (ret <= 0) {
-        fprintf(stderr, "0x68 error\n");
-        _exit(1);
-    }
+    download_to_file(filser, "apt_state", 0xa07);
 
     send_ack(filser);
 }
@@ -564,22 +644,32 @@ int main(int argc, char **argv) {
     struct filser filser;
     int was_70 = 0;
 
-    (void)argv;
+    if (argc < 2)
+        arg_error("Not enough arguments");
+    else if (argc > 2)
+        arg_error("Too many arguments");
 
-    signal(SIGALRM, alarm_handler);
+    if (strcmp(argv[1], "-h") == 0 ||
+        strcmp(argv[1], "--help") == 0) {
+        usage();
+        _exit(0);
+    }
 
     if (argc > 1) {
         if (strcmp(argv[0], "--help") == 0) {
             usage();
             _exit(0);
+            
         } else {
-            arg_error("Too many arguments");
         }
     }
+
+    signal(SIGALRM, alarm_handler);
 
     default_filser(&filser);
 
     filser.fd = open_virtual("/tmp/fakefilser");
+    filser.data_path = argv[1];
 
     while (1) {
         unsigned char cmd;
