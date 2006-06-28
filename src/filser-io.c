@@ -19,6 +19,7 @@
  * $Id$
  */
 
+#include <assert.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <time.h>
@@ -78,6 +79,24 @@ int filser_write_crc(int fd, const void *p0, size_t length) {
 
     if ((size_t)nbytes != sizeof(crc))
         return 0;
+
+    return 1;
+}
+
+int filser_write_packet(int fd, unsigned char cmd,
+                        const void *packet, size_t length) {
+    int ret;
+
+    assert(fd >= 0);
+    assert(packet != NULL && length > 0);
+
+    ret = filser_write_cmd(fd, cmd);
+    if (ret <= 0)
+        return ret;
+
+    ret = filser_write_crc(fd, packet, length);
+    if (ret <= 0)
+        return ret;
 
     return 1;
 }

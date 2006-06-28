@@ -265,11 +265,8 @@ static int filser_send(int fd, unsigned char cmd,
 
     tcflush(fd, TCIOFLUSH);
 
-    ret = filser_write_cmd(fd, cmd);
-    if (ret <= 0)
-        return -1;
-
-    ret = filser_write_crc(fd, buffer, buffer_len);
+    ret = filser_write_packet(fd, cmd,
+                              buffer, buffer_len);
     if (ret <= 0)
         return -1;
 
