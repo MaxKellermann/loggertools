@@ -83,13 +83,6 @@ static void default_filser(struct filser *filser) {
     filser->setup.sampling_rate_k = 20;
     filser->setup.button_fixes = 15;
     filser->setup.tp_radius = htons(1000);
-
-    /*
-    for (i = 0; i < 100; i++)
-        memset(filser->tp_tsk.wtf37[i].space,
-               ' ',
-               sizeof(filser->tp_tsk.wtf37[i].space));
-    */
 }
 
 static void write_crc(int fd, const void *buffer, size_t length) {
