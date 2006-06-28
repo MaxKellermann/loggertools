@@ -212,6 +212,7 @@ static void dump_timeout(struct filser *filser) {
             timeout = time(NULL) + 2;
         } else if (time(NULL) >= timeout)
             break;
+        fflush(stdout);
     }
 
     if (offset % 16 > 0) {
@@ -298,9 +299,8 @@ static void handle_open_flight_list(struct filser *filser) {
 }
 
 static void handle_get_basic_data(struct filser *filser) {
-    unsigned char buffer[0x140];
+    static const unsigned char buffer[0x148] = "\x0d\x0aVersion COLIBRI   V3.01\x0d\x0aSN13123,HW2.0\x0d\x0aID:313-[313]\x0d\x0aChecksum:64\x0d\x0aAPT:APTempty\x0d\x0a 10.6.3\x0d\x0aKey uploaded by\x0d\x0aMihelin Peter\x0d\x0aLX Navigation\x0d\x0a";
 
-    memset(&buffer, 0, sizeof(buffer));
     write(filser->fd, buffer, sizeof(buffer));
 }
 
@@ -398,8 +398,16 @@ static void handle_write_flight_info(struct filser *filser) {
 }
 
 static void handle_read_tp_tsk(struct filser *filser) {
+    char buffer[0x5528];
+    /*fprintf(stderr, "write_tp_tsk: %zx\n", sizeof(filser->tp_tsk));
     write_crc(filser->fd, (const unsigned char*)&filser->tp_tsk,
               sizeof(filser->tp_tsk));
+    */
+    buffer[0x48a4]=0x47;
+    buffer[0x48a5]=0x48;
+    fprintf(stderr, "write_tp_tsk: 0x%zx\n", sizeof(buffer));
+    memset(&buffer, 0, sizeof(buffer));
+    write_crc(filser->fd, buffer, sizeof(buffer));
 }
 
 static void handle_write_tp_tsk(struct filser *filser) {
@@ -476,6 +484,43 @@ static void handle_write_contest_class(struct filser *filser) {
     send_ack(filser);
 }
 
+static void handle_30(struct filser *filser) {
+    char foo[0x8000];
+    memset(&foo, 0, sizeof(foo));
+    write_crc(filser->fd, foo, sizeof(foo));
+}
+
+static void handle_61_down(struct filser *filser) {
+    char foo[16000];
+    write_crc(filser->fd, foo, 8164);
+}
+
+static void handle_61_up(struct filser *filser) {
+    char foo[0x8000];
+    int ret;
+
+    ret = filser_read_crc(filser->fd, foo, sizeof(foo), 15);
+    if (ret <= 0) {
+        fprintf(stderr, "61UP error\n");
+        _exit(1);
+    }
+
+    send_ack(filser);
+}
+
+static void handle_68(struct filser *filser) {
+    char foo[0xa07];
+    int ret;
+
+    ret = filser_read_crc(filser->fd, foo, sizeof(foo), 15);
+    if (ret <= 0) {
+        fprintf(stderr, "0x68 error\n");
+        _exit(1);
+    }
+
+    send_ack(filser);
+}
+
 static int open_virtual(const char *symlink_path) {
     int fd, ret;
 
@@ -510,6 +555,7 @@ static int open_virtual(const char *symlink_path) {
 
 int main(int argc, char **argv) {
     struct filser filser;
+    int was_70 = 0;
 
     (void)argv;
 
@@ -530,15 +576,21 @@ int main(int argc, char **argv) {
 
     while (1) {
         unsigned char cmd;
-        ssize_t nbytes;
+        int ret;
 
-        nbytes = read(filser.fd, &cmd, sizeof(cmd));
-        if (nbytes < 0) {
+        ret = filser_read(filser.fd, &cmd, sizeof(cmd), 5);
+        if (ret < 0) {
+            if (errno == EIO) {
+                close(filser.fd);
+                filser.fd = open_virtual("/tmp/fakefilser");
+                continue;
+            }
+
             fprintf(stderr, "read failed: %s\n", strerror(errno));
             _exit(1);
         }
 
-        if ((size_t)nbytes < sizeof(cmd))
+        if (ret == 0)
             continue;
 
         switch (cmd) {
@@ -549,15 +601,14 @@ int main(int argc, char **argv) {
             break;
 
         case FILSER_PREFIX:
-            nbytes = read(filser.fd, &cmd, sizeof(cmd));
-            if (nbytes < 0) {
+            ret = filser_read(filser.fd, &cmd, sizeof(cmd), 5);
+            if (ret <= 0) {
                 fprintf(stderr, "read failed: %s\n", strerror(errno));
                 _exit(1);
             }
-            if ((size_t)nbytes < sizeof(cmd)) {
-                fprintf(stderr, "short read\n");
-                _exit(1);
-            }
+
+            printf("cmd=0x%02x\n", cmd);
+            fflush(stdout);
 
             if (cmd >= FILSER_READ_LOGGER_DATA) {
                 printf("received get_logger_data\n");
@@ -634,6 +685,36 @@ int main(int argc, char **argv) {
             case FILSER_CHECK_MEM_SETTINGS:
                 printf("received check_mem_settings\n");
                 handle_check_mem_settings(&filser);
+                break;
+
+            case 0x30: /* read LO4 logger */
+            case 0x31:
+            case 0x32:
+                handle_30(&filser);
+                break;
+
+            case 0x4c:
+                /* clear LO4 logger? */
+                send_ack(&filser);
+                break;
+
+            case 0x61:
+            case 0x62:
+            case 0x63:
+            case 0x64:
+                if (was_70)
+                    handle_61_up(&filser);
+                else
+                    handle_61_down(&filser);
+                break;
+
+            case 0x68: /* APT state block */
+                handle_68(&filser);
+                break;
+
+            case 0x70:
+                /* darauf folgt 0x61 mit daten */
+                was_70 = 1;
                 break;
 
             default:
