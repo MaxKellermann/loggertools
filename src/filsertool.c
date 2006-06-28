@@ -220,7 +220,8 @@ static int communicate(int fd, unsigned char cmd,
 }
 
 static int filser_send(int fd, unsigned char cmd,
-                       const void *buffer, size_t buffer_len) {
+                       const void *buffer, size_t buffer_len,
+                       int timeout) {
     ssize_t nbytes;
     unsigned char response;
     int ret;
@@ -892,8 +893,9 @@ static int cmd_write_tp_tsk(int argpos, int argc, char **argv) {
     }
 
     ret = filser_send(fd, FILSER_WRITE_TP_TSK,
-                      (const unsigned char*)&tp_tsk, sizeof(tp_tsk));
-    if (ret < 0) {
+                      (const unsigned char*)&tp_tsk, sizeof(tp_tsk),
+                      15);
+    if (ret <= 0) {
         fprintf(stderr, "io error: %s\n", strerror(errno));
         return 1;
     }
