@@ -235,7 +235,7 @@ static int filser_send(int fd, unsigned char cmd,
     if (ret <= 0)
         return -1;
 
-    nbytes = read(fd, &response, sizeof(response));
+    nbytes = filser_read(fd, &response, sizeof(response), timeout);
     if (nbytes < 0)
         return -1;
 
