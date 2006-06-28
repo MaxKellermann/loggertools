@@ -30,6 +30,7 @@
 #include <signal.h>
 #include <time.h>
 #include <stdlib.h>
+#include <arpa/inet.h>
 
 #include "filser.h"
 
@@ -105,7 +106,7 @@ static void syn_ack_wait(int fd) {
     }
 }
 
-static int connect(const char *device) {
+static int _connect(const char *device) {
     int fd, ret;
     struct termios attr;
 
@@ -578,7 +579,7 @@ static int seek_mem(int fd, struct filser_flight_index *flight) {
 static int get_mem_section(int fd, size_t section_lengths[0x10],
                            size_t *overall_lengthp) {
     unsigned char cmd[] = { FILSER_PREFIX, FILSER_GET_MEM_SECTION, };
-    unsigned char mem_section[0x20];
+    struct filser_packet_mem_section packet;
     ssize_t nbytes;
     unsigned z;
 
@@ -588,15 +589,14 @@ static int get_mem_section(int fd, size_t section_lengths[0x10],
     if (nbytes <= 0)
         return -1;
 
-    nbytes = read_full_crc(fd, mem_section, sizeof(mem_section));
+    nbytes = read_full_crc(fd, &packet, sizeof(packet));
     if (nbytes <= 0)
         return -1;
 
     *overall_lengthp = 0;
 
     for (z = 0; z < 0x10; z++) {
-        section_lengths[z] = (mem_section[z * 2] << 8) +
-            mem_section[z * 2 + 1];
+        section_lengths[z] = ntohs(packet.section_lengths[z]);
         (*overall_lengthp) += section_lengths[z];
     }
 

@@ -142,6 +142,10 @@ struct filser_packet_def_mem {
     unsigned char end_address[3];
 } __attribute__((packed));
 
+struct filser_packet_mem_section {
+    u_int16_t section_lengths[0x10];
+} __attribute__((packed));
+
 enum filser_command {
     FILSER_PREFIX = 0x02,
     FILSER_ACK = 0x06,
