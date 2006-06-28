@@ -189,6 +189,9 @@ int filser_write_crc(int fd, const void *p, size_t length);
 int filser_write_packet(int fd, unsigned char cmd,
                         const void *packet, size_t length);
 
+int filser_read(int fd, void *p0, size_t length,
+                time_t timeout);
+
 int filser_read_crc(int fd, void *p, size_t length,
                     time_t timeout);
 

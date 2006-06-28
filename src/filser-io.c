@@ -101,12 +101,11 @@ int filser_write_packet(int fd, unsigned char cmd,
     return 1;
 }
 
-int filser_read_crc(int fd, void *p0, size_t length,
-                    time_t timeout) {
+int filser_read(int fd, void *p0, size_t length,
+                time_t timeout) {
     unsigned char *p = p0;
     ssize_t nbytes;
     size_t pos = 0;
-    unsigned char crc;
     time_t end_time;
 
     if (timeout > 0)
@@ -128,11 +127,21 @@ int filser_read_crc(int fd, void *p0, size_t length,
             return 0;
     }
 
-    nbytes = read(fd, &crc, sizeof(crc));
-    if (nbytes < 0)
-        return -1;
-    if ((size_t)nbytes < sizeof(crc))
-        return 0;
+    return 1;
+}
+
+int filser_read_crc(int fd, void *p0, size_t length,
+                    time_t timeout) {
+    int ret;
+    unsigned char crc;
+
+    ret = filser_read(fd, p0, length, timeout);
+    if (ret <= 0)
+        return ret;
+
+    ret = filser_read(fd, &crc, sizeof(crc), timeout);
+    if (ret <= 0)
+        return ret;
 
     if (crc != filser_calc_crc(p0, length))
         return -2;
