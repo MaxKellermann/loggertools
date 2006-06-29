@@ -38,6 +38,7 @@
 #include <sys/select.h>
 
 #include "filser.h"
+#include "datadir.h"
 
 struct filser_wtf37 {
     char space[36];
@@ -46,7 +47,7 @@ struct filser_wtf37 {
 
 struct filser {
     int fd;
-    const char *data_path;
+    struct datadir *datadir;
     struct filser_flight_info flight_info;
     struct filser_setup setup;
     unsigned start_address, end_address;
@@ -231,35 +232,11 @@ static void send_ack(struct filser *filser) {
     }
 }
 
-static char *make_path(struct filser *filser,
-                       const char *filename) {
-    size_t l1, l2;
-    char *p;
-
-    l1 = strlen(filser->data_path);
-    l2 = strlen(filename);
-
-    p = (char*)malloc(l1 + 1 + l2 + 1);
-    if (p == NULL) {
-        fprintf(stderr, "out of memory\n");
-        abort();
-    }
-
-    memcpy(p, filser->data_path, l1);
-    p[l1] = '/';
-    memcpy(p + l1 + 1, filename, l2);
-    p[l1 + 1 + l2] = 0;
-
-    return p;
-}
-
 static void download_to_file(struct filser *filser,
                              const char *filename,
                              size_t length) {
     void *buffer;
-    char *path;
-    int fd, ret;
-    ssize_t nbytes;
+    int ret;
 
     buffer = malloc(length);
     if (buffer == NULL) {
@@ -273,93 +250,37 @@ static void download_to_file(struct filser *filser,
         exit(2);
     }
 
-    path = make_path(filser, filename);
-    fd = open(path, O_CREAT|O_TRUNC|O_WRONLY, 0666);
-    if (fd < 0) {
-        fprintf(stderr, "failed to create %s: %s\n",
-                path, strerror(errno));
+    ret = datadir_write(filser->datadir, filename,
+                        buffer, length);
+    if (ret < 0) {
+        fprintf(stderr, "failed to write %s: %s\n",
+                filename, strerror(errno));
         exit(2);
     }
 
-    nbytes = write(fd, buffer, length);
-    if (nbytes < 0) {
-        fprintf(stderr, "failed to write to %s: %s\n",
-                path, strerror(errno));
-        exit(2);
-    }
-
-    if ((size_t)nbytes < length) {
+    if (ret == 0) {
         fprintf(stderr, "short write to %s\n",
-                path);
+                filename);
         exit(2);
     }
-
-    close(fd);
 
     free(buffer);
-    free(path);
 }
 
 static void upload_from_file(struct filser *filser,
                              const char *filename,
                              size_t length) {
-    char *path;
-    int fd, ret;
-    struct stat st;
     void *buffer;
-    ssize_t nbytes;
 
-    buffer = malloc(length);
+    buffer = datadir_read(filser->datadir, filename, length);
     if (buffer == NULL) {
-        fprintf(stderr, "out of memory\n");
-        abort();
-    }
-
-    path = make_path(filser, filename);
-    ret = stat(path, &st);
-    if (ret < 0) {
-        if (errno != ENOENT)
-            fprintf(stderr, "failed to stat %s: %s\n",
-                    path, strerror(errno));
-
-        memset(buffer, 0, length);
-        write_crc(filser->fd, buffer, length);
-        free(buffer);
-        return;
-    }
-
-    if (st.st_size != (off_t)length) {
-        fprintf(stderr, "wrong length %s: should be %zu\n",
-                path, length);
+        fprintf(stderr, "failed to read %s\n", filename);
         exit(2);
     }
-
-    fd = open(path, O_RDONLY);
-    if (fd < 0) {
-        fprintf(stderr, "failed to open %s: %s\n",
-                path, strerror(errno));
-        exit(2);
-    }
-
-    nbytes = read(fd, buffer, length);
-    if (nbytes < 0) {
-        fprintf(stderr, "failed to read from %s: %s\n",
-                path, strerror(errno));
-        exit(2);
-    }
-
-    if ((size_t)nbytes < length) {
-        fprintf(stderr, "short read from %s\n",
-                path);
-        exit(2);
-    }
-
-    close(fd);
 
     write_crc(filser->fd, buffer, length);
 
     free(buffer);
-    free(path);
 }
 
 static void handle_syn(struct filser *filser) {
@@ -662,7 +583,12 @@ int main(int argc, char **argv) {
     default_filser(&filser);
 
     filser.fd = open_virtual("/tmp/fakefilser");
-    filser.data_path = argv[1];
+    filser.datadir = datadir_open(argv[1]);
+    if (filser.datadir == NULL) {
+        fprintf(stderr, "failed to open datadir %s: %s\n",
+                argv[1], strerror(errno));
+        exit(2);
+    }
 
     while (1) {
         unsigned char cmd;
