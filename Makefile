@@ -12,7 +12,7 @@ CFLAGS += -Wmissing-prototypes -Wwrite-strings -Wcast-qual -Wfloat-equal -Wshado
 CXXFLAGS += $(COMMON_CFLAGS)
 CXXFLAGS += -Wwrite-strings -Wcast-qual -Wfloat-equal -Wshadow -Wpointer-arith -Wsign-compare -Wmissing-noreturn -Wmissing-format-attribute -Wredundant-decls -Winline -Wdisabled-optimization -Wno-long-long -Wundef
 
-all: src/loggerconv src/cenfistool src/hexfile src/filsertool src/fakefilser
+all: src/loggerconv src/cenfistool src/hexfile src/filsertool src/fakefilser src/fwd
 
 clean:
 	rm -f src/loggerconv src/cenfistool src/hexfile src/filsertool src/fakefilser src/*.o
@@ -32,8 +32,11 @@ src/cenfistool: src/cenfistool.c src/cenfis.c src/serialio.c
 src/hexfile: src/hexfile.c
 	$(CC) $(CFLAGS) -o $@ $^
 
-src/filsertool: src/filsertool.c src/filser-crc.c src/filser-open.c src/filser-io.c
+src/filsertool: src/filsertool.c src/filser-crc.c src/filser-open.c src/filser-io.c src/datadir.c
 	$(CC) $(CFLAGS) -o $@ $^
 
-src/fakefilser: src/fakefilser.c src/filser-crc.c src/filser-io.c
+src/fakefilser: src/fakefilser.c src/filser-crc.c src/filser-io.c src/datadir.c
+	$(CC) $(CFLAGS) -o $@ $^
+
+src/fwd: src/fwd.c
 	$(CC) $(CFLAGS) -o $@ $^
