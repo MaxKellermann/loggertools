@@ -33,6 +33,7 @@
 #include <arpa/inet.h>
 
 #include "filser.h"
+#include "datadir.h"
 
 static void usage(void) {
     printf("usage: filsertool <command>\n"
@@ -43,6 +44,8 @@ static void usage(void) {
            "        read the TP and TSK database from the device\n"
            "  write_tp_tsk <in_filename.da4>\n"
            "        write the TP and TSK database to the device\n"
+           "  write_apt <data_dir>\n"
+           "        write the APT database to the device\n"
            "  mem_section <start_adddress> <end_address>\n"
            "        print memory section info\n"
            "  raw_mem <start_adddress> <end_address>\n"
@@ -905,6 +908,71 @@ static int cmd_write_tp_tsk(int argpos, int argc, char **argv) {
     return 0;
 }
 
+static int cmd_write_apt(int argpos, int argc, char **argv) {
+    const char *data_path;
+    const char *device = "/dev/ttyS0";
+    int fd, ret;
+    struct datadir *dir;
+    char *data;
+    unsigned i;
+    char filename[] = "apt_X";
+
+    if (argc - argpos < 1)
+        arg_error("No data directory specified");
+    if (argc - argpos > 1)
+        arg_error("Too many arguments");
+
+    fd = filser_open(device);
+    if (fd < 0) {
+        fprintf(stderr, "filser_open failed: %s\n",
+                strerror(errno));
+        exit(2);
+    }
+
+    data_path = argv[argpos];
+    dir = datadir_open(data_path);
+    if (dir == NULL) {
+        fprintf(stderr, "failed to datadir %s", data_path);
+        exit(2);
+    }
+
+    syn_ack_wait(fd);
+
+    ret = filser_write_cmd(fd, 0x70);
+
+    for (i = 0; i < 4; i++) {
+        printf("sending APT block %u\n", i + 1);
+
+        filename[4] = '0' + i;
+        data = datadir_read(dir, filename, 0x8000);
+        ret = filser_send(fd, FILSER_APT_1 + i,
+                          data, 0x8000, 10);
+        if (ret <= 0) {
+            fprintf(stderr, "io error: %s\n", strerror(errno));
+            return 1;
+        }
+
+        free(data);
+    }
+
+    printf("sending APT state\n");
+
+    data = datadir_read(dir, "apt_state", 0xa07);
+    ret = filser_send(fd, FILSER_APT_STATE,
+                      data, 0xa07, 10);
+    if (ret <= 0) {
+        fprintf(stderr, "io error: %s\n", strerror(errno));
+        return 1;
+    }
+
+    free(data);
+
+    datadir_close(dir);
+    close(fd);
+
+    return 0;
+}
+
 int main(int argc, char **argv) {
     signal(SIGALRM, alarm_handler);
 
@@ -929,6 +997,8 @@ int main(int argc, char **argv) {
         return cmd_read_tp_tsk(2, argc, argv);
     } else if (strcmp(argv[1], "write_tp_tsk") == 0) {
         return cmd_write_tp_tsk(2, argc, argv);
+    } else if (strcmp(argv[1], "write_apt") == 0) {
+        return cmd_write_apt(2, argc, argv);
     } else if (strcmp(argv[1], "help") == 0 ||
                strcmp(argv[1], "--help") == 0) {
         usage();
