@@ -200,6 +200,9 @@ int filser_read(int fd, void *p0, size_t length,
 int filser_read_crc(int fd, void *p, size_t length,
                     time_t timeout);
 
+/* filser-proto.c */
+
+int filser_syn_ack(int fd);
 
 #ifdef __cplusplus
 }

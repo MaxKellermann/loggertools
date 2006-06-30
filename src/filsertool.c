@@ -1,6 +1,6 @@
 /*
  * loggertools
- * Copyright (C) 2004-2005 Max Kellermann (max@duempel.org)
+ * Copyright (C) 2004-2006 Max Kellermann (max@duempel.org)
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -64,32 +64,13 @@ static void alarm_handler(int dummy) {
     (void)dummy;
 }
 
-static int syn_ack(int fd) {
-    const char syn = FILSER_SYN, ack = FILSER_ACK;
-    char buffer;
-    ssize_t nbytes;
-
-    tcflush(fd, TCIOFLUSH);
-
-    nbytes = write(fd, &syn, sizeof(syn));
-    if (nbytes <= 0)
-        return (int)nbytes;
-
-    nbytes = read(fd, &buffer, sizeof(buffer));
-    if (nbytes <= 0)
-        return (int)nbytes;
-
-    return buffer == ack
-        ? 1 : 0;
-}
-
 static void syn_ack_wait(int fd) {
     int ret;
     unsigned tries = 10;
 
     do {
         alarm(10);
-        ret = syn_ack(fd);
+        ret = filser_syn_ack(fd);
         alarm(0);
         if (ret < 0) {
             fprintf(stderr, "failed to connect: %s\n",
