@@ -35,7 +35,7 @@ src/hexfile: src/hexfile.c
 src/filsertool: src/filsertool.c src/filser-crc.c src/filser-open.c src/filser-io.c src/filser-proto.c src/datadir.c
 	$(CC) $(CFLAGS) -o $@ $^
 
-src/fakefilser: src/fakefilser.c src/filser-crc.c src/filser-io.c src/datadir.c
+src/fakefilser: src/fakefilser.c src/filser-crc.c src/filser-open.c src/filser-io.c src/datadir.c
 	$(CC) $(CFLAGS) -o $@ $^
 
 src/fwd: src/fwd.c src/filser-proto.c

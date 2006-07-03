@@ -36,9 +36,19 @@
 #include <time.h>
 #include <stdlib.h>
 #include <sys/select.h>
+#ifdef __GLIBC__
+#include <getopt.h>
+#endif
 
 #include "filser.h"
 #include "datadir.h"
+
+#define VERSION "0.0.1"
+
+struct config {
+    int verbose;
+    const char *datadir, *tty;
+};
 
 struct filser_wtf37 {
     char space[36];
@@ -59,7 +69,35 @@ static void alarm_handler(int dummy) {
 }
 
 static void usage(void) {
-    printf("usage: fakefilser\n");
+    puts("usage: fakefilser [options]\n\n"
+         "valid options:\n"
+         " -h             help (this text)\n"
+#ifdef __GLIBC__
+         " --version\n"
+#endif
+         " -V             show fakefilser version\n"
+#ifdef __GLIBC__
+         " --verbose\n"
+#endif
+         " -v             be more verbose\n"
+#ifdef __GLIBC__
+         " --quiet\n"
+#endif
+         " -q             be quiet\n"
+#ifdef __GLIBC__
+         " --data DIR\n"
+#endif
+         " -d DIR         specify the data directory\n"
+#ifdef __GLIBC__
+         " --tty DEVICE\n"
+#endif
+         " -t DEVICE      open this tty device (default /dev/ttyS0)\n"
+#ifdef __GLIBC__
+         " --virtual\n"
+#endif
+         " -u             create a virtual terminal\n"
+         "\n"
+         );
 }
 
 static void arg_error(const char *msg) __attribute__ ((noreturn));
@@ -67,6 +105,89 @@ static void arg_error(const char *msg) {
     fprintf(stderr, "fakefilser: %s\n", msg);
     fprintf(stderr, "Try 'fakefilser --help' for more information.\n");
     _exit(1);
+}
+
+/** read configuration options from the command line */
+static void parse_cmdline(struct config *config,
+                          int argc, char **argv) {
+    int ret;
+#ifdef __GLIBC__
+    static const struct option long_options[] = {
+        {"help", 0, 0, 'h'},
+        {"version", 0, 0, 'V'},
+        {"verbose", 0, 0, 'v'},
+        {"quiet", 1, 0, 'q'},
+        {"data", 1, 0, 'd'},
+        {"tty", 1, 0, 't'},
+        {"virtual", 0, 0, 'u'},
+        {0,0,0,0}
+    };
+#endif
+
+    memset(config, 0, sizeof(*config));
+    config->tty = "/dev/ttyS0";
+
+    while (1) {
+#ifdef __GLIBC__
+        int option_index = 0;
+
+        ret = getopt_long(argc, argv, "hVvqd:t:u",
+                          long_options, &option_index);
+#else
+        ret = getopt(argc, argv, "hVvqd:t:u");
+#endif
+        if (ret == -1)
+            break;
+
+        switch (ret) {
+        case 'h':
+            usage();
+            exit(0);
+
+        case 'V':
+            printf("fakefilser v" VERSION
+                   ", http://max.kellermann.name/projects/loggertools/\n");
+            exit(0);
+
+        case 'v':
+            ++config->verbose;
+            break;
+
+        case 'q':
+            config->verbose = 0;
+            break;
+
+        case 'd':
+            config->datadir = optarg;
+            break;
+
+        case 't':
+            config->tty = optarg;
+            break;
+
+        case 'u':
+            config->tty = NULL;
+            break;
+
+        default:
+            exit(1);
+        }
+    }
+
+    /* check non-option arguments */
+
+    if (optind < argc) {
+        fprintf(stderr, "fakefilser: unrecognized argument: %s\n",
+                argv[optind]);
+        fprintf(stderr, "Try 'fakefilser -h' for more information\n");
+        exit(1);
+    }
+
+    if (config->datadir == NULL) {
+        fprintf(stderr, "fakefilser: data directory not specified\n");
+        fprintf(stderr, "Try 'fakefilser -h' for more information\n");
+        exit(1);
+    }
 }
 
 static void default_filser(struct filser *filser) {
@@ -479,9 +600,7 @@ static void handle_read_contest_class(struct filser *filser) {
 }
 
 static void handle_get_extra_data(struct filser *filser) {
-    static const unsigned char extra_data[0x100];
-
-    write_crc(filser->fd, extra_data, sizeof(extra_data));
+    upload_from_file(filser, "extra_data", 0x100);
 }
 
 static void handle_write_contest_class(struct filser *filser) {
@@ -554,36 +673,36 @@ static int open_virtual(const char *symlink_path) {
     return fd;
 }
 
+static int open_tty(struct config *config) {
+    int fd;
+
+    if (config->tty == NULL)
+        fd = open_virtual("/tmp/fakefilser");
+    else
+        fd = filser_open(config->tty);
+
+    if (fd < 0) {
+        fprintf(stderr, "failed to open tty\n");
+        exit(2);
+    }
+
+    return fd;
+}
+
 int main(int argc, char **argv) {
+    struct config config;
     struct filser filser;
     int was_70 = 0;
 
-    if (argc < 2)
-        arg_error("Not enough arguments");
-    else if (argc > 2)
-        arg_error("Too many arguments");
-
-    if (strcmp(argv[1], "-h") == 0 ||
-        strcmp(argv[1], "--help") == 0) {
-        usage();
-        _exit(0);
-    }
-
-    if (argc > 1) {
-        if (strcmp(argv[0], "--help") == 0) {
-            usage();
-            _exit(0);
-            
-        } else {
-        }
-    }
+    parse_cmdline(&config, argc, argv);
 
     signal(SIGALRM, alarm_handler);
 
     default_filser(&filser);
 
-    filser.fd = open_virtual("/tmp/fakefilser");
-    filser.datadir = datadir_open(argv[1]);
+    filser.fd = open_tty(&config);
+
+    filser.datadir = datadir_open(config.datadir);
     if (filser.datadir == NULL) {
         fprintf(stderr, "failed to open datadir %s: %s\n",
                 argv[1], strerror(errno));
@@ -598,7 +717,7 @@ int main(int argc, char **argv) {
         if (ret < 0) {
             if (errno == EIO) {
                 close(filser.fd);
-                filser.fd = open_virtual("/tmp/fakefilser");
+                filser.fd = open_tty(&config);
                 continue;
             }
 
