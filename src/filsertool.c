@@ -31,12 +31,27 @@
 #include <time.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
+#ifdef __GLIBC__
+#include <getopt.h>
+#endif
 
 #include "filser.h"
 #include "datadir.h"
 
+#define VERSION "0.0.1"
+
+struct config {
+    int verbose;
+    const char *tty;
+};
+
 static void usage(void) {
-    printf("usage: filsertool <command>\n"
+    printf("usage: filsertool [OPTIONS] COMMAND [ARGUMENTS]\n"
+           "valid options:\n"
+#ifdef __GLIBC__
+           " --tty DEVICE\n"
+#endif
+           " -t DEVICE      open this tty device (default /dev/ttyS0)\n"
            "valid commands:\n"
            "  list\n"
            "        print a list of flights\n"
@@ -51,6 +66,64 @@ static void usage(void) {
            "  raw_mem <start_adddress> <end_address>\n"
            "        download raw memory\n"
            );
+}
+
+/** read configuration options from the command line */
+static void parse_cmdline(struct config *config,
+                          int argc, char **argv) {
+    int ret;
+#ifdef __GLIBC__
+    static const struct option long_options[] = {
+        {"help", 0, 0, 'h'},
+        {"version", 0, 0, 'V'},
+        {"verbose", 0, 0, 'v'},
+        {"quiet", 1, 0, 'q'},
+        {"tty", 1, 0, 't'},
+        {0,0,0,0}
+    };
+#endif
+
+    memset(config, 0, sizeof(*config));
+    config->tty = "/dev/ttyS0";
+
+    while (1) {
+#ifdef __GLIBC__
+        int option_index = 0;
+
+        ret = getopt_long(argc, argv, "hVvqt:",
+                          long_options, &option_index);
+#else
+        ret = getopt(argc, argv, "hVvqt:");
+#endif
+        if (ret == -1)
+            break;
+
+        switch (ret) {
+        case 'h':
+            usage();
+            exit(0);
+
+        case 'V':
+            printf("filsertool v" VERSION
+                   ", http://max.kellermann.name/projects/loggertools/\n");
+            exit(0);
+
+        case 'v':
+            ++config->verbose;
+            break;
+
+        case 'q':
+            config->verbose = 0;
+            break;
+
+        case 't':
+            config->tty = optarg;
+            break;
+
+        default:
+            exit(1);
+        }
+    }
 }
 
 static void arg_error(const char *msg) __attribute__ ((noreturn));
@@ -256,17 +329,15 @@ static int check_mem_settings(int fd) {
     return 0;
 }
 
-static int raw(int argpos, int argc, char **argv) {
-    const char *device = "/dev/ttyS0";
+static int raw(struct config *config, int argc, char **argv) {
     int fd;
     unsigned char buffer[0x4000];
     ssize_t nbytes1, nbytes2;
 
-    (void)argpos;
     (void)argc;
     (void)argv;
 
-    fd = filser_open(device);
+    fd = filser_open(config->tty);
     if (fd < 0) {
         fprintf(stderr, "filser_open failed: %s\n",
                 strerror(errno));
@@ -285,14 +356,14 @@ static int raw(int argpos, int argc, char **argv) {
     nbytes2 = write(fd, buffer, (size_t)nbytes1);
     if (nbytes2 < 0) {
         fprintf(stderr, "failed to write to '%s': %s\n",
-                device, strerror(errno));
+                config->tty, strerror(errno));
         _exit(1);
     }
 
     nbytes1 = read_timeout(fd, buffer, sizeof(buffer));
     if (nbytes1 < 0) {
         fprintf(stderr, "failed to read from '%s': %s\n",
-                device, strerror(errno));
+                config->tty, strerror(errno));
         _exit(1);
     }
 
@@ -342,16 +413,14 @@ static unsigned filser_get_end_address(const struct filser_flight_index *flight)
         | flight->end_address0;
 }
 
-static int flight_list(int argpos, int argc, char **argv) {
-    const char *device = "/dev/ttyS0";
+static int flight_list(struct config *config, int argc, char **argv) {
     int fd, ret;
     struct filser_flight_index flight;
 
-    (void)argpos;
     (void)argc;
     (void)argv;
 
-    fd = filser_open(device);
+    fd = filser_open(config->tty);
     if (fd < 0) {
         fprintf(stderr, "filser_open failed: %s\n",
                 strerror(errno));
@@ -386,19 +455,17 @@ static int flight_list(int argpos, int argc, char **argv) {
     return 0;
 }
 
-static int get_basic_data(int argpos, int argc, char **argv) {
-    const char *device = "/dev/ttyS0";
+static int get_basic_data(struct config *config, int argc, char **argv) {
     unsigned char cmd[] = { FILSER_PREFIX, FILSER_READ_BASIC_DATA };
     int fd;
     unsigned char buffer[0x200];
     ssize_t nbytes;
     unsigned z;
 
-    (void)argpos;
     (void)argc;
     (void)argv;
 
-    fd = filser_open(device);
+    fd = filser_open(config->tty);
     if (fd < 0) {
         fprintf(stderr, "filser_open failed: %s\n",
                 strerror(errno));
@@ -413,7 +480,7 @@ static int get_basic_data(int argpos, int argc, char **argv) {
     nbytes = read_timeout(fd, buffer, sizeof(buffer));
     if (nbytes < 0) {
         fprintf(stderr, "failed to read from '%s': %s\n",
-                device, strerror(errno));
+                config->tty, strerror(errno));
         _exit(1);
     }
 
@@ -423,18 +490,16 @@ static int get_basic_data(int argpos, int argc, char **argv) {
     return 0;
 }
 
-static int get_flight_info(int argpos, int argc, char **argv) {
-    const char *device = "/dev/ttyS0";
+static int get_flight_info(struct config *config, int argc, char **argv) {
     unsigned char cmd[] = { FILSER_PREFIX, FILSER_READ_FLIGHT_INFO };
     int fd;
     unsigned char buffer[0x200];
     ssize_t nbytes;
 
-    (void)argpos;
     (void)argc;
     (void)argv;
 
-    fd = filser_open(device);
+    fd = filser_open(config->tty);
     if (fd < 0) {
         fprintf(stderr, "filser_open failed: %s\n",
                 strerror(errno));
@@ -449,7 +514,7 @@ static int get_flight_info(int argpos, int argc, char **argv) {
     nbytes = read_timeout_crc(fd, buffer, sizeof(buffer));
     if (nbytes < 0) {
         fprintf(stderr, "failed to read from '%s': %s\n",
-                device, strerror(errno));
+                config->tty, strerror(errno));
         _exit(1);
     }
 
@@ -590,20 +655,19 @@ static int download_section(int fd, unsigned section,
     return 0;
 }
 
-static int cmd_mem_section(int argpos, int argc, char **argv) {
-    const char *device = "/dev/ttyS0";
+static int cmd_mem_section(struct config *config, int argc, char **argv) {
     int fd, ret;
     unsigned start_address, end_address;
     size_t section_lengths[0x10], overall_length;
     unsigned z;
 
-    if (argc - argpos != 2)
+    if (argc - optind != 2)
         arg_error("wrong number of arguments after 'mem_section'");
 
-    start_address = (unsigned)strtoul(argv[argpos++], NULL, 0);
-    end_address = (unsigned)strtoul(argv[argpos++], NULL, 0);
+    start_address = (unsigned)strtoul(argv[optind++], NULL, 0);
+    end_address = (unsigned)strtoul(argv[optind++], NULL, 0);
 
-    fd = filser_open(device);
+    fd = filser_open(config->tty);
     if (fd < 0) {
         fprintf(stderr, "filser_open failed: %s\n",
                 strerror(errno));
@@ -633,20 +697,19 @@ static int cmd_mem_section(int argpos, int argc, char **argv) {
     return 0;
 }
 
-static int cmd_raw_mem(int argpos, int argc, char **argv) {
-    const char *device = "/dev/ttyS0";
+static int cmd_raw_mem(struct config *config, int argc, char **argv) {
     int fd, ret;
     unsigned start_address, end_address;
     size_t section_lengths[0x10], overall_length;
     unsigned z;
 
-    if (argc - argpos != 2)
+    if (argc - optind != 2)
         arg_error("wrong number of arguments after 'raw_mem'");
 
-    start_address = (unsigned)strtoul(argv[argpos++], NULL, 0);
-    end_address = (unsigned)strtoul(argv[argpos++], NULL, 0);
+    start_address = (unsigned)strtoul(argv[optind++], NULL, 0);
+    end_address = (unsigned)strtoul(argv[optind++], NULL, 0);
 
-    fd = filser_open(device);
+    fd = filser_open(config->tty);
     if (fd < 0) {
         fprintf(stderr, "filser_open failed: %s\n",
                 strerror(errno));
@@ -688,19 +751,17 @@ static int cmd_raw_mem(int argpos, int argc, char **argv) {
     return 0;
 }
 
-static int download_flight(int argpos, int argc, char **argv) {
-    const char *device = "/dev/ttyS0";
+static int download_flight(struct config *config, int argc, char **argv) {
     int fd, ret, fd2;
     struct filser_flight_index buffer, flight, flight2;
     size_t section_lengths[0x10], overall_length;
     unsigned char *data, *p;
     unsigned z;
 
-    (void)argpos;
     (void)argc;
     (void)argv;
 
-    fd = filser_open(device);
+    fd = filser_open(config->tty);
     if (fd < 0) {
         fprintf(stderr, "filser_open failed: %s\n",
                 strerror(errno));
@@ -782,20 +843,19 @@ static int download_flight(int argpos, int argc, char **argv) {
     return 0;
 }
 
-static int cmd_read_tp_tsk(int argpos, int argc, char **argv) {
+static int cmd_read_tp_tsk(struct config *config, int argc, char **argv) {
     const char *filename;
-    const char *device = "/dev/ttyS0";
     int fd, ret;
     struct filser_tp_tsk tp_tsk;
 
-    if (argc - argpos < 1)
+    if (argc - optind < 1)
         arg_error("No file name specified");
-    if (argc - argpos > 1)
+    if (argc - optind > 1)
         arg_error("Too many arguments");
 
-    filename = argv[argpos];
+    filename = argv[optind];
 
-    fd = filser_open(device);
+    fd = filser_open(config->tty);
     if (fd < 0) {
         fprintf(stderr, "filser_open failed: %s\n",
                 strerror(errno));
@@ -830,19 +890,18 @@ static int cmd_read_tp_tsk(int argpos, int argc, char **argv) {
     return 0;
 }
 
-static int cmd_write_tp_tsk(int argpos, int argc, char **argv) {
+static int cmd_write_tp_tsk(struct config *config, int argc, char **argv) {
     const char *filename;
-    const char *device = "/dev/ttyS0";
     int fd, ret;
     ssize_t nbytes;
     struct filser_tp_tsk tp_tsk;
 
-    if (argc - argpos < 1)
+    if (argc - optind < 1)
         arg_error("No file name specified");
-    if (argc - argpos > 1)
+    if (argc - optind > 1)
         arg_error("Too many arguments");
 
-    filename = argv[argpos];
+    filename = argv[optind];
 
     if (strcmp(filename, "-") == 0) {
         fd = 0;
@@ -869,7 +928,7 @@ static int cmd_write_tp_tsk(int argpos, int argc, char **argv) {
     if (fd != 0)
         close(fd);
 
-    fd = filser_open(device);
+    fd = filser_open(config->tty);
     if (fd < 0) {
         fprintf(stderr, "filser_open failed: %s\n",
                 strerror(errno));
@@ -889,28 +948,27 @@ static int cmd_write_tp_tsk(int argpos, int argc, char **argv) {
     return 0;
 }
 
-static int cmd_write_apt(int argpos, int argc, char **argv) {
+static int cmd_write_apt(struct config *config, int argc, char **argv) {
     const char *data_path;
-    const char *device = "/dev/ttyS0";
     int fd, ret;
     struct datadir *dir;
     char *data;
     unsigned i;
     char filename[] = "apt_X";
 
-    if (argc - argpos < 1)
+    if (argc - optind < 1)
         arg_error("No data directory specified");
-    if (argc - argpos > 1)
+    if (argc - optind > 1)
         arg_error("Too many arguments");
 
-    fd = filser_open(device);
+    fd = filser_open(config->tty);
     if (fd < 0) {
         fprintf(stderr, "filser_open failed: %s\n",
                 strerror(errno));
         exit(2);
     }
 
-    data_path = argv[argpos];
+    data_path = argv[optind];
     dir = datadir_open(data_path);
     if (dir == NULL) {
         fprintf(stderr, "failed to datadir %s", data_path);
@@ -955,35 +1013,38 @@ static int cmd_write_apt(int argpos, int argc, char **argv) {
 }
 
 int main(int argc, char **argv) {
+    struct config config;
+    const char *cmd;
+
     signal(SIGALRM, alarm_handler);
 
-    if (argc < 2)
+    parse_cmdline(&config, argc, argv);
+
+    if (optind >= argc)
         arg_error("no command specified");
 
-    if (strcmp(argv[1], "raw") == 0) {
-        return raw(2, argc, argv);
-    } else if (strcmp(argv[1], "list") == 0) {
-        return flight_list(2, argc, argv);
-    } else if (strcmp(argv[1], "basic") == 0) {
-        return get_basic_data(2, argc, argv);
-    } else if (strcmp(argv[1], "flight") == 0) {
-        return get_flight_info(2, argc, argv);
-    } else if (strcmp(argv[1], "mem_section") == 0) {
-        return cmd_mem_section(2, argc, argv);
-    } else if (strcmp(argv[1], "raw_mem") == 0) {
-        return cmd_raw_mem(2, argc, argv);
-    } else if (strcmp(argv[1], "download") == 0) {
-        return download_flight(2, argc, argv);
-    } else if (strcmp(argv[1], "read_tp_tsk") == 0) {
-        return cmd_read_tp_tsk(2, argc, argv);
-    } else if (strcmp(argv[1], "write_tp_tsk") == 0) {
-        return cmd_write_tp_tsk(2, argc, argv);
-    } else if (strcmp(argv[1], "write_apt") == 0) {
-        return cmd_write_apt(2, argc, argv);
-    } else if (strcmp(argv[1], "help") == 0 ||
-               strcmp(argv[1], "--help") == 0) {
-        usage();
-        return 0;
+    cmd = argv[optind++];
+
+    if (strcmp(cmd, "raw") == 0) {
+        return raw(&config, argc, argv);
+    } else if (strcmp(cmd, "list") == 0) {
+        return flight_list(&config, argc, argv);
+    } else if (strcmp(cmd, "basic") == 0) {
+        return get_basic_data(&config, argc, argv);
+    } else if (strcmp(cmd, "flight") == 0) {
+        return get_flight_info(&config, argc, argv);
+    } else if (strcmp(cmd, "mem_section") == 0) {
+        return cmd_mem_section(&config, argc, argv);
+    } else if (strcmp(cmd, "raw_mem") == 0) {
+        return cmd_raw_mem(&config, argc, argv);
+    } else if (strcmp(cmd, "download") == 0) {
+        return download_flight(&config, argc, argv);
+    } else if (strcmp(cmd, "read_tp_tsk") == 0) {
+        return cmd_read_tp_tsk(&config, argc, argv);
+    } else if (strcmp(cmd, "write_tp_tsk") == 0) {
+        return cmd_write_tp_tsk(&config, argc, argv);
+    } else if (strcmp(cmd, "write_apt") == 0) {
+        return cmd_write_apt(&config, argc, argv);
     } else {
         arg_error("unknown command");
     }
