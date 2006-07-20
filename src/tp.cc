@@ -1,6 +1,6 @@
 /*
  * loggertools
- * Copyright (C) 2004 Max Kellermann (max@duempel.org)
+ * Copyright (C) 2004-2006 Max Kellermann <max@duempel.org>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -30,33 +30,6 @@ static char *copy_string(const char *p) {
     return p == NULL
         ? NULL
         : strdup(p);
-}
-
-Altitude::Altitude()
-    :value(0), unit(UNIT_UNKNOWN), ref(REF_UNKNOWN) {
-}
-
-Altitude::Altitude(long _value, unit_t _unit, ref_t _ref)
-    :value(_value), unit(_unit), ref(_ref) {
-}
-
-Position::Position(const Angle &_lat, const Angle &_lon,
-                   const Altitude &_alt)
-    :latitude(_lat),
-     longitude(_lon),
-     altitude(_alt) {
-}
-
-Position::Position(const Position &position)
-    :latitude(position.getLatitude()),
-     longitude(position.getLongitude()),
-     altitude(position.getAltitude()) {
-}
-
-void Position::operator =(const Position &pos) {
-    latitude = pos.getLatitude();
-    longitude = pos.getLongitude();
-    altitude = pos.getAltitude();
 }
 
 Runway::Runway()
