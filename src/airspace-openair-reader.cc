@@ -66,7 +66,9 @@ static Airspace::type_t parse_type(const char *p) {
         return Airspace::TYPE_CTR;
     if (strcmp(p, "TMZ") == 0)
         return Airspace::TYPE_TMZ;
-    if (strcmp(p, "R") == 0)
+    if (strcmp(p, "R") == 0 ||
+        strcmp(p, "TRA") == 0 ||
+        strcmp(p, "GP") == 0)
         return Airspace::TYPE_RESTRICTED;
     if (strcmp(p, "Q") == 0)
         return Airspace::TYPE_DANGER;
