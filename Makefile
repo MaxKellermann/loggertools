@@ -12,18 +12,24 @@ CFLAGS += -Wmissing-prototypes -Wwrite-strings -Wcast-qual -Wfloat-equal -Wshado
 CXXFLAGS += $(COMMON_CFLAGS)
 CXXFLAGS += -Wwrite-strings -Wcast-qual -Wfloat-equal -Wshadow -Wpointer-arith -Wsign-compare -Wmissing-noreturn -Wmissing-format-attribute -Wredundant-decls -Winline -Wdisabled-optimization -Wno-long-long -Wundef
 
-all: src/loggerconv src/cenfistool src/hexfile src/filsertool src/fakefilser src/fwd
+all: src/loggerconv src/asconv src/cenfistool src/hexfile src/filsertool src/fakefilser src/fwd
 
 clean:
-	rm -f src/loggerconv src/cenfistool src/hexfile src/filsertool src/fakefilser src/*.o
+	rm -f src/loggerconv src/asconv src/cenfistool src/hexfile src/filsertool src/fakefilser src/*.o
 
 loggerconv_SOURCES = $(addprefix src/,conv.cc tp.cc seeyou.cc cenfis.cc cenfisdb.cc filsertp.cc zander-tp-reader.cc zander-tp-writer.cc)
 loggerconv_OBJECTS = $(patsubst %.cc,%.o,$(loggerconv_SOURCES))
+
+asconv_SOURCES = $(addprefix src/,asconv.cc airspace.cc)
+asconv_OBJECTS = $(patsubst %.cc,%.o,$(asconv_SOURCES))
 
 $(loggerconv_OBJECTS): %.o: %.cc
 	$(CXX) -c $(CXXFLAGS) -o $@ $^
 
 src/loggerconv: $(loggerconv_OBJECTS)
+	$(CXX) $(CXXFLAGS) -o $@ $^ -lstdc++
+
+src/asconv: $(asconv_OBJECTS)
 	$(CXX) $(CXXFLAGS) -o $@ $^ -lstdc++
 
 src/cenfistool: src/cenfistool.c src/cenfis.c src/serialio.c
