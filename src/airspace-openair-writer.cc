@@ -69,6 +69,8 @@ static const char *type_to_string(Airspace::type_t type) {
         return "R";
     case Airspace::TYPE_DANGER:
         return "Q";
+    case Airspace::TYPE_GLIDER:
+        return "GSEC";
     }
 
     return "INVALID";

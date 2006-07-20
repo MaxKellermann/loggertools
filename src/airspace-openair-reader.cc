@@ -72,6 +72,8 @@ static Airspace::type_t parse_type(const char *p) {
         return Airspace::TYPE_RESTRICTED;
     if (strcmp(p, "Q") == 0)
         return Airspace::TYPE_DANGER;
+    if (strcmp(p, "GSEC") == 0)
+        return Airspace::TYPE_GLIDER;
     return Airspace::TYPE_UNKNOWN;
 }
 

@@ -62,7 +62,8 @@ public:
         TYPE_CTR,
         TYPE_TMZ,
         TYPE_RESTRICTED,
-        TYPE_DANGER
+        TYPE_DANGER,
+        TYPE_GLIDER
     };
 private:
     std::string name;
