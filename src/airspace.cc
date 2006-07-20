@@ -49,6 +49,44 @@ Airspace::Airspace(const char *_name, type_t _type,
      vertices(_vertices) {
 }
 
+AirspaceReaderException::AirspaceReaderException(const char *fmt, ...) {
+    va_list ap;
+    char buffer[4096];
+
+    va_start(ap, fmt);
+    vsnprintf(buffer, sizeof(buffer), fmt, ap);
+
+    msg = strdup(buffer);
+}
+
+AirspaceReaderException::AirspaceReaderException(const AirspaceReaderException &ex)
+    :msg(strdup(ex.getMessage())) {
+}
+
+AirspaceReaderException::~AirspaceReaderException(void) {
+    if (msg != NULL)
+        free(msg);
+}
+
+AirspaceWriterException::AirspaceWriterException(const char *fmt, ...) {
+    va_list ap;
+    char buffer[4096];
+
+    va_start(ap, fmt);
+    vsnprintf(buffer, sizeof(buffer), fmt, ap);
+
+    msg = strdup(buffer);
+}
+
+AirspaceWriterException::AirspaceWriterException(const AirspaceWriterException &ex)
+    :msg(strdup(ex.getMessage())) {
+}
+
+AirspaceWriterException::~AirspaceWriterException(void) {
+    if (msg != NULL)
+        free(msg);
+}
+
 AirspaceReader::~AirspaceReader(void) {
 }
 

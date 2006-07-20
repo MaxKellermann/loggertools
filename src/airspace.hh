@@ -91,6 +91,34 @@ public:
     }
 };
 
+class AirspaceReaderException {
+private:
+    char *msg;
+public:
+    AirspaceReaderException(const char *fmt, ...)
+        __attribute__((format(printf, 2, 3)));
+    AirspaceReaderException(const AirspaceReaderException &ex);
+    virtual ~AirspaceReaderException();
+public:
+    const char *getMessage() const {
+        return msg;
+    }
+};
+
+class AirspaceWriterException {
+private:
+    char *msg;
+public:
+    AirspaceWriterException(const char *fmt, ...)
+        __attribute__((format(printf, 2, 3)));
+    AirspaceWriterException(const AirspaceWriterException &ex);
+    virtual ~AirspaceWriterException();
+public:
+    const char *getMessage() const {
+        return msg;
+    }
+};
+
 class AirspaceReader {
 public:
     virtual ~AirspaceReader();
