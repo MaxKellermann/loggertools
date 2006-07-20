@@ -41,7 +41,7 @@ clean:
 loggerconv_SOURCES = $(addprefix src/,conv.cc earth.cc tp.cc seeyou.cc cenfis.cc cenfisdb.cc filsertp.cc zander-tp-reader.cc zander-tp-writer.cc)
 loggerconv_OBJECTS = $(patsubst %.cc,%.o,$(loggerconv_SOURCES))
 
-asconv_SOURCES = $(addprefix src/,asconv.cc airspace.cc)
+asconv_SOURCES = $(addprefix src/,asconv.cc earth.cc airspace.cc airspace-openair-reader.cc airspace-openair-writer.cc)
 asconv_OBJECTS = $(patsubst %.cc,%.o,$(asconv_SOURCES))
 
 $(loggerconv_OBJECTS): %.o: %.cc

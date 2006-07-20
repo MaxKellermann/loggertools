@@ -142,6 +142,12 @@ public:
     virtual AirspaceWriter *createWriter(FILE *file) = 0;
 };
 
+class OpenAirAirspaceFormat : public AirspaceFormat {
+public:
+    virtual AirspaceReader *createReader(FILE *file);
+    virtual AirspaceWriter *createWriter(FILE *file);
+};
+
 AirspaceFormat *getAirspaceFormat(const char *ext);
 
 #endif

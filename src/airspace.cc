@@ -96,6 +96,11 @@ AirspaceWriter::~AirspaceWriter(void) {
 AirspaceFormat::~AirspaceFormat(void) {
 }
 
+static OpenAirAirspaceFormat openAirFormat;
+
 AirspaceFormat *getAirspaceFormat(const char *ext) {
-    return NULL;
+    if (strcasecmp(ext, "txt") == 0 || strcmp(ext, "openair") == 0)
+        return &openAirFormat;
+    else
+        return NULL;
 }
