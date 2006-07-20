@@ -79,7 +79,7 @@ static void dump_char(struct dump *d, const char *prefix,
     }
 
     if (d->column == 0)
-        printf("%s 0x%04x: ", prefix, d->offset);
+        printf("%s 0x%04x: ", prefix, (unsigned)d->offset);
 
     printf(" %02x", ch);
     fflush(stdout);
