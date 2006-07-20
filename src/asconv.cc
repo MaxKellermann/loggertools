@@ -39,8 +39,34 @@ static void usage() {
     _exit(1);
 }
 
+AirspaceFormat *getFormatFromFilename(const char *filename) {
+    const char *dot;
+    AirspaceFormat *format;
+
+    dot = strchr(filename, '.');
+    if (dot == NULL || dot[1] == 0) {
+        fprintf(stderr, "No filename extension in '%s'\n",
+                filename);
+        _exit(1);
+    }
+
+    format = getAirspaceFormat(dot + 1);
+    if (format == NULL) {
+        fprintf(stderr, "Format '%s' is not supported\n",
+                dot + 1);
+        _exit(1);
+    }
+
+    return format;
+}
+
 int main(int argc, char **argv) {
     const char *in_filename, *out_filename = NULL, *stdout_format = NULL;
+    AirspaceFormat *in_format, *out_format;
+    FILE *in, *out;
+    AirspaceReader *reader;
+    AirspaceWriter *writer;
+    const Airspace *tp;
 
     /* parse command line arguments */
     while (1) {
@@ -85,7 +111,73 @@ int main(int argc, char **argv) {
 
     /* open files */
 
-    // XXX
+    if (out_filename == NULL) {
+        out_format = getAirspaceFormat(stdout_format);
+        if (out_format == NULL) {
+            fprintf(stderr, "Format '%s' is not supported\n",
+                    stdout_format);
+            _exit(1);
+        }
+    } else {
+        out_format = getFormatFromFilename(out_filename);
+    }
+    in_format = getFormatFromFilename(in_filename);
 
-    return 1;
+    in = fopen(in_filename, "r");
+    if (in == NULL) {
+        fprintf(stderr, "failed to open '%s': %s\n",
+                in_filename, strerror(errno));
+        _exit(1);
+    }
+
+    reader = in_format->createReader(in);
+    if (reader == NULL) {
+        fprintf(stderr, "reading this type is not supported\n");
+        _exit(1);
+    }
+
+    if (out_filename == NULL) {
+        out = stdout;
+    } else {
+        out = fopen(out_filename, "w");
+        if (out == NULL) {
+            fprintf(stderr, "failed to create '%s': %s\n",
+                    out_filename, strerror(errno));
+            _exit(1);
+        }
+    }
+
+    writer = out_format->createWriter(out);
+    if (writer == NULL) {
+        unlink(out_filename);
+        fprintf(stderr, "writing this type is not supported\n");
+        _exit(1);
+    }
+
+    /* transfer data */
+    try {
+        while ((tp = reader->read()) != NULL) {
+            writer->write(*tp);
+            delete tp;
+        }
+
+        writer->flush();
+    } catch (AirspaceReaderException e) {
+        delete writer;
+        delete reader;
+        unlink(out_filename);
+        fprintf(stderr, "%s\n", e.getMessage());
+        _exit(1);
+    } catch (AirspaceWriterException e) {
+        delete writer;
+        delete reader;
+        unlink(out_filename);
+        fprintf(stderr, "%s\n", e.getMessage());
+        _exit(1);
+    }
+
+    delete writer;
+    delete reader;
+
+    return 0;
 }
