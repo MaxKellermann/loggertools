@@ -95,3 +95,7 @@ AirspaceWriter::~AirspaceWriter(void) {
 
 AirspaceFormat::~AirspaceFormat(void) {
 }
+
+AirspaceFormat *getAirspaceFormat(const char *ext) {
+    return NULL;
+}
