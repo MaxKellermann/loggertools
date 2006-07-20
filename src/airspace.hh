@@ -130,7 +130,7 @@ class AirspaceWriter {
 public:
     virtual ~AirspaceWriter();
 public:
-    virtual void write(const Airspace &tp) = 0;
+    virtual void write(const Airspace &as) = 0;
     virtual void flush() = 0;
 };
 
