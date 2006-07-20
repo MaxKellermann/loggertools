@@ -52,24 +52,17 @@ class Airspace {
 public:
     enum type_t {
         TYPE_UNKNOWN,
-        TYPE_AIRFIELD,
-        TYPE_MILITARY_AIRFIELD,
-        TYPE_GLIDER_SITE,
-        TYPE_OUTLANDING,
-        TYPE_MOUNTAIN_PASS,
-        TYPE_MOUNTAIN_TOP,
-        TYPE_SENDER,
-        TYPE_VOR,
-        TYPE_NDB,
-        TYPE_COOL_TOWER,
-        TYPE_DAM,
-        TYPE_TUNNEL,
-        TYPE_BRIDGE,
-        TYPE_POWER_PLANT,
-        TYPE_CASTLE,
-        TYPE_CHURCH,
-        TYPE_INTERSECTION,
-        TYPE_THERMIK
+        TYPE_ALPHA,
+        TYPE_BRAVO,
+        TYPE_CHARLY,
+        TYPE_DELTA,
+        TYPE_ECHO_LOW,
+        TYPE_ECHO_HIGH,
+        TYPE_FOX,
+        TYPE_CTR,
+        TYPE_TMZ,
+        TYPE_RESTRICTED,
+        TYPE_DANGER
     };
 private:
     std::string name;
@@ -81,6 +74,12 @@ public:
              const Altitude &bottom, const Altitude &top,
              const std::vector<Vertex> vertices);
 public:
+    const std::string &getName() const {
+        return name;
+    }
+    type_t getType() const {
+        return type;
+    }
     const Altitude &getBottom() const {
         return bottom;
     }
