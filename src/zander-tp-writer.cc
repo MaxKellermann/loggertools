@@ -36,15 +36,15 @@ public:
     virtual void flush();
 };
 
-static void write_column(FILE *file, const char *value,
+static void write_column(FILE *file, const std::string &value,
                          size_t width) {
     size_t length;
 
-    length = strlen(value);
+    length = value.length();
     if (length > width)
         length = width;
 
-    fwrite(value, length, 1, file);
+    fwrite(value.c_str(), length, 1, file);
     for (; length < width; ++length)
         fputc(' ', file);
 }

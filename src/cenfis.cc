@@ -428,23 +428,23 @@ static char *formatAngle(char *buffer, size_t buffer_max_len,
 }
 
 void CenfisTurnPointWriter::write(const TurnPoint &tp) {
-    const char *p;
+    std::string p;
 
     if (file == NULL)
         throw new TurnPointWriterException("already flushed");
 
     p = tp.getCode();
-    if (p == NULL)
+    if (p.length() == 0)
         p = tp.getTitle();
-    if (p == NULL)
+    if (p.length() == 0)
         p = "unknown";
-    fprintf(file, "11 N %s\n", p);
+    fprintf(file, "11 N %s\n", p.c_str());
 
     fprintf(file, "   T %3s",
             formatType(tp.getType()));
 
-    if (tp.getTitle() != NULL)
-        fprintf(file, " %s", tp.getTitle());
+    if (tp.getTitle().length() > 0)
+        fprintf(file, " %s", tp.getTitle().c_str());
 
     fputs("\n", file);
 

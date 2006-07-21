@@ -347,18 +347,18 @@ void CenfisDatabaseWriter::write(const TurnPoint &tp) {
         data.freq[2] = freq;
     }
 
-    length = strlen(tp.getCode());
+    length = tp.getCode().length();
     if (length > sizeof(data.code))
         length = sizeof(data.code);
 
-    memcpy(data.code, tp.getCode(), length);
+    memcpy(data.code, tp.getCode().c_str(), length);
     memset(data.code + length, ' ', sizeof(data.code) - length);
 
-    length = strlen(tp.getTitle());
+    length = tp.getTitle().length();
     if (length > sizeof(data.title))
         length = sizeof(data.title);
 
-    memcpy(data.title, tp.getTitle(), length);
+    memcpy(data.title, tp.getTitle().c_str(), length);
     memset(data.title + length, ' ', sizeof(data.title) - length);
 
     if (tp.getRunway().defined())

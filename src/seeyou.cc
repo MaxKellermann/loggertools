@@ -114,11 +114,11 @@ static int read_column(const char **line, char *column, size_t column_max_len) {
     return 1;
 }
 
-static void write_column(FILE *file, const char *value) {
-    if (value == NULL || *value == 0)
+static void write_column(FILE *file, const std::string &value) {
+    if (value.length() == 0)
         return;
     putc('"', file);
-    fputs(value, file);
+    fputs(value.c_str(), file);
     putc('"', file);
 }
 

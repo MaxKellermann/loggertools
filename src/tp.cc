@@ -26,12 +26,6 @@
 
 #include "tp.hh"
 
-static char *copy_string(const char *p) {
-    return p == NULL
-        ? NULL
-        : strdup(p);
-}
-
 Runway::Runway()
     :type(TYPE_UNKNOWN), direction(UINT_MAX), length(0) {
 }
@@ -45,55 +39,39 @@ bool Runway::defined() const {
 }
 
 TurnPoint::TurnPoint(void)
-    :title(NULL), code(NULL), country(NULL),
-     type(TYPE_UNKNOWN),
-     frequency(0), description(NULL) {
+    :type(TYPE_UNKNOWN),
+     frequency(0) {
 }
 
-TurnPoint::TurnPoint(const char *_title, const char *_code,
-                     const char *_country,
+TurnPoint::TurnPoint(const std::string &_title,
+                     const std::string &_code,
+                     const std::string &_country,
                      const Position &_position,
                      type_t _type,
                      const Runway &_runway,
                      unsigned _frequency,
-                     const char *_description)
-    :title(copy_string(_title)),
-     code(copy_string(_code)),
-     country(copy_string(_country)),
+                     const std::string &_description)
+    :title(_title), code(_code), country(_country),
      position(_position),
      type(_type),
      runway(_runway),
      frequency(_frequency),
-     description(copy_string(_description)) {
+     description(_description) {
 }
 
 TurnPoint::~TurnPoint(void) {
-    if (title != NULL)
-        free(title);
-    if (code != NULL)
-        free(code);
-    if (country != NULL)
-        free(country);
-    if (description != NULL)
-        free(description);
 }
 
-void TurnPoint::setTitle(const char *_title) {
-    if (title != NULL)
-        free(title);
-    title = copy_string(_title);
+void TurnPoint::setTitle(const std::string &_title) {
+    title = _title;
 }
 
-void TurnPoint::setCode(const char *_code) {
-    if (code != NULL)
-        free(code);
-    code = copy_string(_code);
+void TurnPoint::setCode(const std::string &_code) {
+    code = _code;
 }
 
-void TurnPoint::setCountry(const char *_country) {
-    if (country != NULL)
-        free(country);
-    country = copy_string(_country);
+void TurnPoint::setCountry(const std::string &_country) {
+    country = _country;
 }
 
 void TurnPoint::setPosition(const Position &_position) {
@@ -112,10 +90,8 @@ void TurnPoint::setFrequency(unsigned _frequency) {
     frequency = _frequency;
 }
 
-void TurnPoint::setDescription(const char *_description) {
-    if (description != NULL)
-        free(description);
-    description = copy_string(_description);
+void TurnPoint::setDescription(const std::string &_description) {
+    description = _description;
 }
 
 TurnPointReaderException::TurnPointReaderException(const char *fmt, ...) {

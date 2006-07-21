@@ -23,6 +23,8 @@
 
 #include "earth.hh"
 
+#include <string>
+
 class Runway {
 public:
     enum type_t {
@@ -73,35 +75,36 @@ public:
         TYPE_THERMIK
     };
 private:
-    char *title, *code, *country;
+    std::string title, code, country;
     Position position;
     type_t type;
     Runway runway;
     unsigned frequency;
-    char *description;
+    std::string description;
 public:
     TurnPoint();
-    TurnPoint(const char *_title, const char *_code,
-              const char *_country,
+    TurnPoint(const std::string &_title,
+              const std::string &_code,
+              const std::string &_country,
               const Position &_position,
               type_t _type,
               const Runway &_runway,
               unsigned _frequency,
-              const char *_description);
+              const std::string &_description);
     ~TurnPoint();
 public:
-    const char *getTitle() const {
+    const std::string &getTitle() const {
         return title;
     }
-    void setTitle(const char *_title);
-    const char *getCode() const {
+    void setTitle(const std::string &_title);
+    const std::string &getCode() const {
         return code;
     }
-    void setCode(const char *_code);
-    const char *getCountry() const {
+    void setCode(const std::string &_code);
+    const std::string &getCountry() const {
         return country;
     }
-    void setCountry(const char *_country);
+    void setCountry(const std::string &_country);
     const Position &getPosition() const {
         return position;
     }
@@ -118,10 +121,10 @@ public:
         return frequency;
     }
     void setFrequency(unsigned _freq);
-    const char *getDescription() const {
+    const std::string &getDescription() const {
         return description;
     }
-    void setDescription(const char *_description);
+    void setDescription(const std::string &_description);
 };
 
 class TurnPointReaderException {
