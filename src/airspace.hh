@@ -71,7 +71,7 @@ private:
     Altitude bottom, top;
     std::vector<Vertex> vertices;
 public:
-    Airspace(const char *name, type_t type,
+    Airspace(const std::string &name, type_t type,
              const Altitude &bottom, const Altitude &top,
              const std::vector<Vertex> vertices);
 public:

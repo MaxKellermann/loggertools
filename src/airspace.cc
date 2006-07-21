@@ -41,7 +41,7 @@ void Vertex::operator =(const Vertex &pos) {
     longitude = pos.getLongitude();
 }
 
-Airspace::Airspace(const char *_name, type_t _type,
+Airspace::Airspace(const std::string &_name, type_t _type,
                    const Altitude &_bottom, const Altitude &_top,
                    const std::vector<Vertex> _vertices)
     :name(_name), type(_type),
