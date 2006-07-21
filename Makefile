@@ -38,7 +38,7 @@ all: src/loggerconv src/asconv src/cenfistool src/hexfile src/filsertool src/fak
 clean:
 	rm -f src/loggerconv src/asconv src/cenfistool src/hexfile src/filsertool src/fakefilser src/*.o
 
-loggerconv_SOURCES = $(addprefix src/,conv.cc earth.cc tp.cc seeyou.cc cenfis.cc cenfisdb.cc filsertp.cc zander-tp-reader.cc zander-tp-writer.cc)
+loggerconv_SOURCES = $(addprefix src/,conv.cc earth.cc tp.cc seeyou.cc cenfis.cc cenfisdb.cc tp-filser-reader.cc tp-filser-writer.cc zander-tp-reader.cc zander-tp-writer.cc)
 loggerconv_OBJECTS = $(patsubst %.cc,%.o,$(loggerconv_SOURCES))
 
 asconv_SOURCES = $(addprefix src/,asconv.cc earth.cc airspace.cc airspace-openair-reader.cc airspace-openair-writer.cc)

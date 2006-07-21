@@ -1,6 +1,6 @@
 /*
  * loggertools
- * Copyright (C) 2004-2005 Max Kellermann (max@duempel.org)
+ * Copyright (C) 2004-2006 Max Kellermann <max@duempel.org>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -21,21 +21,9 @@
 
 #include <netinet/in.h>
 
-#include <vector>
-
 #include "tp.hh"
 
 #include "filser.h"
-
-class FilserTurnPointReader : public TurnPointReader {
-private:
-    FILE *file;
-    unsigned count;
-public:
-    FilserTurnPointReader(FILE *_file);
-public:
-    virtual const TurnPoint *read();
-};
 
 class FilserTurnPointWriter : public TurnPointWriter {
 private:
@@ -47,47 +35,6 @@ public:
     virtual void write(const TurnPoint &tp);
     virtual void flush();
 };
-
-FilserTurnPointReader::FilserTurnPointReader(FILE *_file)
-    :file(_file), count(0) {
-}
-
-const TurnPoint *FilserTurnPointReader::read() {
-    struct filser_turn_point data;
-    size_t nmemb;
-    TurnPoint *tp;
-    char code[sizeof(data.code) + 1];
-    size_t length;
-
-    if (count >= 600)
-        return NULL;
-
-    do {
-        nmemb = fread(&data, sizeof(data), 1, file);
-        if (nmemb != 1)
-            return NULL;
-
-        count++;
-    } while (data.valid != 1);
-
-    /* create object */
-    tp = new TurnPoint();
-
-    /* extract code */
-    length = sizeof(data.code);
-    memcpy(code, data.code, length);
-    while (length > 0 && code[length - 1] >= 0 &&
-           code[length - 1] <= ' ')
-        length--;
-    code[length] = 0;
-
-    if (code[0] != 0) {
-        tp->setTitle(code);
-        tp->setCode(code);
-    }
-
-    return tp;
-}
 
 FilserTurnPointWriter::FilserTurnPointWriter(FILE *_file)
     :file(_file), count(0) {
@@ -147,10 +94,6 @@ void FilserTurnPointWriter::flush() {
 
     fclose(file);
     file = NULL;
-}
-
-TurnPointReader *FilserTurnPointFormat::createReader(FILE *file) {
-    return new FilserTurnPointReader(file);
 }
 
 TurnPointWriter *FilserTurnPointFormat::createWriter(FILE *file) {
