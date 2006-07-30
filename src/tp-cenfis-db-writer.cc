@@ -174,8 +174,8 @@ void CenfisDatabaseWriter::flush() {
 
         for (unsigned i = 0; i < size; i++) {
             offset = offsets[z][i];
-            entry.index0 = (offset >> 16) & 0xff;
-            entry.index1 = (offset >> 8) & 0xff;
+            entry.index0 = (offset >> 15) & 0xff;
+            entry.index1 = (offset >> 8) & 0x7f;
             entry.index2 = offset & 0xff;
 
             nmemb = fwrite(&entry, sizeof(entry), 1, file);

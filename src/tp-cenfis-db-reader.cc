@@ -124,7 +124,7 @@ const TurnPoint *CenfisDatabaseReader::read() {
     if (table_index >= 4)
         return NULL;
 
-    offset = ((long)table[table_position].index0 << 16)
+    offset = ((long)table[table_position].index0 << 15)
         + ((long)table[table_position].index1 << 8)
         + (long)table[table_position].index2;
 
