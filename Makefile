@@ -33,21 +33,21 @@ CFLAGS += -Wmissing-prototypes -Wwrite-strings -Wcast-qual -Wfloat-equal -Wshado
 CXXFLAGS += $(COMMON_CFLAGS)
 CXXFLAGS += -Wwrite-strings -Wcast-qual -Wfloat-equal -Wshadow -Wpointer-arith -Wsign-compare -Wmissing-noreturn -Wmissing-format-attribute -Wredundant-decls -Winline -Wdisabled-optimization -Wno-long-long -Wundef
 
-all: src/loggerconv src/asconv src/cenfistool src/hexfile src/filsertool src/fakefilser src/fwd
+all: src/tpconv src/asconv src/cenfistool src/hexfile src/filsertool src/fakefilser src/fwd
 
 clean:
-	rm -f src/loggerconv src/asconv src/cenfistool src/hexfile src/filsertool src/fakefilser src/*.o
+	rm -f src/tpconv src/asconv src/cenfistool src/hexfile src/filsertool src/fakefilser src/*.o
 
-loggerconv_SOURCES = $(addprefix src/,conv.cc earth.cc tp.cc tp-cenfis-reader.cc tp-cenfis-writer.cc tp-cenfis-db-reader.cc tp-cenfis-db-writer.cc tp-seeyou-reader.cc tp-seeyou-writer.cc tp-filser-reader.cc tp-filser-writer.cc tp-zander-reader.cc tp-zander-writer.cc)
-loggerconv_OBJECTS = $(patsubst %.cc,%.o,$(loggerconv_SOURCES))
+tpconv_SOURCES = $(addprefix src/,tp-conv.cc earth.cc tp.cc tp-cenfis-reader.cc tp-cenfis-writer.cc tp-cenfis-db-reader.cc tp-cenfis-db-writer.cc tp-seeyou-reader.cc tp-seeyou-writer.cc tp-filser-reader.cc tp-filser-writer.cc tp-zander-reader.cc tp-zander-writer.cc)
+tpconv_OBJECTS = $(patsubst %.cc,%.o,$(tpconv_SOURCES))
 
 asconv_SOURCES = $(addprefix src/,asconv.cc earth.cc airspace.cc airspace-openair-reader.cc airspace-openair-writer.cc)
 asconv_OBJECTS = $(patsubst %.cc,%.o,$(asconv_SOURCES))
 
-$(loggerconv_OBJECTS): %.o: %.cc
+$(tpconv_OBJECTS): %.o: %.cc
 	$(CXX) -c $(CXXFLAGS) -o $@ $^
 
-src/loggerconv: $(loggerconv_OBJECTS)
+src/tpconv: $(tpconv_OBJECTS)
 	$(CXX) $(CXXFLAGS) -o $@ $^ -lstdc++
 
 src/asconv: $(asconv_OBJECTS)
