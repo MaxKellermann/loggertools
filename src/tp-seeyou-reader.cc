@@ -224,21 +224,25 @@ const TurnPoint *SeeYouTurnPointReader::read() {
         if (columns[z] == NULL)
             continue;
 
-        if (strcmp(columns[z], "Title") == 0)
+        if (strcasecmp(columns[z], "title") == 0 ||
+            strcasecmp(columns[z], "name") == 0) {
             tp->setTitle(column);
-        else if (strcmp(columns[z], "Code") == 0)
+        } else if (strcasecmp(columns[z], "code") == 0) {
             tp->setCode(column);
-        else if (strcmp(columns[z], "Country") == 0)
+        } else if (strcasecmp(columns[z], "country") == 0) {
             tp->setCountry(column);
-        else if (strcmp(columns[z], "Latitude") == 0) {
+        } else if (strcasecmp(columns[z], "latitude") == 0 ||
+                   strcasecmp(columns[z], "lat") == 0) {
             if (latitude != NULL)
                 delete latitude;
             latitude = parseAngle(column, "SN");
-        } else if (strcmp(columns[z], "Longitude") == 0) {
+        } else if (strcasecmp(columns[z], "longitude") == 0 ||
+                   strcasecmp(columns[z], "lon") == 0) {
             if (longitude != NULL)
                 delete longitude;
             longitude = parseAngle(column, "WE");
-        } else if (strcmp(columns[z], "Elevation") == 0) {
+        } else if (strcasecmp(columns[z], "elevation") == 0 ||
+                   strcasecmp(columns[z], "elev") == 0) {
             if (altitude != NULL)
                 delete altitude;
 
@@ -248,7 +252,7 @@ const TurnPoint *SeeYouTurnPointReader::read() {
                 altitude = new Altitude(strtol(column, NULL, 10),
                                         Altitude::UNIT_METERS,
                                         Altitude::REF_MSL);
-        } else if (strcmp(columns[z], "Style") == 0) {
+        } else if (strcasecmp(columns[z], "style") == 0) {
             TurnPoint::type_t type;
 
             switch (atoi(column)) {
@@ -306,16 +310,21 @@ const TurnPoint *SeeYouTurnPointReader::read() {
                 type = TurnPoint::TYPE_UNKNOWN;
             }
             tp->setType(type);
-        } else if (strcmp(columns[z], "Direction") == 0) {
+        } else if (strcasecmp(columns[z], "direction") == 0 ||
+                   strcasecmp(columns[z], "rwdir") == 0) {
             if (*column != 0)
                 rwy_direction = (unsigned)atoi(column);
-        } else if (strcmp(columns[z], "Length") == 0) {
+        } else if (strcasecmp(columns[z], "length") == 0 ||
+                   strcasecmp(columns[z], "rwlen") == 0) {
             if (*column != 0)
                 rwy_length = (unsigned)atoi(column);
-        } else if (strcmp(columns[z], "Frequency") == 0)
+        } else if (strcasecmp(columns[z], "frequency") == 0 ||
+                   strcasecmp(columns[z], "freq") == 0) {
             tp->setFrequency(parseFrequency(column));
-        else if (strcmp(columns[z], "Description") == 0)
+        } else if (strcasecmp(columns[z], "description") == 0 ||
+                   strcasecmp(columns[z], "desc") == 0) {
             tp->setDescription(column);
+        }
     }
 
     if (altitude == NULL)
