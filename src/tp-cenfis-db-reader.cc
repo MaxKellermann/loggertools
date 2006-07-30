@@ -114,7 +114,8 @@ const TurnPoint *CenfisDatabaseReader::read() {
     struct turn_point data;
     size_t nmemb;
     TurnPoint *tp;
-    char code[sizeof(data.code) + 1], title[sizeof(data.title) + 1];
+    char title[sizeof(data.title) + 1];
+    char description[sizeof(data.description) + 1];
     size_t length;
 
     /* find table entry */
@@ -175,17 +176,6 @@ const TurnPoint *CenfisDatabaseReader::read() {
                       (data.freq[1] << 8) +
                       data.freq[2]) * 1000);
 
-    /* extract code */
-    length = sizeof(data.code);
-    memcpy(code, data.code, length);
-    while (length > 0 && code[length - 1] >= 0 &&
-           code[length - 1] <= ' ')
-        length--;
-    code[length] = 0;
-
-    if (code[0] != 0)
-        tp->setCode(code);
-
     /* extract title */
     length = sizeof(data.title);
     memcpy(title, data.title, length);
@@ -196,6 +186,17 @@ const TurnPoint *CenfisDatabaseReader::read() {
 
     if (title[0] != 0)
         tp->setTitle(title);
+
+    /* extract description */
+    length = sizeof(data.description);
+    memcpy(description, data.description, length);
+    while (length > 0 && description[length - 1] >= 0 &&
+           description[length - 1] <= ' ')
+        length--;
+    description[length] = 0;
+
+    if (description[0] != 0)
+        tp->setDescription(description);
 
     /* runway */
     if (data.rwy1 > 0)

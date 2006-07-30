@@ -53,8 +53,8 @@ struct turn_point {
     char type;
     char foo1[1];
     __uint8_t freq[3];
-    char code[14];
     char title[14];
+    char description[14];
     __uint8_t rwy1, rwy2;
     char foo2[3];
 } __attribute__((packed));
