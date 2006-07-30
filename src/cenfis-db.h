@@ -36,7 +36,7 @@ struct header {
     struct {
         __uint32_t offset;
         __uint16_t three, count;
-    } tables[4];
+    } tables[4] __attribute__((packed));
     char reserved3[0xe0];
     __uint32_t header_size;
     __uint16_t thirty1, overall_count;
@@ -45,7 +45,7 @@ struct header {
     __uint32_t after_tp_offset;
     __uint16_t twentyone1, a_1;
     char reserved4[0xa8];
-};
+} __attribute__((packed));
 
 struct turn_point {
     __uint32_t latitude, longitude;
@@ -57,14 +57,14 @@ struct turn_point {
     char title[14];
     __uint8_t rwy1, rwy2;
     char foo2[3];
-};
+} __attribute__((packed));
 
 struct foo {
     char reserved[0x150];
-};
+} __attribute__((packed));
 
 struct table_entry {
     unsigned char index0, index1, index2;
-};
+} __attribute__((packed));
 
 #endif
