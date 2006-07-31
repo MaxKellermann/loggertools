@@ -31,7 +31,7 @@ static void usage()
     __attribute__((noreturn));
 
 static void usage() {
-    fprintf(stderr, "usage: loggerconf [options] [filename]\n");
+    fprintf(stderr, "usage: loggerconf [options] FILE1 ...\n");
     fprintf(stderr, "options:\n");
     fprintf(stderr, " -o outfile   write output to this file\n");
     fprintf(stderr, " -f outformat write output to stdout with this format\n");
@@ -61,10 +61,9 @@ TurnPointFormat *getFormatFromFilename(const char *filename) {
 }
 
 int main(int argc, char **argv) {
-    const char *in_filename, *out_filename = NULL, *stdout_format = NULL;
-    TurnPointFormat *in_format, *out_format;
-    FILE *in, *out;
-    TurnPointReader *reader;
+    const char *out_filename = NULL, *stdout_format = NULL;
+    TurnPointFormat *out_format;
+    FILE *out;
     TurnPointWriter *writer;
     const TurnPoint *tp;
 
@@ -107,9 +106,8 @@ int main(int argc, char **argv) {
         _exit(1);
     }
 
-    in_filename = argv[optind];
+    /* open output file */
 
-    /* open files */
     if (out_filename == NULL) {
         out_format = getTurnPointFormat(stdout_format);
         if (out_format == NULL) {
@@ -119,20 +117,6 @@ int main(int argc, char **argv) {
         }
     } else {
         out_format = getFormatFromFilename(out_filename);
-    }
-    in_format = getFormatFromFilename(in_filename);
-
-    in = fopen(in_filename, "r");
-    if (in == NULL) {
-        fprintf(stderr, "failed to open '%s': %s\n",
-                in_filename, strerror(errno));
-        _exit(1);
-    }
-
-    reader = in_format->createReader(in);
-    if (reader == NULL) {
-        fprintf(stderr, "reading this type is not supported\n");
-        _exit(1);
     }
 
     if (out_filename == NULL) {
@@ -153,30 +137,52 @@ int main(int argc, char **argv) {
         _exit(1);
     }
 
-    /* transfer data */
-    try {
-        while ((tp = reader->read()) != NULL) {
-            writer->write(*tp);
-            delete tp;
+    /* read all input files */
+
+    while (optind < argc) {
+        const char *in_filename = argv[optind++];
+
+        TurnPointFormat *in_format = getFormatFromFilename(in_filename);
+
+        FILE *in = fopen(in_filename, "r");
+        if (in == NULL) {
+            fprintf(stderr, "failed to open '%s': %s\n",
+                    in_filename, strerror(errno));
+            _exit(1);
         }
 
-        writer->flush();
-    } catch (TurnPointReaderException *e) {
-        delete writer;
+        TurnPointReader *reader = in_format->createReader(in);
+        if (reader == NULL) {
+            fprintf(stderr, "reading this type is not supported\n");
+            _exit(1);
+        }
+
+        /* transfer data */
+        try {
+            while ((tp = reader->read()) != NULL) {
+                writer->write(*tp);
+                delete tp;
+            }
+
+            writer->flush();
+        } catch (TurnPointReaderException *e) {
+            delete writer;
+            delete reader;
+            unlink(out_filename);
+            fprintf(stderr, "%s\n", e->getMessage());
+            _exit(1);
+        } catch (TurnPointWriterException *e) {
+            delete writer;
+            delete reader;
+            unlink(out_filename);
+            fprintf(stderr, "%s\n", e->getMessage());
+            _exit(1);
+        }
+
         delete reader;
-        unlink(out_filename);
-        fprintf(stderr, "%s\n", e->getMessage());
-        _exit(1);
-    } catch (TurnPointWriterException *e) {
-        delete writer;
-        delete reader;
-        unlink(out_filename);
-        fprintf(stderr, "%s\n", e->getMessage());
-        _exit(1);
     }
 
     delete writer;
-    delete reader;
 
     return 0;
 }
