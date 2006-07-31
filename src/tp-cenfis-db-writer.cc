@@ -30,8 +30,8 @@ class CenfisDatabaseWriter : public TurnPointWriter {
 private:
     FILE *file;
     struct header header;
+    std::vector<struct turn_point> tps;
     std::vector<long> offsets[4];
-    unsigned overall_count;
 public:
     CenfisDatabaseWriter(FILE *_file);
 public:
@@ -40,22 +40,13 @@ public:
 };
 
 CenfisDatabaseWriter::CenfisDatabaseWriter(FILE *_file)
-    :file(_file), overall_count(0) {
-    long t;
-    size_t nmemb;
-    unsigned z;
-
-    rewind(file);
-    t = ftell(file);
-    if (t != 0)
-        throw new TurnPointWriterException("cannot seek this stream");
-
+    :file(_file) {
     memset(&header, 0xff, sizeof(header));
     header.magic1 = 0x1046;
     header.magic2 = 0x3141;
-    for (z = 0; z < 4; z++) {
+    for (unsigned z = 0; z < 4; z++) {
         header.tables[z].offset = 0xdeadbeef;
-        header.tables[z].three = 3;
+        header.tables[z].three = htons(3);
         header.tables[z].count = 0xbeef;
     }
     header.header_size = htonl(sizeof(header));
@@ -67,19 +58,18 @@ CenfisDatabaseWriter::CenfisDatabaseWriter(FILE *_file)
     header.after_tp_offset = 0xdeadbeef;
     header.twentyone1 = htons(0x21);
     header.a_1 = htons(0x0a);
-
-    nmemb = fwrite(&header, sizeof(header), 1, file);
-    if (nmemb < 1)
-        throw new TurnPointWriterException("failed to write header");
 }
 
 void CenfisDatabaseWriter::write(const TurnPoint &tp) {
     unsigned table;
     struct turn_point data;
-    size_t length, nmemb;
+    size_t length;
 
     if (file == NULL)
         throw new TurnPointWriterException("already flushed");
+
+    if (tps.size() >= 0xffff)
+        throw new TurnPointWriterException("too many turn points");
 
     memset(&data, 0, sizeof(data));
 
@@ -109,8 +99,6 @@ void CenfisDatabaseWriter::write(const TurnPoint &tp) {
         table = 0;
         data.type = 0;
     }
-
-    offsets[table].push_back(ftell(file));
 
     /* fill out entry */
     if (tp.getPosition().defined()) {
@@ -144,25 +132,51 @@ void CenfisDatabaseWriter::write(const TurnPoint &tp) {
         data.rwy1 = tp.getRunway().getDirection() / 10;
 
     /* write entry */
-    nmemb = fwrite(&data, sizeof(data), 1, file);
-    if (nmemb != 1)
-        throw new TurnPointWriterException("failed to write record");
-
-    ++overall_count;
+    offsets[table].push_back(sizeof(header) + tps.size() * sizeof(struct turn_point));
+    tps.push_back(data);
 }
 
 void CenfisDatabaseWriter::flush() {
     long offset;
     struct table_entry entry;
     struct foo foo;
-    int ret;
     size_t nmemb;
+    u_int32_t foo_offset, table_offset;
 
     if (file == NULL)
         throw new TurnPointWriterException("already flushed");
 
-    header.overall_count = htons(overall_count);
-    header.after_tp_offset = htonl(sizeof(header) + sizeof(struct turn_point) * overall_count);
+    foo_offset = sizeof(header) + sizeof(struct turn_point) * tps.size();
+    table_offset = foo_offset + sizeof(struct foo);
+
+    for (unsigned i = 0; i < 4; ++i) {
+        unsigned size = offsets[i].size();
+
+        header.tables[i].offset = htonl(table_offset);
+        header.tables[i].count = htons(size);
+
+        table_offset += size * sizeof(struct table_entry);
+    }
+
+    header.overall_count = htons(tps.size());
+    header.after_tp_offset = htonl(foo_offset);
+
+    /* write header */
+
+    nmemb = fwrite(&header, sizeof(header), 1, file);
+    if (nmemb != 1)
+        throw new TurnPointWriterException("failed to write header");
+
+    /* write all TPs */
+
+    for (std::vector<struct turn_point>::iterator it = tps.begin();
+         it != tps.end(); ++it) {
+        struct turn_point *tp = &(*it);
+
+        nmemb = fwrite(tp, sizeof(*tp), 1, file);
+        if (nmemb != 1)
+            throw new TurnPointWriterException("failed to write TP");
+    }
 
     /* write foo */
     memset(&foo, 0xff, sizeof(foo));
@@ -173,9 +187,6 @@ void CenfisDatabaseWriter::flush() {
     /* write tables */
     for (unsigned z = 0; z < 4; z++) {
         unsigned size = offsets[z].size();
-
-        header.tables[z].offset = htonl(ftell(file));
-        header.tables[z].count = htons(size);
 
         for (unsigned i = 0; i < size; i++) {
             offset = offsets[z][i];
@@ -188,15 +199,6 @@ void CenfisDatabaseWriter::flush() {
                 throw new TurnPointWriterException("failed to write table entry");
         }
     }
-
-    /* re-write header */
-    ret = fseek(file, 0, SEEK_SET);
-    if (ret < 0)
-        throw new TurnPointWriterException("failed to seek");
-
-    nmemb = fwrite(&header, sizeof(header), 1, file);
-    if (nmemb < 1)
-        throw new TurnPointWriterException("failed to write header");
 
     fclose(file);
     file = NULL;
