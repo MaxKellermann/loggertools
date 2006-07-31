@@ -22,9 +22,15 @@
 #include <netinet/in.h>
 
 #include <vector>
+#include <algorithm>
 
 #include "tp.hh"
 #include "cenfis-db.h"
+
+int operator <(const struct turn_point &a,
+               const struct turn_point &b) {
+    return memcmp(a.title, b.title, sizeof(a.title)) < 0;
+}
 
 class CenfisDatabaseWriter : public TurnPointWriter {
 private:
@@ -60,8 +66,29 @@ CenfisDatabaseWriter::CenfisDatabaseWriter(FILE *_file)
     header.a_1 = htons(0x0a);
 }
 
+static char toCenfisType(TurnPoint::type_t type) {
+    switch (type) {
+    case TurnPoint::TYPE_AIRFIELD:
+        return 1;
+
+    case TurnPoint::TYPE_MILITARY_AIRFIELD:
+        return 3;
+
+    case TurnPoint::TYPE_GLIDER_SITE:
+        return 2;
+
+    case TurnPoint::TYPE_OUTLANDING:
+        return 4;
+
+    case TurnPoint::TYPE_THERMIK:
+        return 5;
+
+    default:
+        return 0;
+    }
+}
+
 void CenfisDatabaseWriter::write(const TurnPoint &tp) {
-    unsigned table;
     struct turn_point data;
     size_t length;
 
@@ -73,34 +100,10 @@ void CenfisDatabaseWriter::write(const TurnPoint &tp) {
 
     memset(&data, 0, sizeof(data));
 
-    /* append index to table */
-    switch (tp.getType()) {
-    case TurnPoint::TYPE_AIRFIELD:
-        table = 1;
-        data.type = 1;
-        break;
-    case TurnPoint::TYPE_MILITARY_AIRFIELD:
-        table = 1;
-        data.type = 3;
-        break;
-    case TurnPoint::TYPE_GLIDER_SITE:
-        table = 2;
-        data.type = 2;
-        break;
-    case TurnPoint::TYPE_OUTLANDING:
-        table = 3;
-        data.type = 4;
-        break;
-    case TurnPoint::TYPE_THERMIK:
-        table = 0;
-        data.type = 5;
-        break;
-    default:
-        table = 0;
-        data.type = 0;
-    }
-
     /* fill out entry */
+
+    data.type = toCenfisType(tp.getType());
+
     if (tp.getPosition().defined()) {
         data.latitude = htonl((tp.getPosition().getLatitude().getValue() * 600) / 1000);
         data.longitude = htonl((tp.getPosition().getLongitude().getValue() * 600) / 1000);
@@ -132,8 +135,28 @@ void CenfisDatabaseWriter::write(const TurnPoint &tp) {
         data.rwy1 = tp.getRunway().getDirection() / 10;
 
     /* write entry */
-    offsets[table].push_back(sizeof(header) + tps.size() * sizeof(struct turn_point));
+
     tps.push_back(data);
+}
+
+static int typeToTable(char type) {
+    switch (type) {
+    case 1:
+    case 3:
+        return 1;
+
+    case 2:
+        return 2;
+
+    case 4:
+        return 3;
+
+    case 5:
+        return 0;
+
+    default:
+        return -1;
+    }
 }
 
 void CenfisDatabaseWriter::flush() {
@@ -148,6 +171,22 @@ void CenfisDatabaseWriter::flush() {
 
     foo_offset = sizeof(header) + sizeof(struct turn_point) * tps.size();
     table_offset = foo_offset + sizeof(struct foo);
+
+    /* sort TPs alphabetically */
+
+    sort(tps.begin(), tps.end());
+
+    /* build tables */
+
+    unsigned n = 0;
+    for (std::vector<struct turn_point>::const_iterator it = tps.begin();
+         it != tps.end(); ++it, ++n) {
+        int table = typeToTable((*it).type);
+        if (table >= 0)
+            offsets[table].push_back(sizeof(header) + sizeof(struct turn_point) * n);
+    }
+
+    /* update header */
 
     for (unsigned i = 0; i < 4; ++i) {
         unsigned size = offsets[i].size();
