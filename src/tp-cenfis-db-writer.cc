@@ -37,7 +37,7 @@ private:
     FILE *file;
     struct header header;
     std::vector<struct turn_point> tps;
-    std::vector<long> offsets[4];
+    std::vector<unsigned> offsets[4];
 public:
     CenfisDatabaseWriter(FILE *_file);
 public:
@@ -163,7 +163,6 @@ static int typeToTable(char type) {
 }
 
 void CenfisDatabaseWriter::flush() {
-    long offset;
     struct table_entry entry;
     struct foo foo;
     size_t nmemb;
@@ -235,7 +234,7 @@ void CenfisDatabaseWriter::flush() {
         unsigned size = offsets[z].size();
 
         for (unsigned i = 0; i < size; i++) {
-            offset = offsets[z][i];
+            unsigned offset = offsets[z][i];
             entry.index0 = (offset >> 15) & 0xff;
             entry.index1 = (offset >> 8) & 0x7f;
             entry.index2 = offset & 0xff;
