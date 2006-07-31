@@ -39,7 +39,6 @@ public:
     virtual void flush();
 };
 
-
 CenfisDatabaseWriter::CenfisDatabaseWriter(FILE *_file)
     :file(_file), overall_count(0) {
     long t;
@@ -163,6 +162,7 @@ void CenfisDatabaseWriter::flush() {
         throw new TurnPointWriterException("already flushed");
 
     header.overall_count = htons(overall_count);
+    header.after_tp_offset = htonl(sizeof(header) + sizeof(struct turn_point) * overall_count);
 
     /* write foo */
     memset(&foo, 0xff, sizeof(foo));
