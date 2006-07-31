@@ -30,27 +30,17 @@ class CenfisDatabaseReader : public TurnPointReader {
 private:
     FILE *file;
     struct header header;
-    unsigned table_index, table_position, table_size;
-    struct table_entry *table;
+    unsigned current, overall_count;
 public:
     CenfisDatabaseReader(FILE *_file);
     virtual ~CenfisDatabaseReader();
-protected:
-    void nextTable();
 public:
     virtual const TurnPoint *read();
 };
 
 CenfisDatabaseReader::CenfisDatabaseReader(FILE *_file)
-    :file(_file),
-     table_index(UINT_MAX), table(NULL) {
-    long t;
+    :file(_file), current(0), overall_count(0) {
     size_t nmemb;
-
-    rewind(file);
-    t = ftell(file);
-    if (t != 0)
-        throw new TurnPointReaderException("cannot seek this stream");
 
     nmemb = fread(&header, sizeof(header), 1, file);
     if (nmemb != 1)
@@ -60,57 +50,19 @@ CenfisDatabaseReader::CenfisDatabaseReader(FILE *_file)
         ntohs(header.magic2) != 0x4131)
         throw new TurnPointReaderException("wrong magic");
 
-    nextTable();
+    if (ntohl(header.header_size) != sizeof(header))
+        throw new TurnPointReaderException("wrong header size");
+
+    overall_count = ntohs(header.overall_count);
+
+    if (ntohl(header.after_tp_offset) != sizeof(header) + sizeof(struct turn_point) * overall_count)
+        throw new TurnPointReaderException("wrong header size");
 }
 
 CenfisDatabaseReader::~CenfisDatabaseReader() {
-    if (table != NULL)
-        free(table);
-}
-
-void CenfisDatabaseReader::nextTable() {
-    long offset;
-    int ret;
-    size_t nmemb;
-
-    if (table != NULL) {
-        free(table);
-        table = NULL;
-    }
-
-    if (table_index == UINT_MAX)
-        table_index = 0;
-    else
-        table_index++;
-
-    if (table_index >= 4) {
-        table_position = 0;
-        table_size = 0;
-        return;
-    }
-
-    table_position = 0;
-    table_size = ntohs(header.tables[table_index].count);
-    if (table_size == 0)
-        return;
-
-    offset = ntohl(header.tables[table_index].offset);
-    ret = fseek(file, offset, SEEK_SET);
-    if (ret < 0)
-        throw new TurnPointReaderException("failed to seek");
-
-    table = (struct table_entry*)malloc(sizeof(*table) * table_size);
-    if (table == NULL)
-        throw new TurnPointReaderException("out of memory");
-
-    nmemb = fread(table, sizeof(*table), table_size, file);
-    if (nmemb != table_size)
-        throw new TurnPointReaderException("failed to read table");
 }
 
 const TurnPoint *CenfisDatabaseReader::read() {
-    long offset;
-    int ret;
     struct turn_point data;
     size_t nmemb;
     TurnPoint *tp;
@@ -118,27 +70,15 @@ const TurnPoint *CenfisDatabaseReader::read() {
     char description[sizeof(data.description) + 1];
     size_t length;
 
-    /* find table entry */
-    while (table_index < 4 && table_position >= table_size)
-        nextTable();
-
-    if (table_index >= 4)
+    if (current >= overall_count)
         return NULL;
 
-    offset = ((long)table[table_position].index0 << 15)
-        + ((long)table[table_position].index1 << 8)
-        + (long)table[table_position].index2;
-
-    table_position++;
-
     /* read this record */
-    ret = fseek(file, offset, SEEK_SET);
-    if (ret < 0)
-        throw new TurnPointReaderException("failed to seek");
-
     nmemb = fread(&data, sizeof(data), 1, file);
     if (nmemb != 1)
         throw new TurnPointReaderException("failed to read data");
+
+    ++current;
 
     /* create object */
     tp = new TurnPoint();
