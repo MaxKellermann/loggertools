@@ -104,9 +104,6 @@ const TurnPoint *CenfisDatabaseReader::read() {
     case 4:
         tp->setType(TurnPoint::TYPE_OUTLANDING);
         break;
-    case 5:
-        tp->setType(TurnPoint::TYPE_THERMIK);
-        break;
     default:
         tp->setType(TurnPoint::TYPE_UNKNOWN);
     }

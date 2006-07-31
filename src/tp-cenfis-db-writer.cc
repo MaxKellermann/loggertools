@@ -68,6 +68,9 @@ CenfisDatabaseWriter::CenfisDatabaseWriter(FILE *_file)
 
 static char toCenfisType(TurnPoint::type_t type) {
     switch (type) {
+    case TurnPoint::TYPE_UNKNOWN:
+        return 0;
+
     case TurnPoint::TYPE_AIRFIELD:
         return 1;
 
@@ -141,6 +144,9 @@ void CenfisDatabaseWriter::write(const TurnPoint &tp) {
 
 static int typeToTable(char type) {
     switch (type) {
+    case 0:
+        return 0;
+
     case 1:
     case 3:
         return 1;
@@ -150,9 +156,6 @@ static int typeToTable(char type) {
 
     case 4:
         return 3;
-
-    case 5:
-        return 0;
 
     default:
         return -1;
