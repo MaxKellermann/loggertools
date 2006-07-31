@@ -184,12 +184,15 @@ void CenfisDatabaseWriter::flush() {
     for (std::vector<struct turn_point>::const_iterator it = tps.begin();
          it != tps.end(); ++it, ++n) {
         int table = typeToTable((*it).type);
-        if (table >= 0)
-            offsets[table].push_back(sizeof(header) + sizeof(struct turn_point) * n);
+        if (table >= 0) {
+            unsigned offset = sizeof(header)
+                + sizeof(struct turn_point) * n;
+            offsets[table].push_back(offset);
 
-        /* glider site also goes into "airfield" table */
-        if (table == 2)
-            offsets[1].push_back(sizeof(header) + sizeof(struct turn_point) * n);
+            /* glider site also goes into "airfield" table */
+            if (table == 2)
+                offsets[1].push_back(offset);
+        }
     }
 
     /* update header */
