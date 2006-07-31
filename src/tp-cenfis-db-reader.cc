@@ -62,6 +62,13 @@ CenfisDatabaseReader::CenfisDatabaseReader(FILE *_file)
 CenfisDatabaseReader::~CenfisDatabaseReader() {
 }
 
+const Angle cenfisToAngle(int value) {
+    int sign = value < 0 ? -1 : 1;
+    value = abs(value);
+
+    return Angle(sign * (value * 1000 + 299) / 600);
+}
+
 const TurnPoint *CenfisDatabaseReader::read() {
     struct turn_point data;
     size_t nmemb;
@@ -84,8 +91,8 @@ const TurnPoint *CenfisDatabaseReader::read() {
     tp = new TurnPoint();
 
     /* position */
-    tp->setPosition(Position(Angle((ntohl(data.latitude)*10)/6),
-                             Angle(-((ntohl(data.longitude)*10)/6)),
+    tp->setPosition(Position(cenfisToAngle(ntohl(data.latitude)),
+                             cenfisToAngle(-ntohl(data.longitude)),
                              Altitude(ntohs(data.altitude),
                                       Altitude::UNIT_METERS,
                                       Altitude::REF_MSL)));

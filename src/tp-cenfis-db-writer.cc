@@ -91,6 +91,16 @@ static char toCenfisType(TurnPoint::type_t type) {
     }
 }
 
+static int angleToCenfis(const Angle &angle) {
+    if (!angle.defined() || angle.getValue() == 0)
+        return 0;
+
+    int value = abs(angle.getValue());
+    int sign = angle.getValue() < 0 ? -1 : 1;
+
+    return sign * ((value * 600 + 499) / 1000);
+}
+
 void CenfisDatabaseWriter::write(const TurnPoint &tp) {
     struct turn_point data;
     size_t length;
@@ -108,8 +118,8 @@ void CenfisDatabaseWriter::write(const TurnPoint &tp) {
     data.type = toCenfisType(tp.getType());
 
     if (tp.getPosition().defined()) {
-        data.latitude = htonl((tp.getPosition().getLatitude().getValue() * 600 + 500) / 1000);
-        data.longitude = htonl((-tp.getPosition().getLongitude().getValue() * 600 + 500) / 1000);
+        data.latitude = htonl(angleToCenfis(tp.getPosition().getLatitude()));
+        data.longitude = htonl(-angleToCenfis(tp.getPosition().getLongitude()));
         data.altitude = htons(tp.getPosition().getAltitude().getValue());
     }
 
