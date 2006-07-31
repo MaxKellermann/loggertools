@@ -187,6 +187,10 @@ void CenfisDatabaseWriter::flush() {
         int table = typeToTable((*it).type);
         if (table >= 0)
             offsets[table].push_back(sizeof(header) + sizeof(struct turn_point) * n);
+
+        /* glider site also goes into "airfield" table */
+        if (table == 2)
+            offsets[1].push_back(sizeof(header) + sizeof(struct turn_point) * n);
     }
 
     /* update header */
