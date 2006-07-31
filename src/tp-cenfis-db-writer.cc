@@ -31,6 +31,7 @@ private:
     FILE *file;
     struct header header;
     std::vector<long> offsets[4];
+    unsigned overall_count;
 public:
     CenfisDatabaseWriter(FILE *_file);
 public:
@@ -40,7 +41,7 @@ public:
 
 
 CenfisDatabaseWriter::CenfisDatabaseWriter(FILE *_file)
-    :file(_file) {
+    :file(_file), overall_count(0) {
     long t;
     size_t nmemb;
     unsigned z;
@@ -130,12 +131,12 @@ void CenfisDatabaseWriter::write(const TurnPoint &tp) {
     if (length > sizeof(data.title))
         length = sizeof(data.title);
 
+    memcpy(data.title, tp.getTitle().c_str(), length);
+    memset(data.title + length, ' ', sizeof(data.title) - length);
+
     length = tp.getDescription().length();
     if (length > sizeof(data.description))
         length = sizeof(data.description);
-
-    memcpy(data.title, tp.getTitle().c_str(), length);
-    memset(data.title + length, ' ', sizeof(data.title) - length);
 
     memcpy(data.description, tp.getDescription().c_str(), length);
     memset(data.description + length, ' ', sizeof(data.description) - length);
@@ -147,6 +148,8 @@ void CenfisDatabaseWriter::write(const TurnPoint &tp) {
     nmemb = fwrite(&data, sizeof(data), 1, file);
     if (nmemb != 1)
         throw new TurnPointWriterException("failed to write record");
+
+    ++overall_count;
 }
 
 void CenfisDatabaseWriter::flush() {
@@ -158,6 +161,8 @@ void CenfisDatabaseWriter::flush() {
 
     if (file == NULL)
         throw new TurnPointWriterException("already flushed");
+
+    header.overall_count = htons(overall_count);
 
     /* write foo */
     memset(&foo, 0xff, sizeof(foo));
