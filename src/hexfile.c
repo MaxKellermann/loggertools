@@ -25,7 +25,7 @@
 #include <string.h>
 #include <errno.h>
 
-const unsigned BANK_SIZE = 0x10000;
+const unsigned BANK_SIZE = 0x8000;
 
 static void usage(void)
      __attribute__((noreturn));
