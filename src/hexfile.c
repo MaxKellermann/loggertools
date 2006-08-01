@@ -59,7 +59,7 @@ static void write_record(FILE *file, size_t length, unsigned address,
     }
 
     /* write checksum */
-    fprintf(file, "%02X\n", checksum & 0xff);
+    fprintf(file, "%02X\r\n", checksum & 0xff);
 }
 
 static int encode(FILE *in, FILE *out) {
