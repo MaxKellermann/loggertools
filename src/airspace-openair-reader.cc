@@ -113,7 +113,7 @@ const Airspace *OpenAirAirspaceReader::read() {
 
         chomp(line);
         if (line[0] == 0) {
-            if (vertices.size() == 0)
+            if (vertices.empty())
                 continue;
             else
                 break;
