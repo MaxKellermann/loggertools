@@ -29,6 +29,23 @@ Altitude::Altitude(long _value, unit_t _unit, ref_t _ref)
     :value(_value), unit(_unit), ref(_ref) {
 }
 
+static int refactor(int v, int old_factor, int new_factor) {
+    int sign = v < 0 ? -1 : 1;
+    int a = v * sign;
+
+    return sign * ((a * new_factor + (old_factor + 1) / 2 - 1) / old_factor);
+}
+
+Angle::Angle(int _value, int factor)
+    :value(::refactor(_value, factor, 1000)) {}
+
+int Angle::refactor(int factor) const {
+    if (!defined())
+        return 0;
+
+    return ::refactor(value, 1000, factor);
+}
+
 Position::Position(const Angle &_lat, const Angle &_lon,
                    const Altitude &_alt)
     :latitude(_lat),

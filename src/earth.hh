@@ -64,6 +64,7 @@ private:
 public:
     Angle():value(0) {}
     Angle(int _value):value(_value) {}
+    Angle(int _value, int factor);
 public:
     bool defined() const {
         /* XXX */
@@ -72,6 +73,7 @@ public:
     int getValue() const {
         return value;
     }
+    int refactor(int factor) const;
 };
 
 class Position {
