@@ -51,13 +51,13 @@ static void write_column(FILE *file, const std::string &value,
 
 static char *formatLatitude(char *buffer, size_t buffer_max_len,
                             const Angle &angle) {
-    int value = angle.getValue();
+    int value = angle.refactor(60);
     int a = abs(value);
 
     snprintf(buffer, buffer_max_len, "%02u%02u%02u%c",
-             a / 60000,
-             (a / 1000) % 60,
-             ((a % 1000) * 60 + 500) / 1000,
+             a / 3600,
+             (a / 60) % 60,
+             a % 60,
              value < 0 ? 'S' : 'N');
 
     return buffer;
@@ -65,13 +65,13 @@ static char *formatLatitude(char *buffer, size_t buffer_max_len,
 
 static char *formatLongitude(char *buffer, size_t buffer_max_len,
                              const Angle &angle) {
-    int value = angle.getValue();
+    int value = angle.refactor(60);
     int a = abs(value);
 
     snprintf(buffer, buffer_max_len, "%03u%02u%02u%c",
-             a / 60000,
-             (a / 1000) % 60,
-             ((a % 1000) * 60 + 500) / 1000,
+             a / 3600,
+             (a / 60) % 60,
+             a % 60,
              value < 0 ? 'W' : 'E');
 
     return buffer;

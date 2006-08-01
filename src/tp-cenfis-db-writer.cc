@@ -92,13 +92,7 @@ static char toCenfisType(TurnPoint::type_t type) {
 }
 
 static int angleToCenfis(const Angle &angle) {
-    if (!angle.defined() || angle.getValue() == 0)
-        return 0;
-
-    int value = abs(angle.getValue());
-    int sign = angle.getValue() < 0 ? -1 : 1;
-
-    return sign * ((value * 600 + 499) / 1000);
+    return angle.refactor(600);
 }
 
 void CenfisDatabaseWriter::write(const TurnPoint &tp) {

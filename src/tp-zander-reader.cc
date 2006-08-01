@@ -67,8 +67,8 @@ static Angle *parseAngle(const char *p, const char *letters) {
     if (degrees > 180 || minutes >= 60 || seconds >= 60)
         return NULL;
 
-    return new Angle(sign * (((degrees * 60) + minutes) * 1000 +
-                             (seconds * 1000 + 30) / 60));
+    return new Angle(sign * ((degrees * 60) + minutes) * 60 + seconds,
+                     60);
 }
 
 static unsigned parseFrequency(const char *p) {

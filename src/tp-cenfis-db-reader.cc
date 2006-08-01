@@ -63,10 +63,7 @@ CenfisDatabaseReader::~CenfisDatabaseReader() {
 }
 
 const Angle cenfisToAngle(int value) {
-    int sign = value < 0 ? -1 : 1;
-    value = abs(value);
-
-    return Angle(sign * (value * 1000 + 299) / 600);
+    return Angle(value, 600);
 }
 
 const TurnPoint *CenfisDatabaseReader::read() {

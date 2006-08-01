@@ -140,17 +140,17 @@ void OpenAirAirspaceWriter::write(const Airspace &as) {
     const std::vector<Vertex> &vertices = as.getVertices();
     for (std::vector<Vertex>::const_iterator it = vertices.begin();
          it != vertices.end(); ++it) {
-        int latitude = (*it).getLatitude().getValue();
+        int latitude = (*it).getLatitude().refactor(60);
         int absLatitude = abs(latitude);
-        int longitude = (*it).getLongitude().getValue();
+        int longitude = (*it).getLongitude().refactor(60);
         int absLongitude = abs(longitude);
 
         fprintf(file, "DP %02d:%02d:%02d %c %03d:%02d:%02d %c\n",
-                absLatitude / 60000, (absLatitude / 1000) % 60,
-                ((absLatitude % 1000) * 60 + 29) / 1000,
+                absLatitude / 3600, (absLatitude / 60) % 60,
+                absLatitude % 60,
                 latitude < 0 ? 'S' : 'N',
-                absLongitude / 60000, (absLongitude / 1000) % 60,
-                ((absLongitude % 1000) * 60 + 29) / 1000,
+                absLongitude / 3600, (absLongitude / 60) % 60,
+                absLongitude % 60,
                 longitude < 0 ? 'W' : 'E');
     }
 

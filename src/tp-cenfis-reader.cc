@@ -121,7 +121,7 @@ static Angle *parseAngle60(char **pp, const char *letters) {
 
     *pp = endptr + 1;
 
-    return new Angle(sign * (((n1 * 60) + n2) * 1000 + ((n3 * 1000) / 60)));
+    return new Angle(sign * ((n1 * 60) + n2) * 60 + n3, 60);
 }
 
 static Altitude *parseAltitude(const char *p) {
