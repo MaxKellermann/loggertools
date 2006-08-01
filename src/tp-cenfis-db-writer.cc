@@ -102,7 +102,11 @@ static void copyString(char *dest, size_t dest_size,
     if (length > dest_size)
         length = dest_size;
 
-    memcpy(dest, src.data(), length);
+    const char *data = src.data();
+
+    for (size_t i = 0; i < length; ++i)
+        dest[i] = toupper(data[i]);
+
     memset(dest + length, ' ', dest_size - length);
 }
 
