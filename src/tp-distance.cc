@@ -21,15 +21,17 @@
 
 #include "tp.hh"
 
+#include <stdlib.h>
+
 class DistanceTurnPointReader : public TurnPointReader {
 private:
     TurnPointReader *reader;
     Position center;
-    unsigned max_distance;
+    Distance max_distance;
 public:
     DistanceTurnPointReader(TurnPointReader *_reader,
                             const Position &_center,
-                            unsigned _max_distance)
+                            const Distance &_max_distance)
         :reader(_reader), center(_center),
          max_distance(_max_distance) {}
     virtual ~DistanceTurnPointReader();
@@ -37,28 +39,50 @@ public:
     virtual const TurnPoint *read();
 };
 
+const Distance parseDistance(const char *p) {
+    char *q;
+    double value;
+    Distance::unit_t unit;
+
+    value = strtod(p, &q);
+    if (q == p)
+        throw new TurnPointReaderException("Failed to parse distance value");
+
+    if (*q == 0)
+        throw new TurnPointReaderException("No distance unit was provided");
+
+    if (strcmp(q, "km") == 0) {
+        value *= 1000.;
+        unit = Distance::UNIT_METERS;
+    } else if (strcmp(q, "m") == 0) {
+        unit = Distance::UNIT_METERS;
+    } else if (strcmp(q, "ft") == 0) {
+        unit = Distance::UNIT_FEET;
+    } else if (strcmp(q, "NM") == 0) {
+        unit = Distance::UNIT_NAUTICAL_MILES;
+    } else {
+        throw new TurnPointReaderException("Unknown distance unit");
+    }
+
+    return Distance(unit, value);
+}
+
 TurnPointReader *
 DistanceTurnPointFilter::createFilter(TurnPointReader *reader,
                                       const char *args) const {
-    (void)args; // XXX
+    if (args == NULL || *args == 0)
+        throw new TurnPointReaderException("No maximum distance provided");
 
     return new DistanceTurnPointReader(reader,
                                        Position(Angle(1, 46, 28, 49),
                                                 Angle(1, 8, 15, 48),
                                                 Altitude()),
-                                       300 * 1000);
+                                       parseDistance(args));
 }
 
 DistanceTurnPointReader::~DistanceTurnPointReader() {
     if (reader != NULL)
         delete reader;
-}
-
-static unsigned distance(const Position &a,
-                         const Position &b) {
-    // XXX correct implementation
-    return abs(a.getLatitude().getValue() - b.getLatitude().getValue())
-        + abs(a.getLongitude().getValue() - b.getLongitude().getValue());
 }
 
 const TurnPoint *DistanceTurnPointReader::read() {
@@ -68,7 +92,7 @@ const TurnPoint *DistanceTurnPointReader::read() {
         return NULL;
 
     while ((tp = reader->read()) != NULL) {
-        if (distance(tp->getPosition(), center) <= max_distance)
+        if (tp->getPosition() - center <= max_distance)
             return tp;
         else
             delete tp;
