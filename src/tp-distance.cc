@@ -20,6 +20,7 @@
  */
 
 #include "tp.hh"
+#include "tp-io.hh"
 
 #include <stdlib.h>
 

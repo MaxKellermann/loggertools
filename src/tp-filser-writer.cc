@@ -22,7 +22,7 @@
 #include <netinet/in.h>
 
 #include "tp.hh"
-
+#include "tp-io.hh"
 #include "filser.h"
 
 class FilserTurnPointWriter : public TurnPointWriter {

@@ -25,6 +25,7 @@
 #include <algorithm>
 
 #include "tp.hh"
+#include "tp-io.hh"
 #include "cenfis-db.h"
 
 int operator <(const struct turn_point &a,

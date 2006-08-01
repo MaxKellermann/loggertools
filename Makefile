@@ -38,7 +38,7 @@ all: src/tpconv src/asconv src/cenfistool src/hexfile src/filsertool src/fakefil
 clean:
 	rm -f src/tpconv src/asconv src/cenfistool src/hexfile src/filsertool src/fakefilser src/*.o
 
-tpconv_SOURCES = $(addprefix src/,tp-conv.cc earth.cc tp.cc tp-cenfis-reader.cc tp-cenfis-writer.cc tp-cenfis-db-reader.cc tp-cenfis-db-writer.cc tp-seeyou-reader.cc tp-seeyou-writer.cc tp-filser-reader.cc tp-filser-writer.cc tp-zander-reader.cc tp-zander-writer.cc tp-distance.cc)
+tpconv_SOURCES = $(addprefix src/,tp-conv.cc earth.cc tp.cc tp-io.cc tp-cenfis-reader.cc tp-cenfis-writer.cc tp-cenfis-db-reader.cc tp-cenfis-db-writer.cc tp-seeyou-reader.cc tp-seeyou-writer.cc tp-filser-reader.cc tp-filser-writer.cc tp-zander-reader.cc tp-zander-writer.cc tp-distance.cc)
 tpconv_OBJECTS = $(patsubst %.cc,%.o,$(tpconv_SOURCES))
 
 asconv_SOURCES = $(addprefix src/,asconv.cc earth.cc airspace.cc airspace-openair-reader.cc airspace-openair-writer.cc)

@@ -25,6 +25,7 @@
 #include <limits.h>
 
 #include "tp.hh"
+#include "tp-io.hh"
 
 class SeeYouTurnPointReader : public TurnPointReader {
 private:

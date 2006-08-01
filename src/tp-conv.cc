@@ -26,6 +26,7 @@
 #include <unistd.h>
 
 #include "tp.hh"
+#include "tp-io.hh"
 
 #include <list>
 

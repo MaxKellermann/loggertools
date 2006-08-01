@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "tp.hh"
+#include "tp-io.hh"
 #include "cenfis-db.h"
 
 class CenfisDatabaseReader : public TurnPointReader {

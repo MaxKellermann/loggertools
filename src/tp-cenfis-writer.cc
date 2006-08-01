@@ -25,6 +25,7 @@
 #include <ctype.h>
 
 #include "tp.hh"
+#include "tp-io.hh"
 
 class CenfisTurnPointWriter : public TurnPointWriter {
 private:
