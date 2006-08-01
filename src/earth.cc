@@ -21,6 +21,8 @@
 
 #include "earth.hh"
 
+#include <assert.h>
+
 Altitude::Altitude()
     :value(0), unit(UNIT_UNKNOWN), ref(REF_UNKNOWN) {
 }
@@ -38,6 +40,15 @@ static int refactor(int v, int old_factor, int new_factor) {
 
 Angle::Angle(int _value, int factor)
     :value(::refactor(_value, factor, 1000)) {}
+
+Angle::Angle(int sign, unsigned degrees, unsigned minutes, unsigned seconds)
+    :value(::refactor(sign * ((degrees * 60) + minutes) * 60 +
+                      seconds, 60, 1000)) {
+    assert(sign == -1 || sign == 1);
+    assert(degrees <= 180);
+    assert(minutes < 60);
+    assert(seconds < 60);
+}
 
 int Angle::refactor(int factor) const {
     if (!defined())

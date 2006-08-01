@@ -65,6 +65,7 @@ public:
     Angle():value(0) {}
     Angle(int _value):value(_value) {}
     Angle(int _value, int factor);
+    Angle(int sign, unsigned degrees, unsigned minutes, unsigned seconds);
 public:
     bool defined() const {
         /* XXX */
