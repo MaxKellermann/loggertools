@@ -22,6 +22,7 @@
 #include "earth.hh"
 
 #include <assert.h>
+#include <math.h>
 
 Altitude::Altitude()
     :value(0), unit(UNIT_UNKNOWN), ref(REF_UNKNOWN) {
@@ -74,4 +75,20 @@ void Position::operator =(const Position &pos) {
     latitude = pos.getLatitude();
     longitude = pos.getLongitude();
     altitude = pos.getAltitude();
+}
+
+const Distance operator -(const Position& a, const Position &b) {
+    double lat1 = a.getLatitude();
+    double lon1 = a.getLongitude();
+    double lat2 = b.getLatitude();
+    double lon2 = b.getLongitude();
+
+    // formula from http://en.wikipedia.org/wiki/Great-circle_distance
+    return Distance(Distance::UNIT_METERS,
+                    atan2(hypot(cos(lat2) * sin(lon2 - lon1),
+                                cos(lat1) * sin(lat2) -
+                                sin(lat1) * cos(lat2) * cos(lon2 - lon1)),
+                          (sin(lat1) * sin(lat2) +
+                           cos(lat1) * cos(lat2) * cos(lon2 - lon1))) *
+                    6372795.);
 }

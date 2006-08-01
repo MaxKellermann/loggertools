@@ -22,6 +22,58 @@
 #ifndef __LOGGERTOOLS_EARTH_HH
 #define __LOGGERTOOLS_EARTH_HH
 
+class Distance {
+public:
+    enum unit_t {
+        UNIT_UNKNOWN = 0,
+        UNIT_METERS = 1,
+        UNIT_FEET = 2,
+        UNIT_NAUTICAL_MILES = 3
+    };
+private:
+    unit_t unit;
+    double value;
+public:
+    Distance(unit_t _unit, double _value)
+        :unit(_unit), value(_value) {}
+public:
+    bool defined() const {
+        return unit != UNIT_UNKNOWN;
+    }
+    double getValue() const {
+        return value;
+    }
+    unit_t getUnit() const {
+        return unit;
+    }
+    double getMeters() const {
+        switch (unit) {
+        case UNIT_UNKNOWN:
+            return 0.0;
+        case UNIT_METERS:
+            return value;
+        case UNIT_FEET:
+            return value / 3.2; // xxx
+        case UNIT_NAUTICAL_MILES:
+            return value / 1.85; // xxx
+        }
+
+        return 0.0;
+    }
+    bool operator <(const Distance &b) const {
+        return getMeters() < b.getMeters();
+    }
+    bool operator >(const Distance &b) const {
+        return getMeters() > b.getMeters();
+    }
+    bool operator <=(const Distance &b) const {
+        return !(*this > b);
+    }
+    bool operator >=(const Distance &b) const {
+        return !(*this < b);
+    }
+};
+
 class Altitude {
 public:
     enum unit_t {
@@ -75,6 +127,9 @@ public:
         return value;
     }
     int refactor(int factor) const;
+    operator double() const {
+        return ((double)value) * 3.14159265 / (180. * 60. * 1000.);
+    }
 };
 
 class Position {
@@ -102,5 +157,8 @@ public:
         return altitude;
     }
 };
+
+/** calculate the great circle distance */
+const Distance operator -(const Position& a, const Position &b);
 
 #endif
