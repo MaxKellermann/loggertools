@@ -27,14 +27,16 @@
 #include "tp.hh"
 #include "tp-io.hh"
 
+#include <istream>
+
 class SeeYouTurnPointReader : public TurnPointReader {
 private:
-    FILE *file;
+    std::istream *stream;
     int is_eof;
     unsigned num_columns;
     char **columns;
 public:
-    SeeYouTurnPointReader(FILE *_file);
+    SeeYouTurnPointReader(std::istream *stream);
     virtual ~SeeYouTurnPointReader();
 public:
     virtual const TurnPoint *read();
@@ -105,16 +107,16 @@ static int read_column(const char **line, char *column, size_t column_max_len) {
     return 1;
 }
 
-SeeYouTurnPointReader::SeeYouTurnPointReader(FILE *_file)
-    :file(_file), is_eof(0),
+SeeYouTurnPointReader::SeeYouTurnPointReader(std::istream *_stream)
+    :stream(_stream), is_eof(0),
      num_columns(0), columns(NULL) {
     char line[4096], column[1024];
     const char *p;
     unsigned z;
     int ret;
 
-    p = fgets(line, sizeof(line), file);
-    if (p == NULL)
+    stream->getline(line, sizeof(line));
+    if (stream->fail())
         throw TurnPointReaderException("No header");
 
     num_columns = count_columns(line);
@@ -194,7 +196,7 @@ static unsigned parseFrequency(const char *p) {
 
 const TurnPoint *SeeYouTurnPointReader::read() {
     char line[4096], column[1024];
-    const char *p;
+    const char *p = line;
     unsigned z;
     int ret;
     TurnPoint *tp = new TurnPoint();
@@ -206,8 +208,8 @@ const TurnPoint *SeeYouTurnPointReader::read() {
     if (is_eof)
         return NULL;
 
-    p = fgets(line, sizeof(line), file);
-    if (p == NULL) {
+    stream->getline(line, sizeof(line));
+    if (stream->fail()) {
         is_eof = 1;
         return NULL;
     }
@@ -347,6 +349,7 @@ const TurnPoint *SeeYouTurnPointReader::read() {
     return tp;
 }
 
-TurnPointReader *SeeYouTurnPointFormat::createReader(FILE *file) const {
-    return new SeeYouTurnPointReader(file);
+TurnPointReader *
+SeeYouTurnPointFormat::createReader(std::istream *stream) const {
+    return new SeeYouTurnPointReader(stream);
 }

@@ -27,18 +27,20 @@
 #include "tp.hh"
 #include "tp-io.hh"
 
+#include <istream>
+
 class ZanderTurnPointReader : public TurnPointReader {
 private:
-    FILE *file;
+    std::istream *stream;
     int is_eof;
 public:
-    ZanderTurnPointReader(FILE *_file);
+    ZanderTurnPointReader(std::istream *stream);
 public:
     virtual const TurnPoint *read();
 };
 
-ZanderTurnPointReader::ZanderTurnPointReader(FILE *_file)
-    :file(_file), is_eof(0) {}
+ZanderTurnPointReader::ZanderTurnPointReader(std::istream *_stream)
+    :stream(_stream), is_eof(0) {}
 
 static Angle *parseAngle(const char *p, const char *letters) {
     long n;
@@ -121,8 +123,7 @@ static const char *get_next_column(char **pp, size_t width) {
 }
 
 const TurnPoint *ZanderTurnPointReader::read() {
-    char line[256];
-    char *p;
+    char line[256], *p = line;
     const char *q;
     TurnPoint *tp = new TurnPoint();
     Angle *latitude = NULL, *longitude = NULL;
@@ -132,8 +133,8 @@ const TurnPoint *ZanderTurnPointReader::read() {
     if (is_eof)
         return NULL;
 
-    p = fgets(line, sizeof(line), file);
-    if (p == NULL || *p == '\x1a') {
+    stream->getline(line, sizeof(line));
+    if (stream->fail() || line[0] == '\x1a') {
         is_eof = 1;
         return NULL;
     }
@@ -182,6 +183,7 @@ const TurnPoint *ZanderTurnPointReader::read() {
     return tp;
 }
 
-TurnPointReader *ZanderTurnPointFormat::createReader(FILE *file) const {
-    return new ZanderTurnPointReader(file);
+TurnPointReader *
+ZanderTurnPointFormat::createReader(std::istream *stream) const {
+    return new ZanderTurnPointReader(stream);
 }

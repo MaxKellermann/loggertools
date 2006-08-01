@@ -19,6 +19,8 @@
  * $Id$
  */
 
+#include <iosfwd>
+
 class TurnPointReaderException {
 private:
     char *msg;
@@ -66,38 +68,38 @@ class TurnPointFormat {
 public:
     virtual ~TurnPointFormat();
 public:
-    virtual TurnPointReader *createReader(FILE *file) const = 0;
-    virtual TurnPointWriter *createWriter(FILE *file) const = 0;
+    virtual TurnPointReader *createReader(std::istream *stream) const = 0;
+    virtual TurnPointWriter *createWriter(std::ostream *stream) const = 0;
 };
 
 class SeeYouTurnPointFormat : public TurnPointFormat {
 public:
-    virtual TurnPointReader *createReader(FILE *file) const;
-    virtual TurnPointWriter *createWriter(FILE *file) const;
+    virtual TurnPointReader *createReader(std::istream *stream) const;
+    virtual TurnPointWriter *createWriter(std::ostream *stream) const;
 };
 
 class CenfisTurnPointFormat : public TurnPointFormat {
 public:
-    virtual TurnPointReader *createReader(FILE *file) const;
-    virtual TurnPointWriter *createWriter(FILE *file) const;
+    virtual TurnPointReader *createReader(std::istream *stream) const;
+    virtual TurnPointWriter *createWriter(std::ostream *stream) const;
 };
 
 class CenfisDatabaseFormat : public TurnPointFormat {
 public:
-    virtual TurnPointReader *createReader(FILE *file) const;
-    virtual TurnPointWriter *createWriter(FILE *file) const;
+    virtual TurnPointReader *createReader(std::istream *stream) const;
+    virtual TurnPointWriter *createWriter(std::ostream *stream) const;
 };
 
 class FilserTurnPointFormat : public TurnPointFormat {
 public:
-    virtual TurnPointReader *createReader(FILE *file) const;
-    virtual TurnPointWriter *createWriter(FILE *file) const;
+    virtual TurnPointReader *createReader(std::istream *stream) const;
+    virtual TurnPointWriter *createWriter(std::ostream *stream) const;
 };
 
 class ZanderTurnPointFormat : public TurnPointFormat {
 public:
-    virtual TurnPointReader *createReader(FILE *file) const;
-    virtual TurnPointWriter *createWriter(FILE *file) const;
+    virtual TurnPointReader *createReader(std::istream *stream) const;
+    virtual TurnPointWriter *createWriter(std::ostream *stream) const;
 };
 
 const TurnPointFormat *getTurnPointFormat(const char *ext);

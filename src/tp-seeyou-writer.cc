@@ -27,22 +27,23 @@
 #include "tp.hh"
 #include "tp-io.hh"
 
+#include <ostream>
+#include <iomanip>
+
 class SeeYouTurnPointWriter : public TurnPointWriter {
 private:
-    FILE *file;
+    std::ostream *stream;
 public:
-    SeeYouTurnPointWriter(FILE *_file);
+    SeeYouTurnPointWriter(std::ostream *stream);
 public:
     virtual void write(const TurnPoint &tp);
     virtual void flush();
 };
 
-static void write_column(FILE *file, const std::string &value) {
+static void write_column(std::ostream *stream, const std::string &value) {
     if (value.length() == 0)
         return;
-    putc('"', file);
-    fputs(value.c_str(), file);
-    putc('"', file);
+    *stream << '"' << value << '"';
 }
 
 static char *formatAngle(char *buffer, size_t buffer_max_len,
@@ -58,9 +59,9 @@ static char *formatAngle(char *buffer, size_t buffer_max_len,
     return buffer;
 }
 
-SeeYouTurnPointWriter::SeeYouTurnPointWriter(FILE *_file)
-    :file(_file) {
-    fputs("Title,Code,Country,Latitude,Longitude,Elevation,Style,Direction,Length,Frequency,Description\r\n", file);
+SeeYouTurnPointWriter::SeeYouTurnPointWriter(std::ostream *_stream)
+    :stream(_stream) {
+    *stream << "Title,Code,Country,Latitude,Longitude,Elevation,Style,Direction,Length,Frequency,Description\r\n";
 }
 
 static unsigned makeSeeYouStyle(const TurnPoint &tp) {
@@ -105,7 +106,7 @@ static unsigned makeSeeYouStyle(const TurnPoint &tp) {
 void SeeYouTurnPointWriter::write(const TurnPoint &tp) {
     char latitude[16], longitude[16];
 
-    if (file == NULL)
+    if (stream == NULL)
         throw new TurnPointWriterException("already flushed");
 
     if (tp.getPosition().defined()) {
@@ -118,42 +119,39 @@ void SeeYouTurnPointWriter::write(const TurnPoint &tp) {
         longitude[0] = 0;
     }
 
-    write_column(file, tp.getTitle());
-    putc(',', file);
-    write_column(file, tp.getCode());
-    putc(',', file);
-    write_column(file, tp.getCountry());
-    fprintf(file, ",%s,%s,", latitude, longitude);
+    write_column(stream, tp.getTitle());
+    *stream << ',';
+    write_column(stream, tp.getCode());
+    *stream << ',';
+    write_column(stream, tp.getCountry());
+    *stream << ',' << latitude << ',' << longitude << ',';
     if (tp.getPosition().getAltitude().defined())
-        fprintf(file, "%luM",
-                tp.getPosition().getAltitude().getValue());
-    putc(',', file);
-    fprintf(file, "%d,",
-            makeSeeYouStyle(tp));
+        *stream << tp.getPosition().getAltitude().getValue() << 'M';
+    *stream << ',' << makeSeeYouStyle(tp) << ',';
     if (tp.getRunway().defined())
-        fprintf(file, "%u", tp.getRunway().getDirection());
-    putc(',', file);
+        *stream << tp.getRunway().getDirection();
+    *stream << ',';
     if (tp.getRunway().getLength() > 0)
-        fprintf(file, "%u", tp.getRunway().getLength());
-    putc(',', file);
+        *stream << tp.getRunway().getLength();
+    *stream << ',';
     if (tp.getFrequency() > 0)
-        fprintf(file, "%u.%03u",
-                tp.getFrequency() / 1000000,
-                (tp.getFrequency() / 1000) % 1000);
-    putc(',', file);
-    write_column(file, tp.getDescription());
-    fputs("\r\n", file);
+        *stream << (tp.getFrequency() / 1000000)
+                << std::setfill('0') << std::setw(3)
+                << ((tp.getFrequency() / 1000) % 1000);
+    *stream << ',';
+    write_column(stream, tp.getDescription());
+    *stream << "\r\n";
 }
 
 void SeeYouTurnPointWriter::flush() {
-    if (file == NULL)
+    if (stream == NULL)
         throw new TurnPointWriterException("already flushed");
 
-    fputs("-----Related Tasks-----\r\n", file);
-    fclose(file);
-    file = NULL;
+    *stream << "-----Related Tasks-----\r\n";
+    stream = NULL;
 }
 
-TurnPointWriter *SeeYouTurnPointFormat::createWriter(FILE *file) const {
-    return new SeeYouTurnPointWriter(file);
+TurnPointWriter *
+SeeYouTurnPointFormat::createWriter(std::ostream *stream) const {
+    return new SeeYouTurnPointWriter(stream);
 }

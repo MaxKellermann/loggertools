@@ -27,24 +27,24 @@
 #include "tp-io.hh"
 #include "cenfis-db.h"
 
+#include <istream>
+
 class CenfisDatabaseReader : public TurnPointReader {
 private:
-    FILE *file;
+    std::istream *stream;
     struct header header;
     unsigned current, overall_count;
 public:
-    CenfisDatabaseReader(FILE *_file);
+    CenfisDatabaseReader(std::istream *stream);
     virtual ~CenfisDatabaseReader();
 public:
     virtual const TurnPoint *read();
 };
 
-CenfisDatabaseReader::CenfisDatabaseReader(FILE *_file)
-    :file(_file), current(0), overall_count(0) {
-    size_t nmemb;
-
-    nmemb = fread(&header, sizeof(header), 1, file);
-    if (nmemb != 1)
+CenfisDatabaseReader::CenfisDatabaseReader(std::istream *_stream)
+    :stream(_stream), current(0), overall_count(0) {
+    stream->read((char*)&header, sizeof(header));
+    if (stream->bad())
         throw new TurnPointReaderException("failed to read header");
 
     if (ntohs(header.magic1) != 0x4610 &&
@@ -69,7 +69,6 @@ const Angle cenfisToAngle(int value) {
 
 const TurnPoint *CenfisDatabaseReader::read() {
     struct turn_point data;
-    size_t nmemb;
     TurnPoint *tp;
     char title[sizeof(data.title) + 1];
     char description[sizeof(data.description) + 1];
@@ -79,8 +78,8 @@ const TurnPoint *CenfisDatabaseReader::read() {
         return NULL;
 
     /* read this record */
-    nmemb = fread(&data, sizeof(data), 1, file);
-    if (nmemb != 1)
+    stream->read((char*)&data, sizeof(data));
+    if (stream->bad())
         throw new TurnPointReaderException("failed to read data");
 
     ++current;
@@ -147,6 +146,7 @@ const TurnPoint *CenfisDatabaseReader::read() {
     return tp;
 }
 
-TurnPointReader *CenfisDatabaseFormat::createReader(FILE *file) const {
-    return new CenfisDatabaseReader(file);
+TurnPointReader *
+CenfisDatabaseFormat::createReader(std::istream *stream) const {
+    return new CenfisDatabaseReader(stream);
 }

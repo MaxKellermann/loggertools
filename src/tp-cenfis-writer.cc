@@ -27,19 +27,22 @@
 #include "tp.hh"
 #include "tp-io.hh"
 
+#include <ostream>
+#include <iomanip>
+
 class CenfisTurnPointWriter : public TurnPointWriter {
 private:
-    FILE *file;
+    std::ostream *stream;
 public:
-    CenfisTurnPointWriter(FILE *_file);
+    CenfisTurnPointWriter(std::ostream *stream);
 public:
     virtual void write(const TurnPoint &tp);
     virtual void flush();
 };
 
-CenfisTurnPointWriter::CenfisTurnPointWriter(FILE *_file)
-    :file(_file) {
-    fprintf(file, "0 created by loggertools\n");
+CenfisTurnPointWriter::CenfisTurnPointWriter(std::ostream *_stream)
+    :stream(_stream) {
+    *stream << "0 created by loggertools\n";
 }
 
 static const char *formatType(TurnPoint::type_t type) {
@@ -73,7 +76,7 @@ static char *formatAngle(char *buffer, size_t buffer_max_len,
 void CenfisTurnPointWriter::write(const TurnPoint &tp) {
     std::string p;
 
-    if (file == NULL)
+    if (stream == NULL)
         throw new TurnPointWriterException("already flushed");
 
     p = tp.getCode();
@@ -81,15 +84,16 @@ void CenfisTurnPointWriter::write(const TurnPoint &tp) {
         p = tp.getTitle();
     if (p.length() == 0)
         p = "unknown";
-    fprintf(file, "11 N %s\n", p.c_str());
+    *stream << "11 N " << p << "\n";
 
-    fprintf(file, "   T %3s",
-            formatType(tp.getType()));
+    *stream << "   T "
+            << std::setw(3) << std::setfill(' ')
+            << formatType(tp.getType());
 
     if (tp.getTitle().length() > 0)
-        fprintf(file, " %s", tp.getTitle().c_str());
+        *stream << " " << tp.getTitle();
 
-    fputs("\n", file);
+    *stream << "\n";
 
     if (tp.getPosition().defined()) {
         char latitude[16], longitude[16];
@@ -99,8 +103,7 @@ void CenfisTurnPointWriter::write(const TurnPoint &tp) {
         formatAngle(longitude, sizeof(longitude),
                     tp.getPosition().getLongitude(), "EW");
 
-        fprintf(file, "   K %s %s",
-                latitude, longitude);
+        *stream << "   K " << latitude << " " << longitude;
 
         if (tp.getPosition().getAltitude().defined()) {
             char letter;
@@ -114,49 +117,53 @@ void CenfisTurnPointWriter::write(const TurnPoint &tp) {
             default:
                 letter = 'U';
             }
-            fprintf(file, " %c %ld", letter,
-                    tp.getPosition().getAltitude().getValue());
-        } else
-            fputs(" U     0", file);
+            *stream << " " << letter << tp.getPosition().getAltitude().getValue();
+        } else {
+            *stream << " U     0";
+        }
 
-        fprintf(file, "\n");
+        *stream << "\n";
     }
 
     if (tp.getFrequency() > 0)
-        fprintf(file, "   F %u %03u\n",
-                tp.getFrequency() / 1000000,
-                (tp.getFrequency() / 1000) % 1000);
+        *stream << "  F " << (tp.getFrequency() / 1000000)
+                << std::setfill('0') << std::setw(3)
+                << ((tp.getFrequency() / 1000) % 1000)
+                << "\n";
 
     if (tp.getRunway().defined()) {
-        fprintf(file, "   R %02u", tp.getRunway().getDirection() / 10);
+        *stream << "   R "
+                << std::setfill('0') << std::setw(2)
+                << (tp.getRunway().getDirection() / 10);
 
         if (tp.getRunway().getLength() > 0)
-            fprintf(file, " %04u", tp.getRunway().getLength());
+            *stream << " "
+                    << std::setfill('0') << std::setw(4)
+                    << tp.getRunway().getLength();
 
         switch (tp.getRunway().getType()) {
         case Runway::TYPE_UNKNOWN:
             break;
         case Runway::TYPE_GRASS:
-            fprintf(file, " GR");
+            *stream << " GR";
             break;
         case Runway::TYPE_ASPHALT:
-            fprintf(file, " AS");
+            *stream << " AS";
             break;
         }
 
-        fprintf(file, "\n");
+        *stream << "\n";
     }
 }
 
 void CenfisTurnPointWriter::flush() {
-    if (file == NULL)
+    if (stream == NULL)
         throw new TurnPointWriterException("already flushed");
 
-    fputs("0 End of File, created by loggertools\n", file);
-    fclose(file);
-    file = NULL;
+    *stream << "0 End of File, created by loggertools\n";
+    stream = NULL;
 }
 
-TurnPointWriter *CenfisTurnPointFormat::createWriter(FILE *file) const {
-    return new CenfisTurnPointWriter(file);
+TurnPointWriter *CenfisTurnPointFormat::createWriter(std::ostream *stream) const {
+    return new CenfisTurnPointWriter(stream);
 }

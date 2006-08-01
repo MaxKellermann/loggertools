@@ -27,12 +27,14 @@
 #include "tp.hh"
 #include "tp-io.hh"
 
+#include <istream>
+
 class CenfisTurnPointReader : public TurnPointReader {
 private:
-    FILE *file;
+    std::istream *stream;
     TurnPoint *tp;
 public:
-    CenfisTurnPointReader(FILE *_file);
+    CenfisTurnPointReader(std::istream *stream);
     virtual ~CenfisTurnPointReader();
 protected:
     TurnPoint *handleLine(char *line);
@@ -40,8 +42,8 @@ public:
     virtual const TurnPoint *read();
 };
 
-CenfisTurnPointReader::CenfisTurnPointReader(FILE *_file)
-    :file(_file), tp(NULL) {
+CenfisTurnPointReader::CenfisTurnPointReader(std::istream *_stream)
+    :stream(_stream), tp(NULL) {
 }
 
 CenfisTurnPointReader::~CenfisTurnPointReader() {
@@ -371,7 +373,11 @@ const TurnPoint *CenfisTurnPointReader::read() {
     char line[1024];
     TurnPoint *ret = NULL;
 
-    while ((fgets(line, sizeof(line), file)) != NULL) {
+    while (true) {
+        stream->getline(line, sizeof(line));
+        if (stream->fail())
+            return NULL;
+
         ret = handleLine(line);
         if (ret != NULL)
             return ret;
@@ -385,6 +391,7 @@ const TurnPoint *CenfisTurnPointReader::read() {
     return ret;
 }
 
-TurnPointReader *CenfisTurnPointFormat::createReader(FILE *file) const {
-    return new CenfisTurnPointReader(file);
+TurnPointReader *
+CenfisTurnPointFormat::createReader(std::istream *stream) const {
+    return new CenfisTurnPointReader(stream);
 }

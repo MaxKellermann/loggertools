@@ -21,12 +21,13 @@
 
 #include <netinet/in.h>
 
-#include <vector>
-#include <algorithm>
-
 #include "tp.hh"
 #include "tp-io.hh"
 #include "cenfis-db.h"
+
+#include <ostream>
+#include <vector>
+#include <algorithm>
 
 int operator <(const struct turn_point &a,
                const struct turn_point &b) {
@@ -35,19 +36,19 @@ int operator <(const struct turn_point &a,
 
 class CenfisDatabaseWriter : public TurnPointWriter {
 private:
-    FILE *file;
+    std::ostream *stream;
     struct header header;
     std::vector<struct turn_point> tps;
     std::vector<unsigned> offsets[4];
 public:
-    CenfisDatabaseWriter(FILE *_file);
+    CenfisDatabaseWriter(std::ostream *stream);
 public:
     virtual void write(const TurnPoint &tp);
     virtual void flush();
 };
 
-CenfisDatabaseWriter::CenfisDatabaseWriter(FILE *_file)
-    :file(_file) {
+CenfisDatabaseWriter::CenfisDatabaseWriter(std::ostream *_stream)
+    :stream(_stream) {
     memset(&header, 0xff, sizeof(header));
     header.magic1 = 0x1046;
     header.magic2 = 0x3141;
@@ -114,7 +115,7 @@ static void copyString(char *dest, size_t dest_size,
 void CenfisDatabaseWriter::write(const TurnPoint &tp) {
     struct turn_point data;
 
-    if (file == NULL)
+    if (stream == NULL)
         throw new TurnPointWriterException("already flushed");
 
     if (tps.size() >= 0xffff)
@@ -175,10 +176,9 @@ static int typeToTable(char type) {
 void CenfisDatabaseWriter::flush() {
     struct table_entry entry;
     struct foo foo;
-    size_t nmemb;
     u_int32_t foo_offset, table_offset;
 
-    if (file == NULL)
+    if (stream == NULL)
         throw new TurnPointWriterException("already flushed");
 
     foo_offset = sizeof(header) + sizeof(struct turn_point) * tps.size();
@@ -221,8 +221,8 @@ void CenfisDatabaseWriter::flush() {
 
     /* write header */
 
-    nmemb = fwrite(&header, sizeof(header), 1, file);
-    if (nmemb != 1)
+    stream->write((char*)&header, sizeof(header));
+    if (stream->bad())
         throw new TurnPointWriterException("failed to write header");
 
     /* write all TPs */
@@ -231,15 +231,15 @@ void CenfisDatabaseWriter::flush() {
          it != tps.end(); ++it) {
         struct turn_point *tp = &(*it);
 
-        nmemb = fwrite(tp, sizeof(*tp), 1, file);
-        if (nmemb != 1)
+        stream->write((char*)tp, sizeof(*tp));
+        if (stream->bad())
             throw new TurnPointWriterException("failed to write TP");
     }
 
     /* write foo */
     memset(&foo, 0xff, sizeof(foo));
-    nmemb = fwrite(&foo, sizeof(foo), 1, file);
-    if (nmemb != 1)
+    stream->write((char*)&foo, sizeof(foo));
+    if (stream->bad())
         throw new TurnPointWriterException("failed to write");
 
     /* write tables */
@@ -252,16 +252,16 @@ void CenfisDatabaseWriter::flush() {
             entry.index1 = (offset >> 8) & 0x7f;
             entry.index2 = offset & 0xff;
 
-            nmemb = fwrite(&entry, sizeof(entry), 1, file);
-            if (nmemb != 1)
+            stream->write((char*)&entry, sizeof(entry));
+            if (stream->bad())
                 throw new TurnPointWriterException("failed to write table entry");
         }
     }
 
-    fclose(file);
-    file = NULL;
+    stream = NULL;
 }
 
-TurnPointWriter *CenfisDatabaseFormat::createWriter(FILE *file) const {
-    return new CenfisDatabaseWriter(file);
+TurnPointWriter *
+CenfisDatabaseFormat::createWriter(std::ostream *stream) const {
+    return new CenfisDatabaseWriter(stream);
 }

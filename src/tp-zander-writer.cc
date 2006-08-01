@@ -27,17 +27,20 @@
 #include "tp.hh"
 #include "tp-io.hh"
 
+#include <ostream>
+#include <iomanip>
+
 class ZanderTurnPointWriter : public TurnPointWriter {
 private:
-    FILE *file;
+    std::ostream *stream;
 public:
-    ZanderTurnPointWriter(FILE *_file);
+    ZanderTurnPointWriter(std::ostream *stream);
 public:
     virtual void write(const TurnPoint &tp);
     virtual void flush();
 };
 
-static void write_column(FILE *file, const std::string &value,
+static void write_column(std::ostream *stream, const std::string &value,
                          size_t width) {
     size_t length;
 
@@ -45,9 +48,9 @@ static void write_column(FILE *file, const std::string &value,
     if (length > width)
         length = width;
 
-    fwrite(value.c_str(), length, 1, file);
+    stream->write(value.data(), length);
     for (; length < width; ++length)
-        fputc(' ', file);
+        *stream << ' ';
 }
 
 static char *formatLatitude(char *buffer, size_t buffer_max_len,
@@ -78,8 +81,8 @@ static char *formatLongitude(char *buffer, size_t buffer_max_len,
     return buffer;
 }
 
-ZanderTurnPointWriter::ZanderTurnPointWriter(FILE *_file)
-    :file(_file) {}
+ZanderTurnPointWriter::ZanderTurnPointWriter(std::ostream *_stream)
+    :stream(_stream) {}
 
 unsigned makeZanderStyle(const TurnPoint &tp) {
     switch (tp.getType()) {
@@ -144,7 +147,7 @@ static char formatType(const TurnPoint &tp) {
 void ZanderTurnPointWriter::write(const TurnPoint &tp) {
     char latitude[16], longitude[16];
 
-    if (file == NULL)
+    if (stream == NULL)
         throw new TurnPointWriterException("already flushed");
 
     if (tp.getPosition().defined()) {
@@ -157,37 +160,38 @@ void ZanderTurnPointWriter::write(const TurnPoint &tp) {
         longitude[0] = 0;
     }
 
-    write_column(file, tp.getTitle(), 12);
-    fputc(' ', file);
-    write_column(file, latitude, 7);
-    fputc(' ', file);
-    write_column(file, longitude, 8);
-    fputc(' ', file);
-    fprintf(file, "%04ld", tp.getPosition().getAltitude().getValue());
-    fputc(' ', file);
+    write_column(stream, tp.getTitle(), 12);
+    *stream << ' ';
+    write_column(stream, latitude, 7);
+    *stream << ' ';
+    write_column(stream, longitude, 8);
+    *stream << ' '
+            << std::setfill('0') << std::setw(4)
+            << tp.getPosition().getAltitude().getValue()
+            << ' ';
     if (tp.getFrequency() > 0)
-        fprintf(file, "%3u.%03u",
-                tp.getFrequency() / 1000000,
-                (tp.getFrequency() / 1000) % 1000);
+        *stream << std::setfill(' ') << std::setw(3)
+                << (tp.getFrequency() / 1000000)
+                << std::setfill('0') << std::setw(3)
+                << ((tp.getFrequency() / 1000) % 1000);
     else
-        fputs("1      ", file);
-    fputc(' ', file);
-    fputc(formatType(tp), file);
-    fputc(' ', file);
-    write_column(file, tp.getCountry(), 2);
-    fputs("\r\n", file);
+        *stream << "1      ";
+    *stream << ' ';
+    *stream << formatType(tp);
+    *stream << ' ';
+    write_column(stream, tp.getCountry(), 2);
+    *stream << "\r\n";
 }
 
 void ZanderTurnPointWriter::flush() {
-    if (file == NULL)
+    if (stream == NULL)
         throw new TurnPointWriterException("already flushed");
 
-    fputc('\x1a', file);
-
-    fclose(file);
-    file = NULL;
+    *stream << '\x1a';
+    stream = NULL;
 }
 
-TurnPointWriter *ZanderTurnPointFormat::createWriter(FILE *file) const {
-    return new ZanderTurnPointWriter(file);
+TurnPointWriter *
+ZanderTurnPointFormat::createWriter(std::ostream *stream) const {
+    return new ZanderTurnPointWriter(stream);
 }

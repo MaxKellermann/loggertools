@@ -28,6 +28,8 @@
 #include "tp.hh"
 #include "tp-io.hh"
 
+#include <fstream>
+#include <iostream>
 #include <list>
 
 static void usage()
@@ -68,7 +70,6 @@ int main(int argc, char **argv) {
     const char *out_filename = NULL, *stdout_format = NULL;
     std::list<const char*> filters;
     const TurnPointFormat *out_format;
-    FILE *out;
     TurnPointWriter *writer;
     const TurnPoint *tp;
 
@@ -117,6 +118,8 @@ int main(int argc, char **argv) {
 
     /* open output file */
 
+    std::ostream *out;
+
     if (out_filename == NULL) {
         out_format = getTurnPointFormat(stdout_format);
         if (out_format == NULL) {
@@ -129,9 +132,9 @@ int main(int argc, char **argv) {
     }
 
     if (out_filename == NULL) {
-        out = stdout;
+        out = &std::cout;
     } else {
-        out = fopen(out_filename, "w");
+        out = new std::ofstream(out_filename);
         if (out == NULL) {
             fprintf(stderr, "failed to create '%s': %s\n",
                     out_filename, strerror(errno));
@@ -152,15 +155,8 @@ int main(int argc, char **argv) {
         const char *in_filename = argv[optind++];
 
         const TurnPointFormat *in_format = getFormatFromFilename(in_filename);
-
-        FILE *in = fopen(in_filename, "r");
-        if (in == NULL) {
-            fprintf(stderr, "failed to open '%s': %s\n",
-                    in_filename, strerror(errno));
-            _exit(1);
-        }
-
-        TurnPointReader *reader = in_format->createReader(in);
+        std::ifstream in(in_filename);
+        TurnPointReader *reader = in_format->createReader(&in);
         if (reader == NULL) {
             fprintf(stderr, "reading this type is not supported\n");
             _exit(1);
@@ -207,6 +203,11 @@ int main(int argc, char **argv) {
     }
 
     delete writer;
+
+    if (out == &std::cout)
+        out->flush();
+    else
+        delete out;
 
     return 0;
 }

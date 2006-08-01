@@ -25,23 +25,24 @@
 #include "tp-io.hh"
 #include "filser.h"
 
+#include <istream>
+
 class FilserTurnPointReader : public TurnPointReader {
 private:
-    FILE *file;
+    std::istream *stream;
     unsigned count;
 public:
-    FilserTurnPointReader(FILE *_file);
+    FilserTurnPointReader(std::istream *stream);
 public:
     virtual const TurnPoint *read();
 };
 
-FilserTurnPointReader::FilserTurnPointReader(FILE *_file)
-    :file(_file), count(0) {
+FilserTurnPointReader::FilserTurnPointReader(std::istream *_stream)
+    :stream(_stream), count(0) {
 }
 
 const TurnPoint *FilserTurnPointReader::read() {
     struct filser_turn_point data;
-    size_t nmemb;
     TurnPoint *tp;
     char code[sizeof(data.code) + 1];
     size_t length;
@@ -50,8 +51,8 @@ const TurnPoint *FilserTurnPointReader::read() {
         return NULL;
 
     do {
-        nmemb = fread(&data, sizeof(data), 1, file);
-        if (nmemb != 1)
+        stream->read((char*)&data, sizeof(data));
+        if (stream->bad())
             return NULL;
 
         count++;
@@ -76,6 +77,7 @@ const TurnPoint *FilserTurnPointReader::read() {
     return tp;
 }
 
-TurnPointReader *FilserTurnPointFormat::createReader(FILE *file) const {
-    return new FilserTurnPointReader(file);
+TurnPointReader *
+FilserTurnPointFormat::createReader(std::istream *stream) const {
+    return new FilserTurnPointReader(stream);
 }
