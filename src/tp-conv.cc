@@ -27,6 +27,8 @@
 
 #include "tp.hh"
 
+#include <list>
+
 static void usage()
     __attribute__((noreturn));
 
@@ -35,6 +37,7 @@ static void usage() {
     fprintf(stderr, "options:\n");
     fprintf(stderr, " -o outfile   write output to this file\n");
     fprintf(stderr, " -f outformat write output to stdout with this format\n");
+    fprintf(stderr, " -F filter    use a filter\n");
     fprintf(stderr, " -h           help (this text)\n");
     _exit(1);
 }
@@ -62,6 +65,7 @@ TurnPointFormat *getFormatFromFilename(const char *filename) {
 
 int main(int argc, char **argv) {
     const char *out_filename = NULL, *stdout_format = NULL;
+    std::list<const char*> filters;
     TurnPointFormat *out_format;
     FILE *out;
     TurnPointWriter *writer;
@@ -71,7 +75,7 @@ int main(int argc, char **argv) {
     while (1) {
         int c;
 
-        c = getopt(argc, argv, "ho:f:");
+        c = getopt(argc, argv, "ho:f:F:");
         if (c == -1)
             break;
 
@@ -88,6 +92,10 @@ int main(int argc, char **argv) {
         case 'f':
             stdout_format = optarg;
             out_filename = NULL;
+            break;
+
+        case 'F':
+            filters.push_back(optarg);
             break;
 
         default:
@@ -155,6 +163,21 @@ int main(int argc, char **argv) {
         if (reader == NULL) {
             fprintf(stderr, "reading this type is not supported\n");
             _exit(1);
+        }
+
+        for (std::list<const char*>::const_iterator it = filters.begin();
+             it != filters.end(); ++it) {
+            std::string s = *it;
+            int colon = s.find(':');
+            std::string filter_name = colon >= 0
+                ? std::string(s, 0, colon)
+                : s;
+            const char *args = colon >= 0
+                ? std::string(s, colon + 1).c_str()
+                : NULL;
+            const TurnPointFilter *filter
+                = getTurnPointFilter(filter_name.c_str());
+            reader = filter->createFilter(reader, args);
         }
 
         /* transfer data */

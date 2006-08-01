@@ -209,3 +209,20 @@ public:
 };
 
 TurnPointFormat *getTurnPointFormat(const char *ext);
+
+
+class TurnPointFilter {
+public:
+    virtual ~TurnPointFilter();
+public:
+    virtual TurnPointReader *createFilter(TurnPointReader *reader,
+                                          const char *args) const = 0;
+};
+
+class DistanceTurnPointFilter : public TurnPointFilter {
+public:
+    virtual TurnPointReader *createFilter(TurnPointReader *reader,
+                                          const char *args) const;
+};
+
+const TurnPointFilter *getTurnPointFilter(const char *name);

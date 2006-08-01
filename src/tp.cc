@@ -141,6 +141,10 @@ TurnPointWriter::~TurnPointWriter(void) {
 TurnPointFormat::~TurnPointFormat(void) {
 }
 
+TurnPointFilter::~TurnPointFilter(void) {
+}
+
+
 static SeeYouTurnPointFormat seeYouFormat;
 static CenfisTurnPointFormat cenfisFormat;
 static CenfisDatabaseFormat cenfisDatabaseFormat;
@@ -163,3 +167,11 @@ TurnPointFormat *getTurnPointFormat(const char *ext) {
         return NULL;
 }
 
+static const DistanceTurnPointFilter distanceFilter;
+
+const TurnPointFilter *getTurnPointFilter(const char *name) {
+    if (strcmp(name, "distance") == 0)
+        return &distanceFilter;
+    else
+        return NULL;
+}
