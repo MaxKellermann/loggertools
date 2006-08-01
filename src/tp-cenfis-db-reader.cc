@@ -147,6 +147,6 @@ const TurnPoint *CenfisDatabaseReader::read() {
     return tp;
 }
 
-TurnPointReader *CenfisDatabaseFormat::createReader(FILE *file) {
+TurnPointReader *CenfisDatabaseFormat::createReader(FILE *file) const {
     return new CenfisDatabaseReader(file);
 }

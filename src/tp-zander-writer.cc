@@ -188,6 +188,6 @@ void ZanderTurnPointWriter::flush() {
     file = NULL;
 }
 
-TurnPointWriter *ZanderTurnPointFormat::createWriter(FILE *file) {
+TurnPointWriter *ZanderTurnPointFormat::createWriter(FILE *file) const {
     return new ZanderTurnPointWriter(file);
 }

@@ -157,6 +157,6 @@ void CenfisTurnPointWriter::flush() {
     file = NULL;
 }
 
-TurnPointWriter *CenfisTurnPointFormat::createWriter(FILE *file) {
+TurnPointWriter *CenfisTurnPointFormat::createWriter(FILE *file) const {
     return new CenfisTurnPointWriter(file);
 }

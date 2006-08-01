@@ -347,6 +347,6 @@ const TurnPoint *SeeYouTurnPointReader::read() {
     return tp;
 }
 
-TurnPointReader *SeeYouTurnPointFormat::createReader(FILE *file) {
+TurnPointReader *SeeYouTurnPointFormat::createReader(FILE *file) const {
     return new SeeYouTurnPointReader(file);
 }

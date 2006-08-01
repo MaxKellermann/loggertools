@@ -154,6 +154,6 @@ void SeeYouTurnPointWriter::flush() {
     file = NULL;
 }
 
-TurnPointWriter *SeeYouTurnPointFormat::createWriter(FILE *file) {
+TurnPointWriter *SeeYouTurnPointFormat::createWriter(FILE *file) const {
     return new SeeYouTurnPointWriter(file);
 }

@@ -76,6 +76,6 @@ const TurnPoint *FilserTurnPointReader::read() {
     return tp;
 }
 
-TurnPointReader *FilserTurnPointFormat::createReader(FILE *file) {
+TurnPointReader *FilserTurnPointFormat::createReader(FILE *file) const {
     return new FilserTurnPointReader(file);
 }

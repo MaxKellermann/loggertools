@@ -96,6 +96,6 @@ void FilserTurnPointWriter::flush() {
     file = NULL;
 }
 
-TurnPointWriter *FilserTurnPointFormat::createWriter(FILE *file) {
+TurnPointWriter *FilserTurnPointFormat::createWriter(FILE *file) const {
     return new FilserTurnPointWriter(file);
 }

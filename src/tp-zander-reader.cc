@@ -182,6 +182,6 @@ const TurnPoint *ZanderTurnPointReader::read() {
     return tp;
 }
 
-TurnPointReader *ZanderTurnPointFormat::createReader(FILE *file) {
+TurnPointReader *ZanderTurnPointFormat::createReader(FILE *file) const {
     return new ZanderTurnPointReader(file);
 }

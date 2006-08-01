@@ -78,13 +78,13 @@ TurnPointFilter::~TurnPointFilter(void) {
 }
 
 
-static SeeYouTurnPointFormat seeYouFormat;
-static CenfisTurnPointFormat cenfisFormat;
-static CenfisDatabaseFormat cenfisDatabaseFormat;
-static FilserTurnPointFormat filserFormat;
-static ZanderTurnPointFormat zanderFormat;
+static const SeeYouTurnPointFormat seeYouFormat;
+static const CenfisTurnPointFormat cenfisFormat;
+static const CenfisDatabaseFormat cenfisDatabaseFormat;
+static const FilserTurnPointFormat filserFormat;
+static const ZanderTurnPointFormat zanderFormat;
 
-TurnPointFormat *getTurnPointFormat(const char *ext) {
+const TurnPointFormat *getTurnPointFormat(const char *ext) {
     if (strcasecmp(ext, "cup") == 0)
         return &seeYouFormat;
     else if (strcasecmp(ext, "cdb") == 0 ||

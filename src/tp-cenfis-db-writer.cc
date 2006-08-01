@@ -262,6 +262,6 @@ void CenfisDatabaseWriter::flush() {
     file = NULL;
 }
 
-TurnPointWriter *CenfisDatabaseFormat::createWriter(FILE *file) {
+TurnPointWriter *CenfisDatabaseFormat::createWriter(FILE *file) const {
     return new CenfisDatabaseWriter(file);
 }

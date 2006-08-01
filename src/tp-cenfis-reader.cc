@@ -385,6 +385,6 @@ const TurnPoint *CenfisTurnPointReader::read() {
     return ret;
 }
 
-TurnPointReader *CenfisTurnPointFormat::createReader(FILE *file) {
+TurnPointReader *CenfisTurnPointFormat::createReader(FILE *file) const {
     return new CenfisTurnPointReader(file);
 }

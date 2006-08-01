@@ -66,41 +66,41 @@ class TurnPointFormat {
 public:
     virtual ~TurnPointFormat();
 public:
-    virtual TurnPointReader *createReader(FILE *file) = 0;
-    virtual TurnPointWriter *createWriter(FILE *file) = 0;
+    virtual TurnPointReader *createReader(FILE *file) const = 0;
+    virtual TurnPointWriter *createWriter(FILE *file) const = 0;
 };
 
 class SeeYouTurnPointFormat : public TurnPointFormat {
 public:
-    virtual TurnPointReader *createReader(FILE *file);
-    virtual TurnPointWriter *createWriter(FILE *file);
+    virtual TurnPointReader *createReader(FILE *file) const;
+    virtual TurnPointWriter *createWriter(FILE *file) const;
 };
 
 class CenfisTurnPointFormat : public TurnPointFormat {
 public:
-    virtual TurnPointReader *createReader(FILE *file);
-    virtual TurnPointWriter *createWriter(FILE *file);
+    virtual TurnPointReader *createReader(FILE *file) const;
+    virtual TurnPointWriter *createWriter(FILE *file) const;
 };
 
 class CenfisDatabaseFormat : public TurnPointFormat {
 public:
-    virtual TurnPointReader *createReader(FILE *file);
-    virtual TurnPointWriter *createWriter(FILE *file);
+    virtual TurnPointReader *createReader(FILE *file) const;
+    virtual TurnPointWriter *createWriter(FILE *file) const;
 };
 
 class FilserTurnPointFormat : public TurnPointFormat {
 public:
-    virtual TurnPointReader *createReader(FILE *file);
-    virtual TurnPointWriter *createWriter(FILE *file);
+    virtual TurnPointReader *createReader(FILE *file) const;
+    virtual TurnPointWriter *createWriter(FILE *file) const;
 };
 
 class ZanderTurnPointFormat : public TurnPointFormat {
 public:
-    virtual TurnPointReader *createReader(FILE *file);
-    virtual TurnPointWriter *createWriter(FILE *file);
+    virtual TurnPointReader *createReader(FILE *file) const;
+    virtual TurnPointWriter *createWriter(FILE *file) const;
 };
 
-TurnPointFormat *getTurnPointFormat(const char *ext);
+const TurnPointFormat *getTurnPointFormat(const char *ext);
 
 
 class TurnPointFilter {

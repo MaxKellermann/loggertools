@@ -43,9 +43,9 @@ static void usage() {
     _exit(1);
 }
 
-TurnPointFormat *getFormatFromFilename(const char *filename) {
+const TurnPointFormat *getFormatFromFilename(const char *filename) {
     const char *dot;
-    TurnPointFormat *format;
+    const TurnPointFormat *format;
 
     dot = strchr(filename, '.');
     if (dot == NULL || dot[1] == 0) {
@@ -67,7 +67,7 @@ TurnPointFormat *getFormatFromFilename(const char *filename) {
 int main(int argc, char **argv) {
     const char *out_filename = NULL, *stdout_format = NULL;
     std::list<const char*> filters;
-    TurnPointFormat *out_format;
+    const TurnPointFormat *out_format;
     FILE *out;
     TurnPointWriter *writer;
     const TurnPoint *tp;
@@ -151,7 +151,7 @@ int main(int argc, char **argv) {
     while (optind < argc) {
         const char *in_filename = argv[optind++];
 
-        TurnPointFormat *in_format = getFormatFromFilename(in_filename);
+        const TurnPointFormat *in_format = getFormatFromFilename(in_filename);
 
         FILE *in = fopen(in_filename, "r");
         if (in == NULL) {
