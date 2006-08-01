@@ -95,9 +95,19 @@ static int angleToCenfis(const Angle &angle) {
     return angle.refactor(600);
 }
 
+static void copyString(char *dest, size_t dest_size,
+                       std::string src) {
+    size_t length = src.length();
+
+    if (length > dest_size)
+        length = dest_size;
+
+    memcpy(dest, src.data(), length);
+    memset(dest + length, ' ', dest_size - length);
+}
+
 void CenfisDatabaseWriter::write(const TurnPoint &tp) {
     struct turn_point data;
-    size_t length;
 
     if (file == NULL)
         throw new TurnPointWriterException("already flushed");
@@ -124,19 +134,10 @@ void CenfisDatabaseWriter::write(const TurnPoint &tp) {
         data.freq[2] = freq;
     }
 
-    length = tp.getTitle().length();
-    if (length > sizeof(data.title))
-        length = sizeof(data.title);
-
-    memcpy(data.title, tp.getTitle().c_str(), length);
-    memset(data.title + length, ' ', sizeof(data.title) - length);
-
-    length = tp.getDescription().length();
-    if (length > sizeof(data.description))
-        length = sizeof(data.description);
-
-    memcpy(data.description, tp.getDescription().c_str(), length);
-    memset(data.description + length, ' ', sizeof(data.description) - length);
+    copyString(data.title, sizeof(data.title),
+               tp.getTitle());
+    copyString(data.description, sizeof(data.description),
+               tp.getDescription());
 
     if (tp.getRunway().defined())
         data.rwy1 = tp.getRunway().getDirection() / 10;
