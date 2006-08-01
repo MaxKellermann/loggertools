@@ -25,6 +25,8 @@
 #include <string.h>
 #include <errno.h>
 
+const unsigned BANK_SIZE = 0x10000;
+
 static void usage(void)
      __attribute__((noreturn));
 
@@ -71,10 +73,10 @@ static int encode(FILE *in, FILE *out) {
                      0, buffer);
 
         address += (size_t)nbytes;
-        if (address > 0xffff) {
+        if (address >= BANK_SIZE) {
             /* switch to next bank */
             bank++;
-            address &= 0xffff;
+            address %= BANK_SIZE;
 
             write_record(out, 0, 0, 0x10 + bank, NULL);
         }
