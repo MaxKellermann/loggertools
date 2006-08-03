@@ -129,7 +129,7 @@ void CenfisDatabaseWriter::write(const TurnPoint &tp) {
 
     if (tp.getPosition().defined()) {
         data.latitude = htonl(angleToCenfis(tp.getPosition().getLatitude()));
-        data.longitude = htonl(-angleToCenfis(tp.getPosition().getLongitude()));
+        data.longitude = htonl(angleToCenfis(tp.getPosition().getLongitude()));
         data.altitude = htons(tp.getPosition().getAltitude().getValue());
     }
 
