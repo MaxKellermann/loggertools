@@ -93,7 +93,7 @@ static unsigned decode_hex_digit(char ch) {
         return ch - '0';
 
     if (ch >= 'a' && ch <= 'f')
-        return 0x10 + ch - 'a';
+        return 10 + ch - 'a';
 
     if (ch >= 'A' && ch <= 'F')
         return 10 + ch - 'A';
