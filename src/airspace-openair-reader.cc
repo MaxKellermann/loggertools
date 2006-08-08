@@ -169,7 +169,7 @@ const Airspace *OpenAirAirspaceReader::read() {
             else if (*lonWE != 'E')
                 throw AirspaceReaderException("malformed W/E");
 
-            vertices.push_back(Vertex(Angle(latitude), Angle(longitude)));
+            vertices.push_back(Vertex(Latitude(latitude), Longitude(longitude)));
         } else {
             throw AirspaceReaderException("malformed line");
         }

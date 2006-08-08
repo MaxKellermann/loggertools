@@ -29,10 +29,11 @@
 
 class Vertex {
 private:
-    Angle latitude, longitude;
+    Latitude latitude;
+    Longitude longitude;
 public:
     Vertex() {}
-    Vertex(const Angle &_lat, const Angle &_lon);
+    Vertex(const Latitude &_lat, const Longitude &_lon);
     Vertex(const Vertex &position);
     void operator =(const Vertex &pos);
 public:
@@ -40,10 +41,10 @@ public:
         return latitude.defined() &&
             longitude.defined();
     }
-    const Angle &getLatitude() const {
+    const Latitude &getLatitude() const {
         return latitude;
     }
-    const Angle &getLongitude() const {
+    const Longitude &getLongitude() const {
         return longitude;
     }
 };

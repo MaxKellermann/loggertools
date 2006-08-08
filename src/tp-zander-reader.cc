@@ -42,7 +42,8 @@ public:
 ZanderTurnPointReader::ZanderTurnPointReader(std::istream *_stream)
     :stream(_stream), is_eof(0) {}
 
-static Angle *parseAngle(const char *p, const char *letters) {
+template<class T, char minusLetter, char plusLetter>
+static T *parseAngle(const char *p) {
     long n;
     int sign, degrees, minutes, seconds;
     char *endptr;
@@ -54,9 +55,9 @@ static Angle *parseAngle(const char *p, const char *letters) {
     if (endptr == NULL)
         return NULL;
 
-    if (*endptr == letters[0])
+    if (*endptr == minusLetter)
         sign = -1;
-    else if (*endptr == letters[1])
+    else if (*endptr == plusLetter)
         sign = 1;
     else
         return NULL;
@@ -70,8 +71,8 @@ static Angle *parseAngle(const char *p, const char *letters) {
     if (degrees > 180 || minutes >= 60 || seconds >= 60)
         return NULL;
 
-    return new Angle(sign * ((degrees * 60) + minutes) * 60 + seconds,
-                     60);
+    return new T(sign * ((degrees * 60) + minutes) * 60 + seconds,
+                 60);
 }
 
 static unsigned parseFrequency(const char *p) {
@@ -126,7 +127,8 @@ const TurnPoint *ZanderTurnPointReader::read() {
     char line[256], *p = line;
     const char *q;
     TurnPoint *tp = new TurnPoint();
-    Angle *latitude = NULL, *longitude = NULL;
+    Latitude *latitude = NULL;
+    Longitude *longitude = NULL;
     Altitude *altitude = NULL;
     Runway::type_t rwy_type = Runway::TYPE_UNKNOWN;
 
@@ -141,8 +143,8 @@ const TurnPoint *ZanderTurnPointReader::read() {
 
     tp->setTitle(get_next_column(&p, 13));
 
-    latitude = parseAngle(get_next_column(&p, 8), "SN");
-    longitude = parseAngle(get_next_column(&p, 9), "WE");
+    latitude = parseAngle<Latitude,'S','N'>(get_next_column(&p, 8));
+    longitude = parseAngle<Longitude,'W','E'>(get_next_column(&p, 9));
     q = get_next_column(&p, 5);
     if (q == NULL)
         altitude = new Altitude();

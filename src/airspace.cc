@@ -21,7 +21,7 @@
 
 #include "airspace.hh"
 
-Vertex::Vertex(const Angle &_lat, const Angle &_lon)
+Vertex::Vertex(const Latitude &_lat, const Longitude &_lon)
     :latitude(_lat),
      longitude(_lon) {
 }

@@ -58,7 +58,7 @@ int Angle::refactor(int factor) const {
     return ::refactor(value, 1000, factor);
 }
 
-Position::Position(const Angle &_lat, const Angle &_lon,
+Position::Position(const Latitude &_lat, const Longitude &_lon,
                    const Altitude &_alt)
     :latitude(_lat),
      longitude(_lon),

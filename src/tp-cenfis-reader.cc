@@ -51,7 +51,8 @@ CenfisTurnPointReader::~CenfisTurnPointReader() {
         delete tp;
 }
 
-static Angle *parseAngle(char **pp, const char *letters) {
+template<class T, char minusLetter, char plusLetter>
+static T *parseAngle(char **pp) {
     const char *p = *pp;
     unsigned long n1, n2, n3;
     int sign;
@@ -60,9 +61,9 @@ static Angle *parseAngle(char **pp, const char *letters) {
     if (p == NULL || p[0] == 0 || p[1] != ' ' || p[2] == 0)
         return NULL;
 
-    if (*p == letters[0])
+    if (*p == minusLetter)
         sign = -1;
-    else if (*p == letters[1])
+    else if (*p == plusLetter)
         sign = 1;
     else
         return NULL;
@@ -86,10 +87,11 @@ static Angle *parseAngle(char **pp, const char *letters) {
 
     *pp = endptr + 1;
 
-    return new Angle(sign * (((n1 * 60) + n2) * 1000 + n3));
+    return new T(sign * (((n1 * 60) + n2) * 1000 + n3));
 }
 
-static Angle *parseAngle60(char **pp, const char *letters) {
+template<class T, char minusLetter, char plusLetter>
+static T *parseAngle60(char **pp) {
     const char *p = *pp;
     unsigned long n1, n2, n3;
     int sign;
@@ -98,9 +100,9 @@ static Angle *parseAngle60(char **pp, const char *letters) {
     if (p == NULL || p[0] == 0 || p[1] != ' ' || p[2] == 0)
         return NULL;
 
-    if (*p == letters[0])
+    if (*p == minusLetter)
         sign = -1;
-    else if (*p == letters[1])
+    else if (*p == plusLetter)
         sign = 1;
     else
         return NULL;
@@ -124,7 +126,7 @@ static Angle *parseAngle60(char **pp, const char *letters) {
 
     *pp = endptr + 1;
 
-    return new Angle(sign * ((n1 * 60) + n2) * 60 + n3, 60);
+    return new T(sign * ((n1 * 60) + n2) * 60 + n3, 60);
 }
 
 static Altitude *parseAltitude(const char *p) {
@@ -295,16 +297,17 @@ TurnPoint *CenfisTurnPointReader::handleLine(char *line) {
 
     case 'C': /* position */
         {
-            Angle *longitude, *latitude;
+            Latitude *latitude;
+            Longitude *longitude;
             Altitude *altitude;
 
             line += 2;
 
-            latitude = parseAngle60(&line, "SN");
+            latitude = parseAngle60<Latitude,'S','N'>(&line);
             if (latitude == NULL)
                 break;
 
-            longitude = parseAngle60(&line, "WE");
+            longitude = parseAngle60<Longitude,'W','E'>(&line);
             if (longitude == NULL) {
                 delete latitude;
                 break;
@@ -323,16 +326,17 @@ TurnPoint *CenfisTurnPointReader::handleLine(char *line) {
 
     case 'K': /* position */
         {
-            Angle *longitude, *latitude;
+            Latitude *latitude;
+            Longitude *longitude;
             Altitude *altitude;
 
             line += 2;
 
-            latitude = parseAngle(&line, "SN");
+            latitude = parseAngle<Latitude,'S','N'>(&line);
             if (latitude == NULL)
                 break;
 
-            longitude = parseAngle(&line, "WE");
+            longitude = parseAngle<Longitude,'W','E'>(&line);
             if (longitude == NULL) {
                 delete latitude;
                 break;

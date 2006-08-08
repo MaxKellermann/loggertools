@@ -75,8 +75,8 @@ DistanceTurnPointFilter::createFilter(TurnPointReader *reader,
         throw new TurnPointReaderException("No maximum distance provided");
 
     return new DistanceTurnPointReader(reader,
-                                       Position(Angle(1, 46, 28, 49),
-                                                Angle(1, 8, 15, 48),
+                                       Position(Latitude(1, 46, 28, 49),
+                                                Longitude(1, 8, 15, 48),
                                                 Altitude()),
                                        parseDistance(args));
 }

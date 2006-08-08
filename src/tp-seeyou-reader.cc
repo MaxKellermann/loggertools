@@ -143,7 +143,8 @@ SeeYouTurnPointReader::~SeeYouTurnPointReader() {
     free(columns);
 }
 
-static Angle *parseAngle(const char *p, const char *letters) {
+template<class T, char minusLetter, char plusLetter>
+static T *parseAngle(const char *p) {
     unsigned long n1, n2;
     int sign, degrees;
     char *endptr;
@@ -159,9 +160,9 @@ static Angle *parseAngle(const char *p, const char *letters) {
     if (n2 >= 1000 || endptr == NULL)
         return NULL;
 
-    if (*endptr == letters[0])
+    if (*endptr == minusLetter)
         sign = -1;
-    else if (*endptr == letters[1])
+    else if (*endptr == plusLetter)
         sign = 1;
     else
         return NULL;
@@ -172,7 +173,7 @@ static Angle *parseAngle(const char *p, const char *letters) {
     if (degrees > 180 || n1 >= 60)
         return NULL;
 
-    return new Angle(sign * (((degrees * 60) + n1) * 1000 + n2));
+    return new T(sign * (((degrees * 60) + n1) * 1000 + n2));
 }
 
 static unsigned parseFrequency(const char *p) {
@@ -200,7 +201,8 @@ const TurnPoint *SeeYouTurnPointReader::read() {
     unsigned z;
     int ret;
     TurnPoint *tp = new TurnPoint();
-    Angle *latitude = NULL, *longitude = NULL;
+    Latitude *latitude = NULL;
+    Longitude *longitude = NULL;
     Altitude *altitude = NULL;
     Runway::type_t rwy_type = Runway::TYPE_UNKNOWN;
     unsigned rwy_direction = UINT_MAX, rwy_length = 0;
@@ -238,12 +240,12 @@ const TurnPoint *SeeYouTurnPointReader::read() {
                    strcasecmp(columns[z], "lat") == 0) {
             if (latitude != NULL)
                 delete latitude;
-            latitude = parseAngle(column, "SN");
+            latitude = parseAngle<Latitude,'S','N'>(column);
         } else if (strcasecmp(columns[z], "longitude") == 0 ||
                    strcasecmp(columns[z], "lon") == 0) {
             if (longitude != NULL)
                 delete longitude;
-            longitude = parseAngle(column, "WE");
+            longitude = parseAngle<Longitude,'W','E'>(column);
         } else if (strcasecmp(columns[z], "elevation") == 0 ||
                    strcasecmp(columns[z], "elev") == 0) {
             if (altitude != NULL)

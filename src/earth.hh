@@ -113,7 +113,7 @@ public:
 class Angle {
 private:
     int value;
-public:
+protected:
     Angle():value(0) {}
     Angle(int _value):value(_value) {}
     Angle(int _value, int factor);
@@ -132,13 +132,32 @@ public:
     }
 };
 
+class Latitude : public Angle {
+public:
+    Latitude() {}
+    Latitude(int value):Angle(value) {}
+    Latitude(int value, int factor):Angle(value, factor) {}
+    Latitude(int sign, unsigned degrees, unsigned minutes, unsigned seconds)
+        :Angle(sign, degrees, minutes, seconds) {}
+};
+
+class Longitude : public Angle {
+public:
+    Longitude() {}
+    Longitude(int value):Angle(value) {}
+    Longitude(int value, int factor):Angle(value, factor) {}
+    Longitude(int sign, unsigned degrees, unsigned minutes, unsigned seconds)
+        :Angle(sign, degrees, minutes, seconds) {}
+};
+
 class Position {
 private:
-    Angle latitude, longitude;
+    Latitude latitude;
+    Longitude longitude;
     Altitude altitude;
 public:
     Position() {}
-    Position(const Angle &_lat, const Angle &_lon,
+    Position(const Latitude &_lat, const Longitude &_lon,
              const Altitude &_alt);
     Position(const Position &position);
     void operator =(const Position &pos);
@@ -147,10 +166,10 @@ public:
         return latitude.defined() &&
             longitude.defined();
     }
-    const Angle &getLatitude() const {
+    const Latitude &getLatitude() const {
         return latitude;
     }
-    const Angle &getLongitude() const {
+    const Longitude &getLongitude() const {
         return longitude;
     }
     const Altitude &getAltitude() const {

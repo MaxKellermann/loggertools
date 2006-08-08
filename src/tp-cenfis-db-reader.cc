@@ -63,8 +63,9 @@ CenfisDatabaseReader::CenfisDatabaseReader(std::istream *_stream)
 CenfisDatabaseReader::~CenfisDatabaseReader() {
 }
 
-const Angle cenfisToAngle(int value) {
-    return Angle(value, 600);
+template<class T>
+const T cenfisToAngle(int value) {
+    return T(value, 600);
 }
 
 const TurnPoint *CenfisDatabaseReader::read() {
@@ -88,8 +89,8 @@ const TurnPoint *CenfisDatabaseReader::read() {
     tp = new TurnPoint();
 
     /* position */
-    tp->setPosition(Position(cenfisToAngle(ntohl(data.latitude)),
-                             cenfisToAngle(-ntohl(data.longitude)),
+    tp->setPosition(Position(cenfisToAngle<Latitude>(ntohl(data.latitude)),
+                             cenfisToAngle<Longitude>(-ntohl(data.longitude)),
                              Altitude(ntohs(data.altitude),
                                       Altitude::UNIT_METERS,
                                       Altitude::REF_MSL)));
