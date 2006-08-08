@@ -19,6 +19,8 @@
  * $Id$
  */
 
+#include "hexfile-decoder.h"
+
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -88,59 +90,6 @@ static int encode(FILE *in, FILE *out) {
     return 0;
 }
 
-static unsigned decode_hex_digit(char ch) {
-    if (ch >= '0' && ch <= '9')
-        return ch - '0';
-
-    if (ch >= 'a' && ch <= 'f')
-        return 10 + ch - 'a';
-
-    if (ch >= 'A' && ch <= 'F')
-        return 10 + ch - 'A';
-
-    return 0;
-}
-
-static int decode_record(char *line, size_t line_length,
-                         size_t *lengthp, unsigned *addressp,
-                         unsigned *typep,
-                         unsigned char *data, size_t data_max_len) {
-    unsigned char header[4];
-    unsigned char checksum = 0, checksum2;
-    unsigned z;
-
-    if (line[0] != ':' || line_length < 11)
-        return 0;
-
-    for (z = 0; z < sizeof(header) / sizeof(header[0]); z++) {
-        header[z] = decode_hex_digit(line[z * 2 + 1]) * 0x10 +
-            decode_hex_digit(line[z * 2 + 2]);
-        checksum -= header[z];
-    }
-
-    *lengthp = header[0];
-    if (line_length != *lengthp * 2 + 11 ||
-        *lengthp > data_max_len)
-        return 0;
-
-    *addressp = header[1] * 0x100 + header[2];
-    *typep = header[3];
-
-    for (z = 0; z < *lengthp; z++) {
-        data[z] = decode_hex_digit(line[z * 2 + 9]) * 0x10 +
-            decode_hex_digit(line[z * 2 + 10]);
-        checksum -= data[z];
-    }
-
-    checksum2 = decode_hex_digit(line[line_length - 2]) * 0x10 +
-        decode_hex_digit(line[line_length - 1]);
-
-    if (checksum != checksum2)
-        return 0;
-
-    return 1;
-}
-
 static void force_seek_cur(FILE *file, long offset) {
     int ret;
     char zero[1024];
@@ -178,62 +127,94 @@ static void force_seek_cur(FILE *file, long offset) {
     }
 }
 
-static int decode(FILE *in, FILE *out) {
-    char line[4096];
-    unsigned bank = 0;
-    long position = 0, new_position;
-    int ret;
-    size_t line_length, record_length, nbytes;
-    unsigned record_address, record_type;
-    unsigned char data[256];
+struct decoder {
+    unsigned base;
+    FILE *file;
+    int eof;
+    long position;
+};
 
-    while ((fgets(line, sizeof(line), in)) != NULL) {
-        line_length = strlen(line);
+static int hfd_callback(void *ctx,
+                        unsigned char type, unsigned offset,
+                        unsigned char *data, size_t length) {
+    struct decoder *decoder = (struct decoder*)ctx;
 
-        /* trim */
-        while (line_length > 0 &&
-               line[line_length - 1] >= 0 &&
-               line[line_length - 1] <= ' ')
-            line_length--;
+    if (decoder->eof) {
+        errno = EINVAL;
+        return -1;
+    }
 
-        /* decode this record */
-        ret = decode_record(line, line_length,
-                            &record_length, &record_address,
-                            &record_type, data, sizeof(data));
-        if (ret <= 0) {
-            fprintf(stderr, "invalid record\n");
+    if (type == 0x00) {
+        /* data record */
+        long new_position;
+        size_t nbytes;
+
+        new_position = (long)decoder->base + offset;
+        if (new_position != decoder->position) {
+            force_seek_cur(decoder->file, new_position - decoder->position);
+            decoder->position = new_position;
+        }
+
+        nbytes = fwrite(data, 1, length, decoder->file);
+        if (nbytes < length) {
+            fprintf(stderr, "short write\n");
             _exit(1);
         }
 
-        if (record_type == 0x00) {
-            /* data record */
-            new_position = (long)bank * 0x8000 + record_address;
-            if (new_position != position) {
-                force_seek_cur(out, new_position - position);
-                position = new_position;
-            }
+        decoder->position += nbytes;
+        return 0;
+    } else if (type == 0x01) {
+        /* EOF record */
+        decoder->eof = 1;
+        return 0;
+    } else if (type >= 0x10) {
+        /* switch memory bank */
+        decoder->base = (type - 0x10) * BANK_SIZE;
+        return 0;
+    } else {
+        errno = ENOSYS;
+        return -1;
+    }
+}
 
-            nbytes = fwrite(data, 1, record_length, out);
-            if (nbytes < record_length) {
-                fprintf(stderr, "short write\n");
-                _exit(1);
-            }
+static int decode(FILE *in, FILE *out) {
+    struct hexfile_decoder *hfd = NULL;
+    struct decoder decoder = {
+        .base = 0,
+        .file = out,
+        .eof = 0,
+        .position = 0,
+    };
+    char buffer[4096];
+    int ret;
+    size_t nbytes;
 
-            position += nbytes;
-        } else if (record_type == 0x01) {
-            /* EOF record */
-            return 0;
-        } else if (record_type >= 0x10) {
-            /* switch memory bank */
-            bank = record_type - 0x10;
-        } else {
-            fprintf(stderr, "unknown record type %u\n", record_type);
-            _exit(1);
+    ret = hexfile_decoder_new(hfd_callback, &decoder, &hfd);
+    if (ret < 0) {
+        fprintf(stderr, "failed to create hexfile decoder\n");
+        _exit(2);
+    }
+
+    while ((nbytes = fread(buffer, 1, sizeof(buffer), in)) > 0) {
+        ret = hexfile_decoder_feed(hfd, buffer, nbytes);
+        if (ret < 0) {
+            fprintf(stderr, "failed to decode hexfile\n");
+            _exit(2);
         }
     }
 
-    fprintf(stderr, "no EOF record\n");
-    _exit(1);
+    ret = hexfile_decoder_close(&hfd);
+    if (ret < 0) {
+        fprintf(stderr, "failed to close hexfile decoder\n");
+        _exit(2);
+    }
+
+    if (!decoder.eof) {
+        fprintf(stderr, "no EOF record\n");
+        _exit(1);
+    }
+
+    return 0;
 }
 
 int main(int argc, char **argv) {
