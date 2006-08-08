@@ -53,9 +53,6 @@ TurnPoint::TurnPoint(const std::string &_title,
      description(_description) {
 }
 
-TurnPoint::~TurnPoint(void) {
-}
-
 void TurnPoint::setTitle(const std::string &_title) {
     title = _title;
 }

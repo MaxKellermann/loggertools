@@ -117,7 +117,6 @@ public:
               const Runway &_runway,
               const Frequency &_frequency,
               const std::string &_description);
-    ~TurnPoint();
 public:
     const std::string &getTitle() const {
         return title;
