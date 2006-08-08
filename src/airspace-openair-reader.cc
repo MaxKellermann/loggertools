@@ -183,6 +183,6 @@ const Airspace *OpenAirAirspaceReader::read() {
     return NULL;
 }
 
-AirspaceReader *OpenAirAirspaceFormat::createReader(std::istream *stream) {
+AirspaceReader *OpenAirAirspaceFormat::createReader(std::istream *stream) const {
     return new OpenAirAirspaceReader(stream);
 }

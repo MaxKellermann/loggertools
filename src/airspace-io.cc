@@ -48,15 +48,6 @@ AirspaceWriterException::AirspaceWriterException(const char *fmt, ...) {
 
 AirspaceWriterException::~AirspaceWriterException() throw() {}
 
-AirspaceReader::~AirspaceReader(void) {
-}
-
-AirspaceWriter::~AirspaceWriter(void) {
-}
-
-AirspaceFormat::~AirspaceFormat(void) {
-}
-
 static OpenAirAirspaceFormat openAirFormat;
 
 AirspaceFormat *getAirspaceFormat(const char *ext) {

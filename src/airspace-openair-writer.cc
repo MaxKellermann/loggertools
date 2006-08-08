@@ -167,6 +167,6 @@ void OpenAirAirspaceWriter::flush() {
     stream = NULL;
 }
 
-AirspaceWriter *OpenAirAirspaceFormat::createWriter(std::ostream *stream) {
+AirspaceWriter *OpenAirAirspaceFormat::createWriter(std::ostream *stream) const {
     return new OpenAirAirspaceWriter(stream);
 }

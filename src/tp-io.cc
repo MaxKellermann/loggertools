@@ -51,15 +51,6 @@ TurnPointWriterException::TurnPointWriterException(const char *fmt, ...) {
 
 TurnPointWriterException::~TurnPointWriterException() throw() {}
 
-TurnPointReader::~TurnPointReader(void) {
-}
-
-TurnPointWriter::~TurnPointWriter(void) {
-}
-
-TurnPointFormat::~TurnPointFormat(void) {
-}
-
 TurnPointFilter::~TurnPointFilter(void) {
 }
 

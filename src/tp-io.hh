@@ -26,6 +26,8 @@
 #include <string>
 #include <iosfwd>
 
+#include "io.hh"
+
 class TurnPointReaderException : public std::exception {
 private:
     std::string msg;
@@ -52,28 +54,9 @@ public:
     }
 };
 
-class TurnPointReader {
-public:
-    virtual ~TurnPointReader();
-public:
-    virtual const TurnPoint *read() = 0;
-};
-
-class TurnPointWriter {
-public:
-    virtual ~TurnPointWriter();
-public:
-    virtual void write(const TurnPoint &tp) = 0;
-    virtual void flush() = 0;
-};
-
-class TurnPointFormat {
-public:
-    virtual ~TurnPointFormat();
-public:
-    virtual TurnPointReader *createReader(std::istream *stream) const = 0;
-    virtual TurnPointWriter *createWriter(std::ostream *stream) const = 0;
-};
+typedef Reader<TurnPoint> TurnPointReader;
+typedef Writer<TurnPoint> TurnPointWriter;
+typedef Format<TurnPointReader, TurnPointWriter> TurnPointFormat;
 
 class SeeYouTurnPointFormat : public TurnPointFormat {
 public:

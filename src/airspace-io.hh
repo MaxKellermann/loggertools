@@ -26,6 +26,8 @@
 #include <string>
 #include <iosfwd>
 
+#include "io.hh"
+
 class AirspaceReaderException : public std::exception {
 private:
     std::string msg;
@@ -52,33 +54,14 @@ public:
     }
 };
 
-class AirspaceReader {
-public:
-    virtual ~AirspaceReader();
-public:
-    virtual const Airspace *read() = 0;
-};
-
-class AirspaceWriter {
-public:
-    virtual ~AirspaceWriter();
-public:
-    virtual void write(const Airspace &as) = 0;
-    virtual void flush() = 0;
-};
-
-class AirspaceFormat {
-public:
-    virtual ~AirspaceFormat();
-public:
-    virtual AirspaceReader *createReader(std::istream *stream) = 0;
-    virtual AirspaceWriter *createWriter(std::ostream *stream) = 0;
-};
+typedef Reader<Airspace> AirspaceReader;
+typedef Writer<Airspace> AirspaceWriter;
+typedef Format<AirspaceReader, AirspaceWriter> AirspaceFormat;
 
 class OpenAirAirspaceFormat : public AirspaceFormat {
 public:
-    virtual AirspaceReader *createReader(std::istream *stream);
-    virtual AirspaceWriter *createWriter(std::ostream *stream);
+    virtual AirspaceReader *createReader(std::istream *stream) const;
+    virtual AirspaceWriter *createWriter(std::ostream *stream) const;
 };
 
 AirspaceFormat *getAirspaceFormat(const char *ext);
