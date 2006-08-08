@@ -22,7 +22,6 @@
 #include "airspace.hh"
 #include "airspace-io.hh"
 
-#include <sstream>
 #include <ostream>
 #include <iomanip>
 
@@ -74,6 +73,10 @@ static const char *type_to_string(Airspace::type_t type) {
     return "INVALID";
 }
 
+static std::ostream &operator <<(std::ostream &os, Airspace::type_t type) {
+    return os << type_to_string(type);
+}
+
 static const char *altitude_ref_to_string(Altitude::ref_t ref) {
     switch (ref) {
     case Altitude::REF_UNKNOWN:
@@ -90,21 +93,22 @@ static const char *altitude_ref_to_string(Altitude::ref_t ref) {
     return "INVALID";
 }
 
-static std::string altitude_to_string(const Altitude &alt) {
+static std::ostream &operator <<(std::ostream &os, Altitude::ref_t ref) {
+    return os << altitude_ref_to_string(ref);
+}
+
+static std::ostream &operator <<(std::ostream &os, const Altitude &alt) {
     long value;
     Altitude::ref_t ref;
-    const char *ref_s;
-    std::ostringstream buf;
 
     if (!alt.defined())
-        return "UNKNOWN";
+        return os << "UNKNOWN";
 
     value = alt.getValue();
     ref = alt.getRef();
-    ref_s = altitude_ref_to_string(ref);
 
     if (value == 0 && ref == Altitude::REF_GND)
-        return ref_s;
+        return os << ref;
 
     switch (alt.getUnit()) {
     case Altitude::UNIT_METERS:
@@ -115,25 +119,20 @@ static std::string altitude_to_string(const Altitude &alt) {
         break;
 
     default:
-        return "UNKNOWN";
+        return os << "UNKNOWN";
     }
 
-    if (ref == Altitude::REF_1013) {
-        buf << ref_s << ((value + 499) / 1000);
-    } else {
-        char value_s[16];
-        snprintf(value_s, sizeof(value_s), "%04ld", value);
-        buf << value_s << ref_s;
-    }
-
-    return buf.str();
+    if (ref == Altitude::REF_1013)
+        return os << ref << ((value + 499) / 1000);
+    else
+        return os << std::setfill('0') << std::setw(4) << value << ref;
 }
 
 void OpenAirAirspaceWriter::write(const Airspace &as) {
-    *stream << "AC " << type_to_string(as.getType()) << "\n"
+    *stream << "AC " << as.getType() << "\n"
             << "AN " << as.getName() << "\n"
-            << "AL " << altitude_to_string(as.getBottom()) << "\n"
-            << "AH " << altitude_to_string(as.getTop()) << "\n";
+            << "AL " << as.getBottom() << "\n"
+            << "AH " << as.getTop() << "\n";
 
     const std::vector<Vertex> &vertices = as.getVertices();
     for (std::vector<Vertex>::const_iterator it = vertices.begin();
