@@ -34,14 +34,7 @@ AirspaceReaderException::AirspaceReaderException(const char *fmt, ...) {
     msg = strdup(buffer);
 }
 
-AirspaceReaderException::AirspaceReaderException(const AirspaceReaderException &ex)
-    :msg(strdup(ex.getMessage())) {
-}
-
-AirspaceReaderException::~AirspaceReaderException(void) {
-    if (msg != NULL)
-        free(msg);
-}
+AirspaceReaderException::~AirspaceReaderException() throw() {}
 
 AirspaceWriterException::AirspaceWriterException(const char *fmt, ...) {
     va_list ap;
@@ -53,14 +46,7 @@ AirspaceWriterException::AirspaceWriterException(const char *fmt, ...) {
     msg = strdup(buffer);
 }
 
-AirspaceWriterException::AirspaceWriterException(const AirspaceWriterException &ex)
-    :msg(strdup(ex.getMessage())) {
-}
-
-AirspaceWriterException::~AirspaceWriterException(void) {
-    if (msg != NULL)
-        free(msg);
-}
+AirspaceWriterException::~AirspaceWriterException() throw() {}
 
 AirspaceReader::~AirspaceReader(void) {
 }

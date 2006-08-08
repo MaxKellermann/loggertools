@@ -34,17 +34,10 @@ TurnPointReaderException::TurnPointReaderException(const char *fmt, ...) {
     va_start(ap, fmt);
     vsnprintf(buffer, sizeof(buffer), fmt, ap);
 
-    msg = strdup(buffer);
+    msg = std::string(buffer);
 }
 
-TurnPointReaderException::TurnPointReaderException(const TurnPointReaderException &ex)
-    :msg(strdup(ex.getMessage())) {
-}
-
-TurnPointReaderException::~TurnPointReaderException(void) {
-    if (msg != NULL)
-        free(msg);
-}
+TurnPointReaderException::~TurnPointReaderException() throw() {}
 
 TurnPointWriterException::TurnPointWriterException(const char *fmt, ...) {
     va_list ap;
@@ -53,17 +46,10 @@ TurnPointWriterException::TurnPointWriterException(const char *fmt, ...) {
     va_start(ap, fmt);
     vsnprintf(buffer, sizeof(buffer), fmt, ap);
 
-    msg = strdup(buffer);
+    msg = std::string(buffer);
 }
 
-TurnPointWriterException::TurnPointWriterException(const TurnPointWriterException &ex)
-    :msg(strdup(ex.getMessage())) {
-}
-
-TurnPointWriterException::~TurnPointWriterException(void) {
-    if (msg != NULL)
-        free(msg);
-}
+TurnPointWriterException::~TurnPointWriterException() throw() {}
 
 TurnPointReader::~TurnPointReader(void) {
 }

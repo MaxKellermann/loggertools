@@ -22,33 +22,33 @@
 #ifndef __LOGGERTOOLS_TP_IO_HH
 #define __LOGGERTOOLS_TP_IO_HH
 
+#include <exception>
+#include <string>
 #include <iosfwd>
 
-class TurnPointReaderException {
+class TurnPointReaderException : public std::exception {
 private:
-    char *msg;
+    std::string msg;
 public:
     TurnPointReaderException(const char *fmt, ...)
         __attribute__((format(printf, 2, 3)));
-    TurnPointReaderException(const TurnPointReaderException &ex);
-    virtual ~TurnPointReaderException();
+    virtual ~TurnPointReaderException() throw();
 public:
-    const char *getMessage() const {
-        return msg;
+    virtual const char *what() const throw() {
+        return msg.c_str();
     }
 };
 
-class TurnPointWriterException {
+class TurnPointWriterException : public std::exception {
 private:
-    char *msg;
+    std::string msg;
 public:
     TurnPointWriterException(const char *fmt, ...)
         __attribute__((format(printf, 2, 3)));
-    TurnPointWriterException(const TurnPointWriterException &ex);
-    virtual ~TurnPointWriterException();
+    virtual ~TurnPointWriterException() throw();
 public:
-    const char *getMessage() const {
-        return msg;
+    virtual const char *what() const throw() {
+        return msg.c_str();
     }
 };
 

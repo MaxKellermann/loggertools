@@ -160,13 +160,13 @@ int main(int argc, char **argv) {
         delete writer;
         delete reader;
         unlink(out_filename);
-        fprintf(stderr, "%s\n", e.getMessage());
+        fprintf(stderr, "%s\n", e.what());
         _exit(1);
     } catch (const AirspaceWriterException &e) {
         delete writer;
         delete reader;
         unlink(out_filename);
-        fprintf(stderr, "%s\n", e.getMessage());
+        fprintf(stderr, "%s\n", e.what());
         _exit(1);
     }
 

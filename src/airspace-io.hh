@@ -22,33 +22,33 @@
 #ifndef __LOGGERTOOLS_AIRSPACE_IO_HH
 #define __LOGGERTOOLS_AIRSPACE_IO_HH
 
+#include <exception>
+#include <string>
 #include <iosfwd>
 
-class AirspaceReaderException {
+class AirspaceReaderException : public std::exception {
 private:
-    char *msg;
+    std::string msg;
 public:
     AirspaceReaderException(const char *fmt, ...)
         __attribute__((format(printf, 2, 3)));
-    AirspaceReaderException(const AirspaceReaderException &ex);
-    virtual ~AirspaceReaderException();
+    virtual ~AirspaceReaderException() throw();
 public:
-    const char *getMessage() const {
-        return msg;
+    virtual const char *what() const throw() {
+        return msg.c_str();
     }
 };
 
-class AirspaceWriterException {
+class AirspaceWriterException : public std::exception {
 private:
-    char *msg;
+    std::string msg;
 public:
     AirspaceWriterException(const char *fmt, ...)
         __attribute__((format(printf, 2, 3)));
-    AirspaceWriterException(const AirspaceWriterException &ex);
-    virtual ~AirspaceWriterException();
+    virtual ~AirspaceWriterException() throw();
 public:
-    const char *getMessage() const {
-        return msg;
+    virtual const char *what() const throw() {
+        return msg.c_str();
     }
 };
 
