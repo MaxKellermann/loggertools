@@ -87,6 +87,11 @@ static const std::string format(const Longitude &angle) {
     return std::string(buffer);
 }
 
+static std::ostream &operator <<(std::ostream &os, const Altitude &altitude) {
+    return os << std::setfill('0') << std::setw(4)
+              << altitude.getValue();
+}
+
 ZanderTurnPointWriter::ZanderTurnPointWriter(std::ostream *_stream)
     :stream(_stream) {}
 
@@ -159,10 +164,7 @@ void ZanderTurnPointWriter::write(const TurnPoint &tp) {
     write_column(stream, format(tp.getPosition().getLatitude()), 7);
     *stream << ' ';
     write_column(stream, format(tp.getPosition().getLongitude()), 8);
-    *stream << ' '
-            << std::setfill('0') << std::setw(4)
-            << tp.getPosition().getAltitude().getValue()
-            << ' ';
+    *stream << ' ' << tp.getPosition().getAltitude() << ' ';
     if (tp.getFrequency() > 0)
         *stream << std::setfill(' ') << std::setw(3)
                 << (tp.getFrequency() / 1000000)
