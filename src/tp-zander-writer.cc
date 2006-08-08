@@ -53,32 +53,38 @@ static void write_column(std::ostream *stream, const std::string &value,
         *stream << ' ';
 }
 
-static char *formatLatitude(char *buffer, size_t buffer_max_len,
-                            const Angle &angle) {
+static const std::string format(const Latitude &angle) {
+    char buffer[16];
     int value = angle.refactor(60);
     int a = abs(value);
 
-    snprintf(buffer, buffer_max_len, "%02u%02u%02u%c",
+    if (!angle.defined())
+        return std::string();
+
+    snprintf(buffer, sizeof(buffer), "%02u%02u%02u%c",
              a / 3600,
              (a / 60) % 60,
              a % 60,
              value < 0 ? 'S' : 'N');
 
-    return buffer;
+    return std::string(buffer);
 }
 
-static char *formatLongitude(char *buffer, size_t buffer_max_len,
-                             const Angle &angle) {
+static const std::string format(const Longitude &angle) {
+    char buffer[16];
     int value = angle.refactor(60);
     int a = abs(value);
 
-    snprintf(buffer, buffer_max_len, "%03u%02u%02u%c",
+    if (!angle.defined())
+        return std::string();
+
+    snprintf(buffer, sizeof(buffer), "%03u%02u%02u%c",
              a / 3600,
              (a / 60) % 60,
              a % 60,
              value < 0 ? 'W' : 'E');
 
-    return buffer;
+    return std::string(buffer);
 }
 
 ZanderTurnPointWriter::ZanderTurnPointWriter(std::ostream *_stream)
@@ -145,26 +151,14 @@ static char formatType(const TurnPoint &tp) {
 }
 
 void ZanderTurnPointWriter::write(const TurnPoint &tp) {
-    char latitude[16], longitude[16];
-
     if (stream == NULL)
         throw new TurnPointWriterException("already flushed");
 
-    if (tp.getPosition().defined()) {
-        formatLatitude(latitude, sizeof(latitude),
-                       tp.getPosition().getLatitude());
-        formatLongitude(longitude, sizeof(longitude),
-                        tp.getPosition().getLongitude());
-    } else {
-        latitude[0] = 0;
-        longitude[0] = 0;
-    }
-
     write_column(stream, tp.getTitle(), 12);
     *stream << ' ';
-    write_column(stream, latitude, 7);
+    write_column(stream, format(tp.getPosition().getLatitude()), 7);
     *stream << ' ';
-    write_column(stream, longitude, 8);
+    write_column(stream, format(tp.getPosition().getLongitude()), 8);
     *stream << ' '
             << std::setfill('0') << std::setw(4)
             << tp.getPosition().getAltitude().getValue()
