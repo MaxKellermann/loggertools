@@ -168,7 +168,7 @@ static char formatType(const TurnPoint &tp) {
 
 void ZanderTurnPointWriter::write(const TurnPoint &tp) {
     if (stream == NULL)
-        throw new TurnPointWriterException("already flushed");
+        throw TurnPointWriterException("already flushed");
 
     write_column(stream, tp.getTitle(), 12);
     *stream << ' ';
@@ -186,7 +186,7 @@ void ZanderTurnPointWriter::write(const TurnPoint &tp) {
 
 void ZanderTurnPointWriter::flush() {
     if (stream == NULL)
-        throw new TurnPointWriterException("already flushed");
+        throw TurnPointWriterException("already flushed");
 
     *stream << '\x1a';
     stream = NULL;

@@ -116,10 +116,10 @@ void CenfisDatabaseWriter::write(const TurnPoint &tp) {
     struct turn_point data;
 
     if (stream == NULL)
-        throw new TurnPointWriterException("already flushed");
+        throw TurnPointWriterException("already flushed");
 
     if (tps.size() >= 0xffff)
-        throw new TurnPointWriterException("too many turn points");
+        throw TurnPointWriterException("too many turn points");
 
     memset(&data, 0, sizeof(data));
 
@@ -179,7 +179,7 @@ void CenfisDatabaseWriter::flush() {
     u_int32_t foo_offset, table_offset;
 
     if (stream == NULL)
-        throw new TurnPointWriterException("already flushed");
+        throw TurnPointWriterException("already flushed");
 
     foo_offset = sizeof(header) + sizeof(struct turn_point) * tps.size();
     table_offset = foo_offset + sizeof(struct foo);
@@ -223,7 +223,7 @@ void CenfisDatabaseWriter::flush() {
 
     stream->write((char*)&header, sizeof(header));
     if (stream->bad())
-        throw new TurnPointWriterException("failed to write header");
+        throw TurnPointWriterException("failed to write header");
 
     /* write all TPs */
 
@@ -233,14 +233,14 @@ void CenfisDatabaseWriter::flush() {
 
         stream->write((char*)tp, sizeof(*tp));
         if (stream->bad())
-            throw new TurnPointWriterException("failed to write TP");
+            throw TurnPointWriterException("failed to write TP");
     }
 
     /* write foo */
     memset(&foo, 0xff, sizeof(foo));
     stream->write((char*)&foo, sizeof(foo));
     if (stream->bad())
-        throw new TurnPointWriterException("failed to write");
+        throw TurnPointWriterException("failed to write");
 
     /* write tables */
     for (unsigned z = 0; z < 4; z++) {
@@ -254,7 +254,7 @@ void CenfisDatabaseWriter::flush() {
 
             stream->write((char*)&entry, sizeof(entry));
             if (stream->bad())
-                throw new TurnPointWriterException("failed to write table entry");
+                throw TurnPointWriterException("failed to write table entry");
         }
     }
 

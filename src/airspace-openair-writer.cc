@@ -162,7 +162,7 @@ void OpenAirAirspaceWriter::write(const Airspace &as) {
 
 void OpenAirAirspaceWriter::flush() {
     if (stream == NULL)
-        throw new AirspaceWriterException("already flushed");
+        throw AirspaceWriterException("already flushed");
 
     stream = NULL;
 }

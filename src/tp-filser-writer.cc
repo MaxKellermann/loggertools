@@ -47,10 +47,10 @@ void FilserTurnPointWriter::write(const TurnPoint &tp) {
     size_t length;
 
     if (stream == NULL)
-        throw new TurnPointWriterException("already flushed");
+        throw TurnPointWriterException("already flushed");
 
     if (count >= 600)
-        throw new TurnPointWriterException("Filser databases cannot hold more than 600 turn points");
+        throw TurnPointWriterException("Filser databases cannot hold more than 600 turn points");
 
     memset(&data, 0, sizeof(data));
 
@@ -69,7 +69,7 @@ void FilserTurnPointWriter::write(const TurnPoint &tp) {
     /* write entry */
     stream->write((char*)&data, sizeof(data));
     if (stream->bad())
-        throw new TurnPointWriterException("failed to write record");
+        throw TurnPointWriterException("failed to write record");
 
     count++;
 }
@@ -79,19 +79,19 @@ void FilserTurnPointWriter::flush() {
     char zero[6900];
 
     if (stream == NULL)
-        throw new TurnPointWriterException("already flushed");
+        throw TurnPointWriterException("already flushed");
 
     memset(&data, 0, sizeof(data));
     for (; count < 600; count++) {
         stream->write((char*)&data, sizeof(data));
         if (stream->bad())
-            throw new TurnPointWriterException("failed to write record");
+            throw TurnPointWriterException("failed to write record");
     }
 
     memset(zero, 0, sizeof(zero));
     stream->write(zero, sizeof(zero));
     if (stream->bad())
-        throw new TurnPointWriterException("failed to write tail");
+        throw TurnPointWriterException("failed to write tail");
 
     stream = NULL;
 }

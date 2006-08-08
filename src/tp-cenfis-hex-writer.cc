@@ -42,11 +42,11 @@ CenfisHexWriter::CenfisHexWriter(std::ostream *stream) {
 
     const TurnPointFormat *format = getTurnPointFormat("dab");
     if (format == NULL)
-        throw new TurnPointWriterException("no such format: dab");
+        throw TurnPointWriterException("no such format: dab");
 
     tpw = format->createWriter(&out);
     if (tpw == NULL)
-        throw new TurnPointWriterException("failed to create dab writer");
+        throw TurnPointWriterException("failed to create dab writer");
 }
 
 void CenfisHexWriter::write(const TurnPoint &tp) {

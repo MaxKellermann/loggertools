@@ -117,7 +117,7 @@ void SeeYouTurnPointWriter::write(const TurnPoint &tp) {
     char latitude[16], longitude[16];
 
     if (stream == NULL)
-        throw new TurnPointWriterException("already flushed");
+        throw TurnPointWriterException("already flushed");
 
     if (tp.getPosition().defined()) {
         formatAngle(latitude, sizeof(latitude),
@@ -152,7 +152,7 @@ void SeeYouTurnPointWriter::write(const TurnPoint &tp) {
 
 void SeeYouTurnPointWriter::flush() {
     if (stream == NULL)
-        throw new TurnPointWriterException("already flushed");
+        throw TurnPointWriterException("already flushed");
 
     *stream << "-----Related Tasks-----\r\n";
     stream = NULL;

@@ -45,19 +45,19 @@ CenfisDatabaseReader::CenfisDatabaseReader(std::istream *_stream)
     :stream(_stream), current(0), overall_count(0) {
     stream->read((char*)&header, sizeof(header));
     if (stream->bad())
-        throw new TurnPointReaderException("failed to read header");
+        throw TurnPointReaderException("failed to read header");
 
     if (ntohs(header.magic1) != 0x4610 &&
         ntohs(header.magic2) != 0x4131)
-        throw new TurnPointReaderException("wrong magic");
+        throw TurnPointReaderException("wrong magic");
 
     if (ntohl(header.header_size) != sizeof(header))
-        throw new TurnPointReaderException("wrong header size");
+        throw TurnPointReaderException("wrong header size");
 
     overall_count = ntohs(header.overall_count);
 
     if (ntohl(header.after_tp_offset) != sizeof(header) + sizeof(struct turn_point) * overall_count)
-        throw new TurnPointReaderException("wrong header size");
+        throw TurnPointReaderException("wrong header size");
 }
 
 CenfisDatabaseReader::~CenfisDatabaseReader() {
@@ -81,7 +81,7 @@ const TurnPoint *CenfisDatabaseReader::read() {
     /* read this record */
     stream->read((char*)&data, sizeof(data));
     if (stream->bad())
-        throw new TurnPointReaderException("failed to read data");
+        throw TurnPointReaderException("failed to read data");
 
     ++current;
 

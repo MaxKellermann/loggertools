@@ -205,17 +205,17 @@ CenfisHexReader::CenfisHexReader(std::istream *_stream)
     :dh(NULL), stream(NULL), tpr(NULL) {
     int ret = decode_hexfile(_stream, 0, &dh);
     if (ret < 0)
-        throw new TurnPointReaderException("failed to read hexfile");
+        throw TurnPointReaderException("failed to read hexfile");
 
     stream = new std::istringstream(std::string((const char*)dh->data, dh->length));
 
     const TurnPointFormat *format = getTurnPointFormat("dab");
     if (format == NULL)
-        throw new TurnPointWriterException("no such format: dab");
+        throw TurnPointWriterException("no such format: dab");
 
     tpr = format->createReader(stream);
     if (tpr == NULL)
-        throw new TurnPointWriterException("failed to create dab reader");
+        throw TurnPointWriterException("failed to create dab reader");
 }
 
 CenfisHexReader::~CenfisHexReader() {
