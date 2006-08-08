@@ -19,11 +19,6 @@
  * $Id$
  */
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <limits.h>
-
 #include "airspace.hh"
 
 Vertex::Vertex(const Angle &_lat, const Angle &_lon)
@@ -47,60 +42,4 @@ Airspace::Airspace(const std::string &_name, type_t _type,
     :name(_name), type(_type),
      bottom(_bottom), top(_top),
      vertices(_vertices) {
-}
-
-AirspaceReaderException::AirspaceReaderException(const char *fmt, ...) {
-    va_list ap;
-    char buffer[4096];
-
-    va_start(ap, fmt);
-    vsnprintf(buffer, sizeof(buffer), fmt, ap);
-
-    msg = strdup(buffer);
-}
-
-AirspaceReaderException::AirspaceReaderException(const AirspaceReaderException &ex)
-    :msg(strdup(ex.getMessage())) {
-}
-
-AirspaceReaderException::~AirspaceReaderException(void) {
-    if (msg != NULL)
-        free(msg);
-}
-
-AirspaceWriterException::AirspaceWriterException(const char *fmt, ...) {
-    va_list ap;
-    char buffer[4096];
-
-    va_start(ap, fmt);
-    vsnprintf(buffer, sizeof(buffer), fmt, ap);
-
-    msg = strdup(buffer);
-}
-
-AirspaceWriterException::AirspaceWriterException(const AirspaceWriterException &ex)
-    :msg(strdup(ex.getMessage())) {
-}
-
-AirspaceWriterException::~AirspaceWriterException(void) {
-    if (msg != NULL)
-        free(msg);
-}
-
-AirspaceReader::~AirspaceReader(void) {
-}
-
-AirspaceWriter::~AirspaceWriter(void) {
-}
-
-AirspaceFormat::~AirspaceFormat(void) {
-}
-
-static OpenAirAirspaceFormat openAirFormat;
-
-AirspaceFormat *getAirspaceFormat(const char *ext) {
-    if (strcasecmp(ext, "txt") == 0 || strcmp(ext, "openair") == 0)
-        return &openAirFormat;
-    else
-        return NULL;
 }

@@ -26,6 +26,7 @@
 #include <unistd.h>
 
 #include "airspace.hh"
+#include "airspace-io.hh"
 
 static void usage()
     __attribute__((noreturn));

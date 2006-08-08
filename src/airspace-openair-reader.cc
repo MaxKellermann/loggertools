@@ -20,6 +20,7 @@
  */
 
 #include "airspace.hh"
+#include "airspace-io.hh"
 
 #include <errno.h>
 #include <string.h>
