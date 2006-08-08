@@ -19,6 +19,9 @@
  * $Id$
  */
 
+#ifndef __LOGGERTOOLS_TP_HH
+#define __LOGGERTOOLS_TP_HH
+
 #include "earth.hh"
 
 #include <string>
@@ -149,3 +152,5 @@ public:
     }
     void setDescription(const std::string &_description);
 };
+
+#endif

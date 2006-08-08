@@ -19,6 +19,9 @@
  * $Id$
  */
 
+#ifndef __LOGGERTOOLS_TP_IO_HH
+#define __LOGGERTOOLS_TP_IO_HH
+
 #include <iosfwd>
 
 class TurnPointReaderException {
@@ -126,3 +129,5 @@ public:
 };
 
 const TurnPointFilter *getTurnPointFilter(const char *name);
+
+#endif
