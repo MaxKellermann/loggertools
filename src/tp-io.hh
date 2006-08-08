@@ -90,6 +90,12 @@ public:
     virtual TurnPointWriter *createWriter(std::ostream *stream) const;
 };
 
+class CenfisHexTurnPointFormat : public TurnPointFormat {
+public:
+    virtual TurnPointReader *createReader(std::istream *stream) const;
+    virtual TurnPointWriter *createWriter(std::ostream *stream) const;
+};
+
 class FilserTurnPointFormat : public TurnPointFormat {
 public:
     virtual TurnPointReader *createReader(std::istream *stream) const;

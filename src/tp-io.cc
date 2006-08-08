@@ -81,6 +81,7 @@ TurnPointFilter::~TurnPointFilter(void) {
 static const SeeYouTurnPointFormat seeYouFormat;
 static const CenfisTurnPointFormat cenfisFormat;
 static const CenfisDatabaseFormat cenfisDatabaseFormat;
+static const CenfisHexTurnPointFormat cenfisHexFormat;
 static const FilserTurnPointFormat filserFormat;
 static const ZanderTurnPointFormat zanderFormat;
 
@@ -92,6 +93,8 @@ const TurnPointFormat *getTurnPointFormat(const char *ext) {
         return &cenfisFormat;
     else if (strcasecmp(ext, "dab") == 0)
         return &cenfisDatabaseFormat;
+    else if (strcasecmp(ext, "bhf") == 0)
+        return &cenfisHexFormat;
     else if (strcasecmp(ext, "da4") == 0)
         return &filserFormat;
     else if (strcasecmp(ext, "wz") == 0)

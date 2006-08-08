@@ -32,14 +32,14 @@ CFLAGS += -std=gnu99
 CFLAGS += -Wmissing-prototypes -Wwrite-strings -Wcast-qual -Wfloat-equal -Wshadow -Wpointer-arith -Wbad-function-cast -Wsign-compare -Waggregate-return -Wmissing-declarations -Wmissing-noreturn -Wmissing-format-attribute -Wredundant-decls -Wnested-externs -Winline -Wdisabled-optimization -Wno-long-long -Wstrict-prototypes -Wundef
 
 CXXFLAGS += $(COMMON_CFLAGS)
-CXXFLAGS += -Wwrite-strings -Wcast-qual -Wfloat-equal -Wshadow -Wpointer-arith -Wsign-compare -Wmissing-noreturn -Wmissing-format-attribute -Wredundant-decls -Winline -Wdisabled-optimization -Wno-long-long -Wundef
+CXXFLAGS += -Wwrite-strings -Wcast-qual -Wfloat-equal -Wpointer-arith -Wsign-compare -Wmissing-format-attribute -Wredundant-decls -Winline -Wdisabled-optimization -Wno-long-long -Wundef
 
 all: src/tpconv src/asconv src/cenfistool src/hexfile src/filsertool src/fakefilser src/fwd
 
 clean:
 	rm -f src/tpconv src/asconv src/cenfistool src/hexfile src/filsertool src/fakefilser src/*.[oa]
 
-tpconv_SOURCES = $(addprefix src/,tp-conv.cc earth.cc tp.cc tp-io.cc tp-cenfis-reader.cc tp-cenfis-writer.cc tp-cenfis-db-reader.cc tp-cenfis-db-writer.cc tp-seeyou-reader.cc tp-seeyou-writer.cc tp-filser-reader.cc tp-filser-writer.cc tp-zander-reader.cc tp-zander-writer.cc tp-distance.cc)
+tpconv_SOURCES = $(addprefix src/,tp-conv.cc earth.cc tp.cc tp-io.cc tp-cenfis-reader.cc tp-cenfis-writer.cc tp-cenfis-db-reader.cc tp-cenfis-db-writer.cc tp-cenfis-hex-reader.cc tp-cenfis-hex-writer.cc tp-seeyou-reader.cc tp-seeyou-writer.cc tp-filser-reader.cc tp-filser-writer.cc tp-zander-reader.cc tp-zander-writer.cc tp-distance.cc)
 tpconv_OBJECTS = $(patsubst %.cc,%.o,$(tpconv_SOURCES))
 
 asconv_SOURCES = $(addprefix src/,asconv.cc earth.cc airspace.cc airspace-openair-reader.cc airspace-openair-writer.cc)
@@ -51,7 +51,7 @@ src/libhexfile.a: src/hexfile-decoder.o
 $(tpconv_OBJECTS): %.o: %.cc
 	$(CXX) -c $(CXXFLAGS) -o $@ $^
 
-src/tpconv: $(tpconv_OBJECTS)
+src/tpconv: $(tpconv_OBJECTS) src/libhexfile.a
 	$(CXX) $(CXXFLAGS) -o $@ $^ -lstdc++
 
 src/asconv: $(asconv_OBJECTS)
