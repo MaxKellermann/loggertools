@@ -19,15 +19,14 @@
  * $Id$
  */
 
-#include <string.h>
 #include <errno.h>
 #include <stdio.h>
 #include <getopt.h>
-#include <unistd.h>
 
 #include "airspace.hh"
 #include "airspace-io.hh"
 
+#include <fstream>
 #include <iostream>
 
 static void usage() {
@@ -62,7 +61,7 @@ AirspaceFormat *getFormatFromFilename(const char *filename) {
 int main(int argc, char **argv) {
     const char *in_filename, *out_filename = NULL, *stdout_format = NULL;
     AirspaceFormat *in_format, *out_format;
-    FILE *in, *out;
+    std::ostream *out;
     AirspaceReader *reader;
     AirspaceWriter *writer;
     const Airspace *tp;
@@ -123,23 +122,18 @@ int main(int argc, char **argv) {
     }
     in_format = getFormatFromFilename(in_filename);
 
-    in = fopen(in_filename, "r");
-    if (in == NULL) {
-        fprintf(stderr, "failed to open '%s': %s\n",
-                in_filename, strerror(errno));
-        _exit(1);
-    }
+    std::ifstream in(in_filename);
 
-    reader = in_format->createReader(in);
+    reader = in_format->createReader(&in);
     if (reader == NULL) {
         fprintf(stderr, "reading this type is not supported\n");
         _exit(1);
     }
 
     if (out_filename == NULL) {
-        out = stdout;
+        out = &std::cout;
     } else {
-        out = fopen(out_filename, "w");
+        out = new std::ofstream(out_filename);
         if (out == NULL) {
             fprintf(stderr, "failed to create '%s': %s\n",
                     out_filename, strerror(errno));

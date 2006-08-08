@@ -22,22 +22,19 @@
 #include "airspace.hh"
 #include "airspace-io.hh"
 
-#include <errno.h>
-#include <string.h>
-#include <stdlib.h>
-#include <limits.h>
+#include <istream>
 
 class OpenAirAirspaceReader : public AirspaceReader {
 public:
-    FILE *file;
+    std::istream *stream;
 public:
-    OpenAirAirspaceReader(FILE *file);
+    OpenAirAirspaceReader(std::istream *stream);
 public:
     virtual const Airspace *read();
 };
 
-OpenAirAirspaceReader::OpenAirAirspaceReader(FILE *_file)
-    :file(_file) {}
+OpenAirAirspaceReader::OpenAirAirspaceReader(std::istream *_stream)
+    :stream(_stream) {}
 
 static void chomp(char *p) {
     size_t length = strlen(p);
@@ -108,7 +105,11 @@ const Airspace *OpenAirAirspaceReader::read() {
     Altitude bottom, top;
     std::vector<Vertex> vertices;
 
-    while (fgets(line, sizeof(line), file) != NULL) {
+    while (1) {
+        stream->getline(line, sizeof(line));
+        if (stream->fail())
+            break;
+
         if (line[0] == '*') /* comment */
             continue;
 
@@ -182,6 +183,6 @@ const Airspace *OpenAirAirspaceReader::read() {
     return NULL;
 }
 
-AirspaceReader *OpenAirAirspaceFormat::createReader(FILE *file) {
-    return new OpenAirAirspaceReader(file);
+AirspaceReader *OpenAirAirspaceFormat::createReader(std::istream *stream) {
+    return new OpenAirAirspaceReader(stream);
 }

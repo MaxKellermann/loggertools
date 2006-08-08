@@ -22,26 +22,23 @@
 #include "airspace.hh"
 #include "airspace-io.hh"
 
-#include <errno.h>
-#include <string.h>
-#include <stdlib.h>
-#include <limits.h>
-
 #include <sstream>
+#include <ostream>
+#include <iomanip>
 
 class OpenAirAirspaceWriter : public AirspaceWriter {
 public:
-    FILE *file;
+    std::ostream *stream;
 public:
-    OpenAirAirspaceWriter(FILE *file);
+    OpenAirAirspaceWriter(std::ostream *stream);
 public:
     virtual void write(const Airspace &as);
     virtual void flush();
 };
 
-OpenAirAirspaceWriter::OpenAirAirspaceWriter(FILE *_file)
-    :file(_file) {
-    fprintf(file, "* Written by loggertools\n\n");
+OpenAirAirspaceWriter::OpenAirAirspaceWriter(std::ostream *_stream)
+    :stream(_stream) {
+    *stream << "* Written by loggertools\n\n";
 }
 
 static const char *type_to_string(Airspace::type_t type) {
@@ -133,10 +130,10 @@ static std::string altitude_to_string(const Altitude &alt) {
 }
 
 void OpenAirAirspaceWriter::write(const Airspace &as) {
-    fprintf(file, "AC %s\n", type_to_string(as.getType()));
-    fprintf(file, "AN %s\n", as.getName().c_str());
-    fprintf(file, "AL %s\n", altitude_to_string(as.getBottom()).c_str());
-    fprintf(file, "AH %s\n", altitude_to_string(as.getTop()).c_str());
+    *stream << "AC " << type_to_string(as.getType()) << "\n"
+            << "AN " << as.getName() << "\n"
+            << "AL " << altitude_to_string(as.getBottom()) << "\n"
+            << "AH " << altitude_to_string(as.getTop()) << "\n";
 
     const std::vector<Vertex> &vertices = as.getVertices();
     for (std::vector<Vertex>::const_iterator it = vertices.begin();
@@ -146,26 +143,31 @@ void OpenAirAirspaceWriter::write(const Airspace &as) {
         int longitude = (*it).getLongitude().refactor(60);
         int absLongitude = abs(longitude);
 
-        fprintf(file, "DP %02d:%02d:%02d %c %03d:%02d:%02d %c\n",
-                absLatitude / 3600, (absLatitude / 60) % 60,
-                absLatitude % 60,
-                latitude < 0 ? 'S' : 'N',
-                absLongitude / 3600, (absLongitude / 60) % 60,
-                absLongitude % 60,
-                longitude < 0 ? 'W' : 'E');
+        *stream << "DP "
+                << std::setfill('0') << std::setw(2) << (absLatitude / 3600)
+                << ':'
+                << std::setfill('0') << std::setw(2) << ((absLatitude / 60) % 60)
+                << ':'
+                << std::setfill('0') << std::setw(2) << (absLatitude % 60)
+                << ' ' << (latitude < 0 ? 'S' : 'N') << ' '
+                << std::setfill('0') << std::setw(3) << (absLongitude / 3600)
+                << ':'
+                << std::setfill('0') << std::setw(2) << ((absLongitude / 60) % 60)
+                << ':'
+                << std::setfill('0') << std::setw(2) << (absLongitude % 60)
+                << ' ' << (longitude < 0 ? 'W' : 'E') << "\n";
     }
 
-    fprintf(file, "\n");
+    *stream << "\n";
 }
 
 void OpenAirAirspaceWriter::flush() {
-    if (file == NULL)
+    if (stream == NULL)
         throw new AirspaceWriterException("already flushed");
 
-    fclose(file);
-    file = NULL;
+    stream = NULL;
 }
 
-AirspaceWriter *OpenAirAirspaceFormat::createWriter(FILE *file) {
-    return new OpenAirAirspaceWriter(file);
+AirspaceWriter *OpenAirAirspaceFormat::createWriter(std::ostream *stream) {
+    return new OpenAirAirspaceWriter(stream);
 }

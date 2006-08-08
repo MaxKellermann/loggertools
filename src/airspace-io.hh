@@ -22,6 +22,8 @@
 #ifndef __LOGGERTOOLS_AIRSPACE_IO_HH
 #define __LOGGERTOOLS_AIRSPACE_IO_HH
 
+#include <iosfwd>
+
 class AirspaceReaderException {
 private:
     char *msg;
@@ -69,14 +71,14 @@ class AirspaceFormat {
 public:
     virtual ~AirspaceFormat();
 public:
-    virtual AirspaceReader *createReader(FILE *file) = 0;
-    virtual AirspaceWriter *createWriter(FILE *file) = 0;
+    virtual AirspaceReader *createReader(std::istream *stream) = 0;
+    virtual AirspaceWriter *createWriter(std::ostream *stream) = 0;
 };
 
 class OpenAirAirspaceFormat : public AirspaceFormat {
 public:
-    virtual AirspaceReader *createReader(FILE *file);
-    virtual AirspaceWriter *createWriter(FILE *file);
+    virtual AirspaceReader *createReader(std::istream *stream);
+    virtual AirspaceWriter *createWriter(std::ostream *stream);
 };
 
 AirspaceFormat *getAirspaceFormat(const char *ext);
