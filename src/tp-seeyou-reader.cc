@@ -176,23 +176,23 @@ static T *parseAngle(const char *p) {
     return new T(sign * (((degrees * 60) + n1) * 1000 + n2));
 }
 
-static unsigned parseFrequency(const char *p) {
+static const Frequency parseFrequency(const char *p) {
     char *endptr;
     unsigned long n1, n2;
 
     if (p == NULL || *p == 0)
-        return 0;
+        return Frequency();
 
     n1 = strtoul(p, &endptr, 10);
     if (endptr == NULL || *endptr != '.' )
-        return 0;
+        return Frequency();
 
     p = endptr + 1;
 
     if (*p)
         n2 = strtoul(endptr + 1, &endptr, 10);
 
-    return (n1 * 1000 + n2) * 1000;
+    return Frequency(n1, n2);
 }
 
 const TurnPoint *SeeYouTurnPointReader::read() {

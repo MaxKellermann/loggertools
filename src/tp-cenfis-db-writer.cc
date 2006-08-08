@@ -133,8 +133,8 @@ void CenfisDatabaseWriter::write(const TurnPoint &tp) {
         data.altitude = htons(tp.getPosition().getAltitude().getValue());
     }
 
-    if (tp.getFrequency() > 0) {
-        unsigned freq = tp.getFrequency() / 1000;
+    if (tp.getFrequency().defined()) {
+        unsigned freq = tp.getFrequency().getKiloHertz();
         data.freq[0] = freq >> 16;
         data.freq[1] = freq >> 8;
         data.freq[2] = freq;

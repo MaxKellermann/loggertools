@@ -103,6 +103,16 @@ static unsigned makeSeeYouStyle(const TurnPoint &tp) {
     }
 }
 
+static std::ostream &operator <<(std::ostream &os,
+                                 const Frequency &frequency) {
+    if (frequency.defined())
+        return os << frequency.getMegaHertz()
+                  << std::setfill('0') << std::setw(3)
+                  << frequency.getKiloHertzPart();
+    else
+        return os;
+}
+
 void SeeYouTurnPointWriter::write(const TurnPoint &tp) {
     char latitude[16], longitude[16];
 
@@ -134,10 +144,7 @@ void SeeYouTurnPointWriter::write(const TurnPoint &tp) {
     if (tp.getRunway().getLength() > 0)
         *stream << tp.getRunway().getLength();
     *stream << ',';
-    if (tp.getFrequency() > 0)
-        *stream << (tp.getFrequency() / 1000000)
-                << std::setfill('0') << std::setw(3)
-                << ((tp.getFrequency() / 1000) % 1000);
+    *stream << tp.getFrequency();
     *stream << ',';
     write_column(stream, tp.getDescription());
     *stream << "\r\n";

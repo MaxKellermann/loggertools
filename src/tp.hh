@@ -49,6 +49,31 @@ public:
     }
 };
 
+class Frequency {
+private:
+    unsigned hertz;
+public:
+    Frequency():hertz(0) {}
+    Frequency(unsigned _hertz):hertz(_hertz) {}
+    Frequency(unsigned mhz, unsigned khz):hertz((mhz * 1000 + khz) * 1000) {}
+public:
+    bool defined() const {
+        return hertz > 0;
+    }
+    unsigned getHertz() const {
+        return hertz;
+    }
+    unsigned getMegaHertz() const {
+        return hertz / 1000000;
+    }
+    unsigned getKiloHertz() const {
+        return hertz / 1000;
+    }
+    unsigned getKiloHertzPart() const {
+        return getKiloHertz() % 1000;
+    }
+};
+
 class TurnPoint {
 public:
     enum type_t {
@@ -77,7 +102,7 @@ private:
     Position position;
     type_t type;
     Runway runway;
-    unsigned frequency;
+    Frequency frequency;
     std::string description;
 public:
     TurnPoint();
@@ -87,7 +112,7 @@ public:
               const Position &_position,
               type_t _type,
               const Runway &_runway,
-              unsigned _frequency,
+              const Frequency &_frequency,
               const std::string &_description);
     ~TurnPoint();
 public:
@@ -115,10 +140,10 @@ public:
         return runway;
     }
     void setRunway(const Runway &runway);
-    unsigned getFrequency() const {
+    const Frequency &getFrequency() const {
         return frequency;
     }
-    void setFrequency(unsigned _freq);
+    void setFrequency(const Frequency &_freq);
     const std::string &getDescription() const {
         return description;
     }

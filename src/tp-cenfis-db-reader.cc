@@ -114,9 +114,9 @@ const TurnPoint *CenfisDatabaseReader::read() {
     }
 
     /* frequency */
-    tp->setFrequency(((data.freq[0] << 16) +
-                      (data.freq[1] << 8) +
-                      data.freq[2]) * 1000);
+    tp->setFrequency(Frequency(((data.freq[0] << 16) +
+                                (data.freq[1] << 8) +
+                                data.freq[2]) * 1000));
 
     /* extract title */
     length = sizeof(data.title);

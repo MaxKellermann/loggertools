@@ -34,8 +34,7 @@ bool Runway::defined() const {
 }
 
 TurnPoint::TurnPoint(void)
-    :type(TYPE_UNKNOWN),
-     frequency(0) {
+    :type(TYPE_UNKNOWN) {
 }
 
 TurnPoint::TurnPoint(const std::string &_title,
@@ -44,7 +43,7 @@ TurnPoint::TurnPoint(const std::string &_title,
                      const Position &_position,
                      type_t _type,
                      const Runway &_runway,
-                     unsigned _frequency,
+                     const Frequency &_frequency,
                      const std::string &_description)
     :title(_title), code(_code), country(_country),
      position(_position),
@@ -81,7 +80,7 @@ void TurnPoint::setRunway(const Runway &_runway) {
     runway = _runway;
 }
 
-void TurnPoint::setFrequency(unsigned _frequency) {
+void TurnPoint::setFrequency(const Frequency &_frequency) {
     frequency = _frequency;
 }
 

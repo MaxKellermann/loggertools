@@ -92,6 +92,17 @@ static std::ostream &operator <<(std::ostream &os, const Altitude &altitude) {
               << altitude.getValue();
 }
 
+static std::ostream &operator <<(std::ostream &os,
+                                 const Frequency &frequency) {
+    if (frequency.defined())
+        return os << std::setfill(' ') << std::setw(3)
+                  << frequency.getMegaHertz()
+                  << std::setfill('0') << std::setw(3)
+                  << frequency.getKiloHertzPart();
+    else
+        return os << "1      ";
+}
+
 ZanderTurnPointWriter::ZanderTurnPointWriter(std::ostream *_stream)
     :stream(_stream) {}
 
@@ -164,15 +175,9 @@ void ZanderTurnPointWriter::write(const TurnPoint &tp) {
     write_column(stream, format(tp.getPosition().getLatitude()), 7);
     *stream << ' ';
     write_column(stream, format(tp.getPosition().getLongitude()), 8);
-    *stream << ' ' << tp.getPosition().getAltitude() << ' ';
-    if (tp.getFrequency() > 0)
-        *stream << std::setfill(' ') << std::setw(3)
-                << (tp.getFrequency() / 1000000)
-                << std::setfill('0') << std::setw(3)
-                << ((tp.getFrequency() / 1000) % 1000);
-    else
-        *stream << "1      ";
-    *stream << ' ';
+    *stream << ' '
+            << tp.getPosition().getAltitude() << ' '
+            << tp.getFrequency() << ' ';
     *stream << formatType(tp);
     *stream << ' ';
     write_column(stream, tp.getCountry(), 2);

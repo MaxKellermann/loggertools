@@ -125,10 +125,10 @@ void CenfisTurnPointWriter::write(const TurnPoint &tp) {
         *stream << "\n";
     }
 
-    if (tp.getFrequency() > 0)
-        *stream << "  F " << (tp.getFrequency() / 1000000)
+    if (tp.getFrequency().defined())
+        *stream << "  F " << tp.getFrequency().getMegaHertz()
                 << std::setfill('0') << std::setw(3)
-                << ((tp.getFrequency() / 1000) % 1000)
+                << tp.getFrequency().getKiloHertzPart()
                 << "\n";
 
     if (tp.getRunway().defined()) {

@@ -158,17 +158,17 @@ static Altitude *parseAltitude(const char *p) {
     return new Altitude((long)value, unit, Altitude::REF_MSL);
 }
 
-static unsigned parseFrequency(const char *p) {
+static const Frequency parseFrequency(const char *p) {
     unsigned long n1, n2;
     char *endptr;
 
     n1 = strtoul(p, &endptr, 10);
     if (endptr == NULL || (*endptr != ' ' && *endptr != '.'))
-        return (unsigned)n1 * 1000000;
+        return Frequency(n1, 0);
 
     n2 = strtoul(endptr + 1, NULL, 10);
 
-    return (unsigned)(n1 * 1000 + n2) * 1000;
+    return Frequency(n1, n2);
 }
 
 static char *nextWord(char **p) {
