@@ -28,16 +28,14 @@
 #include "airspace.hh"
 #include "airspace-io.hh"
 
-static void usage()
-    __attribute__((noreturn));
+#include <iostream>
 
 static void usage() {
-    fprintf(stderr, "usage: asconv [options] [filename]\n");
-    fprintf(stderr, "options:\n");
-    fprintf(stderr, " -o outfile   write output to this file\n");
-    fprintf(stderr, " -f outformat write output to stdout with this format\n");
-    fprintf(stderr, " -h           help (this text)\n");
-    _exit(1);
+    std::cout << "usage: asconv [options] FILE\n"
+        "options:\n"
+        " -o outfile   write output to this file\n"
+        " -f outformat write output to stdout with this format\n"
+        " -h           help (this text)\n";
 }
 
 AirspaceFormat *getFormatFromFilename(const char *filename) {
@@ -80,6 +78,7 @@ int main(int argc, char **argv) {
         switch (c) {
         case 'h':
             usage();
+            return 0;
             break;
 
         case 'o':

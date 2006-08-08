@@ -32,17 +32,13 @@
 #include <iostream>
 #include <list>
 
-static void usage()
-    __attribute__((noreturn));
-
 static void usage() {
-    fprintf(stderr, "usage: loggerconf [options] FILE1 ...\n");
-    fprintf(stderr, "options:\n");
-    fprintf(stderr, " -o outfile   write output to this file\n");
-    fprintf(stderr, " -f outformat write output to stdout with this format\n");
-    fprintf(stderr, " -F filter    use a filter\n");
-    fprintf(stderr, " -h           help (this text)\n");
-    _exit(1);
+    std::cout << "usage: loggerconv [options] FILE1 ...\n"
+        "options:\n"
+        " -o outfile   write output to this file\n"
+        " -f outformat write output to stdout with this format\n"
+        " -F filter    use a filter\n"
+        " -h           help (this text)\n";
 }
 
 const TurnPointFormat *getFormatFromFilename(const char *filename) {
@@ -84,6 +80,7 @@ int main(int argc, char **argv) {
         switch (c) {
         case 'h':
             usage();
+            return 0;
             break;
 
         case 'o':
