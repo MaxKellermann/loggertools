@@ -56,7 +56,7 @@ public:
 
 typedef Reader<Airspace> AirspaceReader;
 typedef Writer<Airspace> AirspaceWriter;
-typedef Format<AirspaceReader, AirspaceWriter> AirspaceFormat;
+typedef Format<Airspace> AirspaceFormat;
 
 class OpenAirAirspaceFormat : public AirspaceFormat {
 public:

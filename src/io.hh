@@ -39,13 +39,13 @@ public:
     virtual void flush() = 0;
 };
 
-template<class RT, class WT>
+template<class T>
 class Format {
 public:
     virtual ~Format() {}
 public:
-    virtual RT *createReader(std::istream *stream) const = 0;
-    virtual WT *createWriter(std::ostream *stream) const = 0;
+    virtual Reader<T> *createReader(std::istream *stream) const = 0;
+    virtual Writer<T> *createWriter(std::ostream *stream) const = 0;
 };
 
 #endif

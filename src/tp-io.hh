@@ -56,7 +56,7 @@ public:
 
 typedef Reader<TurnPoint> TurnPointReader;
 typedef Writer<TurnPoint> TurnPointWriter;
-typedef Format<TurnPointReader, TurnPointWriter> TurnPointFormat;
+typedef Format<TurnPoint> TurnPointFormat;
 
 class SeeYouTurnPointFormat : public TurnPointFormat {
 public:
