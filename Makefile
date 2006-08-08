@@ -60,7 +60,7 @@ src/asconv: $(asconv_OBJECTS)
 src/cenfistool: src/cenfistool.c src/cenfis.c src/serialio.c
 	$(CC) $(CFLAGS) -o $@ $^
 
-src/hexfile: src/hexfile.c
+src/hexfile: src/hexfile-tool.c
 	$(CC) $(CFLAGS) -o $@ $^
 
 src/filsertool: src/filsertool.c src/filser-crc.c src/filser-open.c src/filser-io.c src/filser-proto.c src/datadir.c
