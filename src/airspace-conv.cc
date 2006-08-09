@@ -115,13 +115,11 @@ int main(int argc, char **argv) {
                  << endl;
             exit(1);
         }
-    } else {
-        out_format = getFormatFromFilename(out_filename);
-    }
 
-    if (out_filename == NULL) {
         out = &cout;
     } else {
+        out_format = getFormatFromFilename(out_filename);
+
         out = new std::ofstream(out_filename);
         if (out->fail()) {
             cerr << "Failed to create " << out_filename
