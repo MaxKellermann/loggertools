@@ -19,6 +19,7 @@
  * $Id$
  */
 
+#include "exception.hh"
 #include "airspace.hh"
 #include "airspace-io.hh"
 
@@ -162,7 +163,7 @@ void OpenAirAirspaceWriter::write(const Airspace &as) {
 
 void OpenAirAirspaceWriter::flush() {
     if (stream == NULL)
-        throw AirspaceWriterException("already flushed");
+        throw already_flushed();
 
     stream = NULL;
 }

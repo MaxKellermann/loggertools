@@ -47,7 +47,7 @@ void FilserTurnPointWriter::write(const TurnPoint &tp) {
     size_t length;
 
     if (stream == NULL)
-        throw TurnPointWriterException("already flushed");
+        throw already_flushed();
 
     if (count >= 600)
         throw TurnPointWriterException("Filser databases cannot hold more than 600 turn points");
@@ -79,7 +79,7 @@ void FilserTurnPointWriter::flush() {
     char zero[6900];
 
     if (stream == NULL)
-        throw TurnPointWriterException("already flushed");
+        throw already_flushed();
 
     memset(&data, 0, sizeof(data));
     for (; count < 600; count++) {

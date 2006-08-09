@@ -116,7 +116,7 @@ void CenfisDatabaseWriter::write(const TurnPoint &tp) {
     struct turn_point data;
 
     if (stream == NULL)
-        throw TurnPointWriterException("already flushed");
+        throw already_flushed();
 
     if (tps.size() >= 0xffff)
         throw TurnPointWriterException("too many turn points");
@@ -179,7 +179,7 @@ void CenfisDatabaseWriter::flush() {
     u_int32_t foo_offset, table_offset;
 
     if (stream == NULL)
-        throw TurnPointWriterException("already flushed");
+        throw already_flushed();
 
     foo_offset = sizeof(header) + sizeof(struct turn_point) * tps.size();
     table_offset = foo_offset + sizeof(struct foo);

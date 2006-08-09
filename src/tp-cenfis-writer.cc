@@ -77,7 +77,7 @@ void CenfisTurnPointWriter::write(const TurnPoint &tp) {
     std::string p;
 
     if (stream == NULL)
-        throw new TurnPointWriterException("already flushed");
+        throw already_flushed();
 
     p = tp.getCode();
     if (p.length() == 0)
@@ -158,7 +158,7 @@ void CenfisTurnPointWriter::write(const TurnPoint &tp) {
 
 void CenfisTurnPointWriter::flush() {
     if (stream == NULL)
-        throw new TurnPointWriterException("already flushed");
+        throw already_flushed();
 
     *stream << "0 End of File, created by loggertools\n";
     stream = NULL;
