@@ -63,7 +63,7 @@ const Distance parseDistance(const char *p) {
     } else if (strcmp(q, "NM") == 0) {
         unit = Distance::UNIT_NAUTICAL_MILES;
     } else {
-        throw TurnPointReaderException("Unknown distance unit");
+        throw malformed_input("unknown distance unit");
     }
 
     return Distance(unit, value);
@@ -73,7 +73,7 @@ TurnPointReader *
 DistanceTurnPointFilter::createFilter(TurnPointReader *reader,
                                       const char *args) const {
     if (args == NULL || *args == 0)
-        throw TurnPointReaderException("No maximum distance provided");
+        throw malformed_input("No maximum distance provided");
 
     return new DistanceTurnPointReader(reader,
                                        Position(Latitude(1, 46, 28, 49),
