@@ -223,8 +223,6 @@ void CenfisDatabaseWriter::flush() {
     /* write header */
 
     stream->write((char*)&header, sizeof(header));
-    if (stream->bad())
-        throw TurnPointWriterException("failed to write header");
 
     /* write all TPs */
 
@@ -233,15 +231,11 @@ void CenfisDatabaseWriter::flush() {
         struct turn_point *tp = &(*it);
 
         stream->write((char*)tp, sizeof(*tp));
-        if (stream->bad())
-            throw TurnPointWriterException("failed to write TP");
     }
 
     /* write foo */
     memset(&foo, 0xff, sizeof(foo));
     stream->write((char*)&foo, sizeof(foo));
-    if (stream->bad())
-        throw TurnPointWriterException("failed to write");
 
     /* write tables */
     for (unsigned z = 0; z < 4; z++) {
@@ -254,8 +248,6 @@ void CenfisDatabaseWriter::flush() {
             entry.index2 = offset & 0xff;
 
             stream->write((char*)&entry, sizeof(entry));
-            if (stream->bad())
-                throw TurnPointWriterException("failed to write table entry");
         }
     }
 

@@ -139,6 +139,8 @@ int main(int argc, char **argv) {
         }
     }
 
+    out->exceptions(std::ios_base::badbit | std::ios_base::failbit);
+
     writer = out_format->createWriter(out);
     if (writer == NULL) {
         unlink(out_filename);
