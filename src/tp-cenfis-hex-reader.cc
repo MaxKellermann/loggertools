@@ -21,6 +21,7 @@
 
 #include <netinet/in.h>
 
+#include "exception.hh"
 #include "tp.hh"
 #include "tp-io.hh"
 #include "cenfis-db.h"
@@ -205,7 +206,7 @@ CenfisHexReader::CenfisHexReader(std::istream *_stream)
     :dh(NULL), stream(NULL), tpr(NULL) {
     int ret = decode_hexfile(_stream, 0, &dh);
     if (ret < 0)
-        throw TurnPointReaderException("failed to read hexfile");
+        throw malformed_input("failed to read hexfile");
 
     stream = new std::istringstream(std::string((const char*)dh->data, dh->length));
 

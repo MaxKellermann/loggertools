@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <limits.h>
 
+#include "exception.hh"
 #include "tp.hh"
 #include "tp-io.hh"
 
@@ -121,11 +122,11 @@ SeeYouTurnPointReader::SeeYouTurnPointReader(std::istream *_stream)
 
     num_columns = count_columns(line);
     if (num_columns == 0)
-        throw TurnPointReaderException("No columns in header");
+        throw malformed_input("no columns in header");
 
     columns = (char**)malloc(num_columns * sizeof(*columns));
     if (columns == NULL)
-        throw TurnPointReaderException("out of memory");
+        throw std::bad_alloc();
 
     for (p = line, z = 0; z < num_columns; z++) {
         ret = read_column(&p, column, sizeof(column));

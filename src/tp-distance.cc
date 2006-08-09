@@ -19,6 +19,7 @@
  * $Id$
  */
 
+#include "exception.hh"
 #include "tp.hh"
 #include "tp-io.hh"
 
@@ -47,10 +48,10 @@ const Distance parseDistance(const char *p) {
 
     value = strtod(p, &q);
     if (q == p)
-        throw TurnPointReaderException("Failed to parse distance value");
+        throw malformed_input("failed to parse distance value");
 
     if (*q == 0)
-        throw TurnPointReaderException("No distance unit was provided");
+        throw malformed_input("no distance unit was provided");
 
     if (strcmp(q, "km") == 0) {
         value *= 1000.;

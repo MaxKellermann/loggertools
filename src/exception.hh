@@ -30,4 +30,17 @@ public:
     virtual ~already_flushed() throw() {}
 };
 
+class malformed_input : public std::exception {
+private:
+    std::string msg;
+public:
+    malformed_input():msg("malformed input file") {}
+    malformed_input(const std::string &_msg):msg(_msg) {}
+    virtual ~malformed_input() throw() {}
+public:
+    virtual const char *what() const throw() {
+        return msg.c_str();
+    }
+};
+
 #endif

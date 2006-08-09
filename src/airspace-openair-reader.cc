@@ -19,6 +19,7 @@
  * $Id$
  */
 
+#include "exception.hh"
 #include "airspace.hh"
 #include "airspace-io.hh"
 
@@ -123,7 +124,7 @@ const Airspace *OpenAirAirspaceReader::read() {
 
         if (line[0] == 'A') {
             if (line[2] != ' ')
-                throw AirspaceReaderException("malformed line");
+                throw malformed_input();
 
             switch (line[1]) {
             case 'C':
@@ -143,7 +144,7 @@ const Airspace *OpenAirAirspaceReader::read() {
                 break;
 
             default:
-                throw AirspaceReaderException("malformed line");
+                throw malformed_input("invalid command");
             }
         } else if (line[0] == 'D' && line[1] == 'P' && line[2] == ' ') {
             int lat1, lat2, lat3, lon1, lon2, lon3;
@@ -154,7 +155,7 @@ const Airspace *OpenAirAirspaceReader::read() {
                          &lat1, &lat2, &lat3, latSN,
                          &lon1, &lon2, &lon3, lonWE);
             if (ret != 8)
-                throw AirspaceReaderException("malformed line");
+                throw malformed_input();
 
             int latitude = ((lat1 * 60) + lat2) * 1000 + (lat3 * 1000 + 499) / 60;
             int longitude = ((lon1 * 60) + lon2) * 1000 + (lon3 * 1000 + 499) / 60;
@@ -162,16 +163,16 @@ const Airspace *OpenAirAirspaceReader::read() {
             if (*latSN == 'S')
                 latitude = -latitude;
             else if (*latSN != 'N')
-                throw AirspaceReaderException("malformed S/N");
+                throw malformed_input();
 
             if (*lonWE == 'W')
                 longitude = -longitude;
             else if (*lonWE != 'E')
-                throw AirspaceReaderException("malformed W/E");
+                throw malformed_input("expected 'W' or 'E'");
 
             vertices.push_back(Vertex(Latitude(latitude), Longitude(longitude)));
         } else {
-            throw AirspaceReaderException("malformed line");
+            throw malformed_input("invalid command");
         }
     }
 

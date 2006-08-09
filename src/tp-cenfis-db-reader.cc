@@ -23,6 +23,7 @@
 
 #include <vector>
 
+#include "exception.hh"
 #include "tp.hh"
 #include "tp-io.hh"
 #include "cenfis-db.h"
@@ -49,15 +50,15 @@ CenfisDatabaseReader::CenfisDatabaseReader(std::istream *_stream)
 
     if (ntohs(header.magic1) != 0x4610 &&
         ntohs(header.magic2) != 0x4131)
-        throw TurnPointReaderException("wrong magic");
+        throw malformed_input("wrong magic");
 
     if (ntohl(header.header_size) != sizeof(header))
-        throw TurnPointReaderException("wrong header size");
+        throw malformed_input("wrong header size");
 
     overall_count = ntohs(header.overall_count);
 
     if (ntohl(header.after_tp_offset) != sizeof(header) + sizeof(struct turn_point) * overall_count)
-        throw TurnPointReaderException("wrong header size");
+        throw malformed_input("wrong header size");
 }
 
 CenfisDatabaseReader::~CenfisDatabaseReader() {
