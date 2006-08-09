@@ -133,9 +133,9 @@ int main(int argc, char **argv) {
     } else {
         out = new std::ofstream(out_filename);
         if (out->fail()) {
-            fprintf(stderr, "failed to create '%s': %s\n",
-                    out_filename, strerror(errno));
-            _exit(1);
+            std::cerr << "Failed to create " << out_filename
+                      << ": " << strerror(errno) << std::endl;
+            exit(2);
         }
     }
 
@@ -156,7 +156,8 @@ int main(int argc, char **argv) {
         const TurnPointFormat *in_format = getFormatFromFilename(in_filename);
         std::ifstream in(in_filename);
         if (in.fail()) {
-            std::cerr << "Failed to open " << in_filename << std::endl;
+            std::cerr << "Failed to open " << in_filename
+                      << ": " << strerror(errno) << std::endl;
             exit(2);
         }
 
