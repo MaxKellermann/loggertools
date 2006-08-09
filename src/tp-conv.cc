@@ -132,7 +132,7 @@ int main(int argc, char **argv) {
         out = &std::cout;
     } else {
         out = new std::ofstream(out_filename);
-        if (out == NULL) {
+        if (out->fail()) {
             fprintf(stderr, "failed to create '%s': %s\n",
                     out_filename, strerror(errno));
             _exit(1);
