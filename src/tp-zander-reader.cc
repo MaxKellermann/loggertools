@@ -32,7 +32,7 @@
 class ZanderTurnPointReader : public TurnPointReader {
 private:
     std::istream *stream;
-    int is_eof;
+    bool is_eof;
 public:
     ZanderTurnPointReader(std::istream *stream);
 public:
@@ -40,7 +40,7 @@ public:
 };
 
 ZanderTurnPointReader::ZanderTurnPointReader(std::istream *_stream)
-    :stream(_stream), is_eof(0) {}
+    :stream(_stream), is_eof(false) {}
 
 template<class T, char minusLetter, char plusLetter>
 static T *parseAngle(const char *p) {
@@ -145,7 +145,7 @@ const TurnPoint *ZanderTurnPointReader::read() {
     }
 
     if (line[0] == '\x1a') {
-        is_eof = 1;
+        is_eof = true;
         return NULL;
     }
 

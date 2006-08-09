@@ -33,7 +33,7 @@
 class SeeYouTurnPointReader : public TurnPointReader {
 private:
     std::istream *stream;
-    int is_eof;
+    bool is_eof;
     unsigned num_columns;
     char **columns;
 public:
@@ -109,7 +109,7 @@ static int read_column(const char **line, char *column, size_t column_max_len) {
 }
 
 SeeYouTurnPointReader::SeeYouTurnPointReader(std::istream *_stream)
-    :stream(_stream), is_eof(0),
+    :stream(_stream), is_eof(false),
      num_columns(0), columns(NULL) {
     char line[4096], column[1024];
     const char *p;
@@ -219,7 +219,7 @@ const TurnPoint *SeeYouTurnPointReader::read() {
     }
 
     if (strncmp(p, "-----Related", 12) == 0) {
-        is_eof = 1;
+        is_eof = true;
         return NULL;
     }
 
