@@ -176,5 +176,10 @@ int main(int argc, char **argv) {
     delete writer;
     delete reader;
 
+    if (out == &cout)
+        out->flush();
+    else
+        delete out;
+
     return 0;
 }
