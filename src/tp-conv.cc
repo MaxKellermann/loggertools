@@ -83,7 +83,6 @@ int main(int argc, char **argv) {
         case 'h':
             usage();
             return 0;
-            break;
 
         case 'o':
             out_filename = optarg;
