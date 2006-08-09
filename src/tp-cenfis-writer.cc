@@ -24,6 +24,7 @@
 #include <limits.h>
 #include <ctype.h>
 
+#include "exception.hh"
 #include "tp.hh"
 #include "tp-io.hh"
 

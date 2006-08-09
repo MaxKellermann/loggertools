@@ -21,6 +21,7 @@
 
 #include <netinet/in.h>
 
+#include "exception.hh"
 #include "tp.hh"
 #include "tp-io.hh"
 #include "cenfis-db.h"
