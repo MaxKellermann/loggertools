@@ -29,11 +29,12 @@
 #include <fstream>
 #include <iostream>
 
+using std::cout;
 using std::cerr;
 using std::endl;
 
 static void usage() {
-    std::cout << "usage: asconv [options] FILE\n"
+    cout << "usage: asconv [options] FILE\n"
         "options:\n"
         " -o outfile   write output to this file\n"
         " -f outformat write output to stdout with this format\n"
@@ -137,7 +138,7 @@ int main(int argc, char **argv) {
     }
 
     if (out_filename == NULL) {
-        out = &std::cout;
+        out = &cout;
     } else {
         out = new std::ofstream(out_filename);
         if (out->fail()) {
