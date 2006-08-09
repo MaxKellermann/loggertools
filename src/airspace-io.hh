@@ -28,32 +28,6 @@
 
 #include "io.hh"
 
-class AirspaceReaderException : public std::exception {
-private:
-    std::string msg;
-public:
-    AirspaceReaderException(const char *fmt, ...)
-        __attribute__((format(printf, 2, 3)));
-    virtual ~AirspaceReaderException() throw();
-public:
-    virtual const char *what() const throw() {
-        return msg.c_str();
-    }
-};
-
-class AirspaceWriterException : public std::exception {
-private:
-    std::string msg;
-public:
-    AirspaceWriterException(const char *fmt, ...)
-        __attribute__((format(printf, 2, 3)));
-    virtual ~AirspaceWriterException() throw();
-public:
-    virtual const char *what() const throw() {
-        return msg.c_str();
-    }
-};
-
 typedef Reader<Airspace> AirspaceReader;
 typedef Writer<Airspace> AirspaceWriter;
 typedef Format<Airspace> AirspaceFormat;

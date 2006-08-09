@@ -24,30 +24,6 @@
 
 #include <stdarg.h>
 
-AirspaceReaderException::AirspaceReaderException(const char *fmt, ...) {
-    va_list ap;
-    char buffer[4096];
-
-    va_start(ap, fmt);
-    vsnprintf(buffer, sizeof(buffer), fmt, ap);
-
-    msg = strdup(buffer);
-}
-
-AirspaceReaderException::~AirspaceReaderException() throw() {}
-
-AirspaceWriterException::AirspaceWriterException(const char *fmt, ...) {
-    va_list ap;
-    char buffer[4096];
-
-    va_start(ap, fmt);
-    vsnprintf(buffer, sizeof(buffer), fmt, ap);
-
-    msg = strdup(buffer);
-}
-
-AirspaceWriterException::~AirspaceWriterException() throw() {}
-
 static OpenAirAirspaceFormat openAirFormat;
 
 AirspaceFormat *getAirspaceFormat(const char *ext) {

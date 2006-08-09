@@ -156,13 +156,7 @@ int main(int argc, char **argv) {
         }
 
         writer->flush();
-    } catch (const AirspaceReaderException &e) {
-        delete writer;
-        delete reader;
-        unlink(out_filename);
-        fprintf(stderr, "%s\n", e.what());
-        _exit(1);
-    } catch (const AirspaceWriterException &e) {
+    } catch (const std::exception &e) {
         delete writer;
         delete reader;
         unlink(out_filename);
