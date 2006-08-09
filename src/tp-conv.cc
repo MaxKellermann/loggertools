@@ -32,6 +32,9 @@
 #include <iostream>
 #include <list>
 
+using std::cerr;
+using std::endl;
+
 static void usage() {
     std::cout << "usage: loggerconv [options] FILE1 ...\n"
         "options:\n"
@@ -47,16 +50,14 @@ const TurnPointFormat *getFormatFromFilename(const char *filename) {
 
     dot = strchr(filename, '.');
     if (dot == NULL || dot[1] == 0) {
-        fprintf(stderr, "No filename extension in '%s'\n",
-                filename);
-        _exit(1);
+        cerr << "No filename extension in " << filename << endl;
+        exit(1);
     }
 
     format = getTurnPointFormat(dot + 1);
     if (format == NULL) {
-        fprintf(stderr, "Format '%s' is not supported\n",
-                dot + 1);
-        _exit(1);
+        cerr << "Format '" << (dot + 1) << "' is not supported" << endl;
+        exit(1);
     }
 
     return format;
@@ -98,19 +99,19 @@ int main(int argc, char **argv) {
             break;
 
         default:
-            fprintf(stderr, "invalid getopt code\n");
-            _exit(1);
+            cerr << "Invalid getopt code" << endl;
+            exit(1);
         }
     }
 
     if (out_filename == NULL && stdout_format == NULL) {
-        fprintf(stderr, "no output filename specified\n");
-        _exit(1);
+        cerr << "No output filename specified" << endl;
+        exit(1);
     }
 
     if (optind >= argc) {
-        fprintf(stderr, "no input filename specified\n");
-        _exit(1);
+        cerr << "No input filename specified" << endl;
+        exit(1);
     }
 
     /* open output file */
@@ -120,9 +121,9 @@ int main(int argc, char **argv) {
     if (out_filename == NULL) {
         out_format = getTurnPointFormat(stdout_format);
         if (out_format == NULL) {
-            fprintf(stderr, "Format '%s' is not supported\n",
-                    stdout_format);
-            _exit(1);
+            cerr << "Format '" << stdout_format << "' is not supported"
+                 << endl;
+            exit(1);
         }
     } else {
         out_format = getFormatFromFilename(out_filename);
@@ -144,8 +145,8 @@ int main(int argc, char **argv) {
     writer = out_format->createWriter(out);
     if (writer == NULL) {
         unlink(out_filename);
-        fprintf(stderr, "writing this type is not supported\n");
-        _exit(1);
+        cerr << "Writing this type is not supported" << endl;
+        exit(1);
     }
 
     /* read all input files */
@@ -163,8 +164,8 @@ int main(int argc, char **argv) {
 
         TurnPointReader *reader = in_format->createReader(&in);
         if (reader == NULL) {
-            fprintf(stderr, "reading this type is not supported\n");
-            _exit(1);
+            cerr << "Reading this type is not supported" << endl;
+            exit(1);
         }
 
         for (std::list<const char*>::const_iterator it = filters.begin();
@@ -192,14 +193,14 @@ int main(int argc, char **argv) {
             delete writer;
             delete reader;
             unlink(out_filename);
-            fprintf(stderr, "%s\n", e.what());
-            _exit(1);
+            cerr << e.what() << endl;
+            exit(2);
         } catch (const TurnPointWriterException &e) {
             delete writer;
             delete reader;
             unlink(out_filename);
-            fprintf(stderr, "%s\n", e.what());
-            _exit(1);
+            cerr << e.what() << endl;
+            exit(2);
         }
 
         delete reader;
