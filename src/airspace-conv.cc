@@ -125,8 +125,8 @@ int main(int argc, char **argv) {
     } else {
         out = new std::ofstream(out_filename);
         if (out->fail()) {
-            std::cerr << "Failed to create " << out_filename
-                      << ": " << strerror(errno) << std::endl;
+            cerr << "Failed to create " << out_filename
+                 << ": " << strerror(errno) << endl;
             exit(2);
         }
     }
@@ -148,8 +148,8 @@ int main(int argc, char **argv) {
         const AirspaceFormat *in_format = getFormatFromFilename(in_filename);
         std::ifstream in(in_filename);
         if (in.fail()) {
-            std::cerr << "Failed to open " << in_filename
-                      << ": " << strerror(errno) << std::endl;
+            cerr << "Failed to open " << in_filename
+                 << ": " << strerror(errno) << endl;
             exit(2);
         }
 
