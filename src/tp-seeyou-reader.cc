@@ -199,7 +199,7 @@ const TurnPoint *SeeYouTurnPointReader::read() {
     const char *p = line;
     unsigned z;
     int ret;
-    TurnPoint *tp = new TurnPoint();
+    TurnPoint tp;
     Latitude *latitude = NULL;
     Longitude *longitude = NULL;
     Altitude *altitude = NULL;
@@ -233,11 +233,11 @@ const TurnPoint *SeeYouTurnPointReader::read() {
 
         if (strcasecmp(columns[z], "title") == 0 ||
             strcasecmp(columns[z], "name") == 0) {
-            tp->setTitle(column);
+            tp.setTitle(column);
         } else if (strcasecmp(columns[z], "code") == 0) {
-            tp->setCode(column);
+            tp.setCode(column);
         } else if (strcasecmp(columns[z], "country") == 0) {
-            tp->setCountry(column);
+            tp.setCountry(column);
         } else if (strcasecmp(columns[z], "latitude") == 0 ||
                    strcasecmp(columns[z], "lat") == 0) {
             if (latitude != NULL)
@@ -316,7 +316,7 @@ const TurnPoint *SeeYouTurnPointReader::read() {
             default:
                 type = TurnPoint::TYPE_UNKNOWN;
             }
-            tp->setType(type);
+            tp.setType(type);
         } else if (strcasecmp(columns[z], "direction") == 0 ||
                    strcasecmp(columns[z], "rwdir") == 0) {
             if (*column != 0)
@@ -327,10 +327,10 @@ const TurnPoint *SeeYouTurnPointReader::read() {
                 rwy_length = (unsigned)atoi(column);
         } else if (strcasecmp(columns[z], "frequency") == 0 ||
                    strcasecmp(columns[z], "freq") == 0) {
-            tp->setFrequency(parseFrequency(column));
+            tp.setFrequency(parseFrequency(column));
         } else if (strcasecmp(columns[z], "description") == 0 ||
                    strcasecmp(columns[z], "desc") == 0) {
-            tp->setDescription(column);
+            tp.setDescription(column);
         }
     }
 
@@ -338,11 +338,11 @@ const TurnPoint *SeeYouTurnPointReader::read() {
         altitude = new Altitude();
 
     if (latitude != NULL && longitude != NULL)
-        tp->setPosition(Position(*latitude,
-                                 *longitude,
-                                 *altitude));
+        tp.setPosition(Position(*latitude,
+                                *longitude,
+                                *altitude));
 
-    tp->setRunway(Runway(rwy_type, rwy_direction, rwy_length));
+    tp.setRunway(Runway(rwy_type, rwy_direction, rwy_length));
 
     if (latitude != NULL)
         delete latitude;
@@ -350,7 +350,7 @@ const TurnPoint *SeeYouTurnPointReader::read() {
         delete longitude;
     delete altitude;
 
-    return tp;
+    return new TurnPoint(tp);
 }
 
 TurnPointReader *

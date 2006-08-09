@@ -126,7 +126,7 @@ static const char *get_next_column(char **pp, size_t width) {
 const TurnPoint *ZanderTurnPointReader::read() {
     char line[256], *p = line;
     const char *q;
-    TurnPoint *tp = new TurnPoint();
+    TurnPoint tp;
     Latitude *latitude = NULL;
     Longitude *longitude = NULL;
     Altitude *altitude = NULL;
@@ -149,7 +149,7 @@ const TurnPoint *ZanderTurnPointReader::read() {
         return NULL;
     }
 
-    tp->setTitle(get_next_column(&p, 13));
+    tp.setTitle(get_next_column(&p, 13));
 
     latitude = parseAngle<Latitude,'S','N'>(get_next_column(&p, 8));
     longitude = parseAngle<Longitude,'W','E'>(get_next_column(&p, 9));
@@ -160,27 +160,27 @@ const TurnPoint *ZanderTurnPointReader::read() {
         altitude = new Altitude(strtol(q, NULL, 10),
                                 Altitude::UNIT_METERS,
                                 Altitude::REF_MSL);
-    tp->setPosition(Position(*latitude,
-                             *longitude,
-                             *altitude));
+    tp.setPosition(Position(*latitude,
+                            *longitude,
+                            *altitude));
 
-    tp->setFrequency(parseFrequency(get_next_column(&p, 8)));
+    tp.setFrequency(parseFrequency(get_next_column(&p, 8)));
 
     q = get_next_column(&p, 2);
     if (q != NULL) {
         if (*q == 'G') {
             rwy_type = Runway::TYPE_GRASS;
-            tp->setType(TurnPoint::TYPE_AIRFIELD);
+            tp.setType(TurnPoint::TYPE_AIRFIELD);
         } else if (*q == 'A' || *q == 'C') {
             rwy_type = Runway::TYPE_ASPHALT;
-            tp->setType(TurnPoint::TYPE_AIRFIELD);
+            tp.setType(TurnPoint::TYPE_AIRFIELD);
         } else if (*q == 'V') {
-            tp->setType(TurnPoint::TYPE_AIRFIELD);
+            tp.setType(TurnPoint::TYPE_AIRFIELD);
         } else if (*q == 'S') {
-            tp->setType(TurnPoint::TYPE_OUTLANDING);
+            tp.setType(TurnPoint::TYPE_OUTLANDING);
         }
     }
-    tp->setRunway(Runway(rwy_type, UINT_MAX, 0));
+    tp.setRunway(Runway(rwy_type, UINT_MAX, 0));
 
     if (latitude != NULL)
         delete latitude;
@@ -188,9 +188,9 @@ const TurnPoint *ZanderTurnPointReader::read() {
         delete longitude;
     delete altitude;
 
-    tp->setCountry(get_next_column(&p, 2));
+    tp.setCountry(get_next_column(&p, 2));
 
-    return tp;
+    return new TurnPoint(tp);
 }
 
 TurnPointReader *
