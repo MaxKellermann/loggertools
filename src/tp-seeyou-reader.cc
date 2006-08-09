@@ -143,36 +143,36 @@ SeeYouTurnPointReader::~SeeYouTurnPointReader() {
 }
 
 template<class T, char minusLetter, char plusLetter>
-static T *parseAngle(const char *p) {
+static const T parseAngle(const char *p) {
     unsigned long n1, n2;
     int sign, degrees;
     char *endptr;
 
     if (p == NULL || *p == 0)
-        return NULL;
+        return T();
 
     n1 = strtoul(p, &endptr, 10);
     if (endptr == NULL || *endptr != '.')
-        return NULL;
+        return T();
 
     n2 = strtoul(endptr + 1, &endptr, 10);
     if (n2 >= 1000 || endptr == NULL)
-        return NULL;
+        return T();
 
     if (*endptr == minusLetter)
         sign = -1;
     else if (*endptr == plusLetter)
         sign = 1;
     else
-        return NULL;
+        return T();
 
     degrees = (int)n1 / 100;
     n1 %= 100;
 
     if (degrees > 180 || n1 >= 60)
-        return NULL;
+        return T();
 
-    return new T(sign * (((degrees * 60) + n1) * 1000 + n2));
+    return T(sign * (((degrees * 60) + n1) * 1000 + n2));
 }
 
 static const Frequency parseFrequency(const char *p) {
@@ -200,9 +200,9 @@ const TurnPoint *SeeYouTurnPointReader::read() {
     unsigned z;
     int ret;
     TurnPoint tp;
-    Latitude *latitude = NULL;
-    Longitude *longitude = NULL;
-    Altitude *altitude = NULL;
+    Latitude latitude;
+    Longitude longitude;
+    Altitude altitude;
     Runway::type_t rwy_type = Runway::TYPE_UNKNOWN;
     unsigned rwy_direction = UINT_MAX, rwy_length = 0;
 
@@ -240,25 +240,18 @@ const TurnPoint *SeeYouTurnPointReader::read() {
             tp.setCountry(column);
         } else if (strcasecmp(columns[z], "latitude") == 0 ||
                    strcasecmp(columns[z], "lat") == 0) {
-            if (latitude != NULL)
-                delete latitude;
             latitude = parseAngle<Latitude,'S','N'>(column);
         } else if (strcasecmp(columns[z], "longitude") == 0 ||
                    strcasecmp(columns[z], "lon") == 0) {
-            if (longitude != NULL)
-                delete longitude;
             longitude = parseAngle<Longitude,'W','E'>(column);
         } else if (strcasecmp(columns[z], "elevation") == 0 ||
                    strcasecmp(columns[z], "elev") == 0) {
-            if (altitude != NULL)
-                delete altitude;
-
             if (*column == 0)
-                altitude = new Altitude();
+                altitude = Altitude();
             else
-                altitude = new Altitude(strtol(column, NULL, 10),
-                                        Altitude::UNIT_METERS,
-                                        Altitude::REF_MSL);
+                altitude = Altitude(strtol(column, NULL, 10),
+                                    Altitude::UNIT_METERS,
+                                    Altitude::REF_MSL);
         } else if (strcasecmp(columns[z], "style") == 0) {
             TurnPoint::type_t type;
 
@@ -334,21 +327,12 @@ const TurnPoint *SeeYouTurnPointReader::read() {
         }
     }
 
-    if (altitude == NULL)
-        altitude = new Altitude();
-
-    if (latitude != NULL && longitude != NULL)
-        tp.setPosition(Position(*latitude,
-                                *longitude,
-                                *altitude));
+    if (latitude.defined() && longitude.defined())
+        tp.setPosition(Position(latitude,
+                                longitude,
+                                altitude));
 
     tp.setRunway(Runway(rwy_type, rwy_direction, rwy_length));
-
-    if (latitude != NULL)
-        delete latitude;
-    if (longitude != NULL)
-        delete longitude;
-    delete altitude;
 
     return new TurnPoint(tp);
 }

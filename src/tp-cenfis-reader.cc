@@ -52,90 +52,90 @@ CenfisTurnPointReader::~CenfisTurnPointReader() {
 }
 
 template<class T, char minusLetter, char plusLetter>
-static T *parseAngle(char **pp) {
+static const T parseAngle(char **pp) {
     const char *p = *pp;
     unsigned long n1, n2, n3;
     int sign;
     char *endptr;
 
     if (p == NULL || p[0] == 0 || p[1] != ' ' || p[2] == 0)
-        return NULL;
+        return T();
 
     if (*p == minusLetter)
         sign = -1;
     else if (*p == plusLetter)
         sign = 1;
     else
-        return NULL;
+        return T();
 
     p += 2;
 
     n1 = strtoul(p, &endptr, 10);
     if (n1 > 180 || endptr == NULL ||
         endptr[0] != ' ' || endptr[1] == 0)
-        return NULL;
+        return T();
 
     n2 = strtoul(endptr + 1, &endptr, 10);
     if (n2 >= 60 || endptr == NULL ||
         endptr[0] != ' ' || endptr[1] == 0)
-        return NULL;
+        return T();
 
     n3 = strtoul(endptr + 1, &endptr, 10);
     if (n2 >= 1000 || endptr == NULL ||
         endptr[0] != ' ' || endptr[1] == 0)
-        return NULL;
+        return T();
 
     *pp = endptr + 1;
 
-    return new T(sign * (((n1 * 60) + n2) * 1000 + n3));
+    return T(sign * (((n1 * 60) + n2) * 1000 + n3));
 }
 
 template<class T, char minusLetter, char plusLetter>
-static T *parseAngle60(char **pp) {
+static const T parseAngle60(char **pp) {
     const char *p = *pp;
     unsigned long n1, n2, n3;
     int sign;
     char *endptr;
 
     if (p == NULL || p[0] == 0 || p[1] != ' ' || p[2] == 0)
-        return NULL;
+        return T();
 
     if (*p == minusLetter)
         sign = -1;
     else if (*p == plusLetter)
         sign = 1;
     else
-        return NULL;
+        return T();
 
     p += 2;
 
     n1 = strtoul(p, &endptr, 10);
     if (n1 > 180 || endptr == NULL ||
         endptr[0] != ' ' || endptr[1] == 0)
-        return NULL;
+        return T();
 
     n2 = strtoul(endptr + 1, &endptr, 10);
     if (n2 >= 60 || endptr == NULL ||
         endptr[0] != ' ' || endptr[1] == 0)
-        return NULL;
+        return T();
 
     n3 = strtoul(endptr + 1, &endptr, 10);
     if (n2 >= 60 || endptr == NULL ||
         endptr[0] != ' ' || endptr[1] == 0)
-        return NULL;
+        return T();
 
     *pp = endptr + 1;
 
-    return new T(sign * ((n1 * 60) + n2) * 60 + n3, 60);
+    return T(sign * ((n1 * 60) + n2) * 60 + n3, 60);
 }
 
-static Altitude *parseAltitude(const char *p) {
+static const Altitude parseAltitude(const char *p) {
     Altitude::unit_t unit;
     long value;
     char *endptr;
 
     if (p == NULL || p[0] == 0 || p[1] != ' ' || p[2] == 0)
-        return NULL;
+        return Altitude();
 
     switch (p[0]) {
     case 'M':
@@ -148,14 +148,14 @@ static Altitude *parseAltitude(const char *p) {
         unit = Altitude::UNIT_UNKNOWN;
         break;
     default:
-        return NULL;
+        return Altitude();
     }
 
     value = strtol(p + 2, &endptr, 10);
     if (endptr != NULL && *endptr)
-        return NULL;
+        return Altitude();
 
-    return new Altitude((long)value, unit, Altitude::REF_MSL);
+    return Altitude((long)value, unit, Altitude::REF_MSL);
 }
 
 static const Frequency parseFrequency(const char *p) {
@@ -297,59 +297,45 @@ TurnPoint *CenfisTurnPointReader::handleLine(char *line) {
 
     case 'C': /* position */
         {
-            Latitude *latitude;
-            Longitude *longitude;
-            Altitude *altitude;
+            Latitude latitude;
+            Longitude longitude;
+            Altitude altitude;
 
             line += 2;
 
             latitude = parseAngle60<Latitude,'S','N'>(&line);
-            if (latitude == NULL)
+            if (!latitude.defined())
                 break;
 
             longitude = parseAngle60<Longitude,'W','E'>(&line);
-            if (longitude == NULL) {
-                delete latitude;
+            if (!longitude.defined())
                 break;
-            }
 
             altitude = parseAltitude(line);
-            if (altitude == NULL)
-                altitude = new Altitude();
 
-            tp->setPosition(Position(*latitude, *longitude, *altitude));
-            delete latitude;
-            delete longitude;
-            delete altitude;
+            tp->setPosition(Position(latitude, longitude, altitude));
         }
         break;
 
     case 'K': /* position */
         {
-            Latitude *latitude;
-            Longitude *longitude;
-            Altitude *altitude;
+            Latitude latitude;
+            Longitude longitude;
+            Altitude altitude;
 
             line += 2;
 
             latitude = parseAngle<Latitude,'S','N'>(&line);
-            if (latitude == NULL)
+            if (!latitude.defined())
                 break;
 
             longitude = parseAngle<Longitude,'W','E'>(&line);
-            if (longitude == NULL) {
-                delete latitude;
+            if (!longitude.defined())
                 break;
-            }
 
             altitude = parseAltitude(line);
-            if (altitude == NULL)
-                altitude = new Altitude();
 
-            tp->setPosition(Position(*latitude, *longitude, *altitude));
-            delete latitude;
-            delete longitude;
-            delete altitude;
+            tp->setPosition(Position(latitude, longitude, altitude));
         }
         break;
 

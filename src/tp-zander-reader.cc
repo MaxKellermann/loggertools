@@ -43,24 +43,24 @@ ZanderTurnPointReader::ZanderTurnPointReader(std::istream *_stream)
     :stream(_stream), is_eof(false) {}
 
 template<class T, char minusLetter, char plusLetter>
-static T *parseAngle(const char *p) {
+static const T parseAngle(const char *p) {
     long n;
     int sign, degrees, minutes, seconds;
     char *endptr;
 
     if (p == NULL || *p == 0)
-        return NULL;
+        return T();
 
     n = (long)strtoul(p, &endptr, 10);
     if (endptr == NULL)
-        return NULL;
+        return T();
 
     if (*endptr == minusLetter)
         sign = -1;
     else if (*endptr == plusLetter)
         sign = 1;
     else
-        return NULL;
+        return T();
 
     seconds = (int)(n % 100);
     n /= 100;
@@ -69,10 +69,9 @@ static T *parseAngle(const char *p) {
     degrees = (int)n;
 
     if (degrees > 180 || minutes >= 60 || seconds >= 60)
-        return NULL;
+        return T();
 
-    return new T(sign * ((degrees * 60) + minutes) * 60 + seconds,
-                 60);
+    return T(sign * ((degrees * 60) + minutes) * 60 + seconds, 60);
 }
 
 static const Frequency parseFrequency(const char *p) {
@@ -127,9 +126,9 @@ const TurnPoint *ZanderTurnPointReader::read() {
     char line[256], *p = line;
     const char *q;
     TurnPoint tp;
-    Latitude *latitude = NULL;
-    Longitude *longitude = NULL;
-    Altitude *altitude = NULL;
+    Latitude latitude;
+    Longitude longitude;
+    Altitude altitude;
     Runway::type_t rwy_type = Runway::TYPE_UNKNOWN;
 
     if (is_eof || stream->eof())
@@ -154,15 +153,13 @@ const TurnPoint *ZanderTurnPointReader::read() {
     latitude = parseAngle<Latitude,'S','N'>(get_next_column(&p, 8));
     longitude = parseAngle<Longitude,'W','E'>(get_next_column(&p, 9));
     q = get_next_column(&p, 5);
-    if (q == NULL)
-        altitude = new Altitude();
-    else
-        altitude = new Altitude(strtol(q, NULL, 10),
-                                Altitude::UNIT_METERS,
-                                Altitude::REF_MSL);
-    tp.setPosition(Position(*latitude,
-                            *longitude,
-                            *altitude));
+    if (q != NULL)
+        altitude = Altitude(strtol(q, NULL, 10),
+                            Altitude::UNIT_METERS,
+                            Altitude::REF_MSL);
+    tp.setPosition(Position(latitude,
+                            longitude,
+                            altitude));
 
     tp.setFrequency(parseFrequency(get_next_column(&p, 8)));
 
@@ -181,12 +178,6 @@ const TurnPoint *ZanderTurnPointReader::read() {
         }
     }
     tp.setRunway(Runway(rwy_type, UINT_MAX, 0));
-
-    if (latitude != NULL)
-        delete latitude;
-    if (longitude != NULL)
-        delete longitude;
-    delete altitude;
 
     tp.setCountry(get_next_column(&p, 2));
 
