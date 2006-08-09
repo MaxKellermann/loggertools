@@ -377,22 +377,22 @@ const TurnPoint *CenfisTurnPointReader::read() {
     char line[1024];
     TurnPoint *ret = NULL;
 
-    while (true) {
-        stream->getline(line, sizeof(line));
-        if (stream->fail())
-            return NULL;
+    while (!stream->eof()) {
+        try {
+            stream->getline(line, sizeof(line));
+        } catch (const std::ios_base::failure &e) {
+            if (stream->eof())
+                break;
+            else
+                throw;
+        }
 
         ret = handleLine(line);
         if (ret != NULL)
             return ret;
     }
 
-    if (tp != NULL) {
-        ret = tp;
-        tp = NULL;
-    }
-
-    return ret;
+    return NULL;
 }
 
 TurnPointReader *

@@ -106,10 +106,15 @@ const Airspace *OpenAirAirspaceReader::read() {
     Altitude bottom, top;
     std::vector<Vertex> vertices;
 
-    while (1) {
-        stream->getline(line, sizeof(line));
-        if (stream->fail())
-            break;
+    while (!stream->eof()) {
+        try {
+            stream->getline(line, sizeof(line));
+        } catch (const std::ios_base::failure &e) {
+            if (stream->eof())
+                break;
+            else
+                throw;
+        }
 
         if (line[0] == '*') /* comment */
             continue;

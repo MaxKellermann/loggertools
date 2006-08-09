@@ -153,6 +153,8 @@ int main(int argc, char **argv) {
             exit(2);
         }
 
+        in.exceptions(std::ios_base::badbit | std::ios_base::failbit);
+
         AirspaceReader *reader = in_format->createReader(&in);
         if (reader == NULL) {
             cerr << "Reading this type is not supported" << endl;

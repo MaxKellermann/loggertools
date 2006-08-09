@@ -117,8 +117,6 @@ SeeYouTurnPointReader::SeeYouTurnPointReader(std::istream *_stream)
     int ret;
 
     stream->getline(line, sizeof(line));
-    if (stream->fail())
-        throw TurnPointReaderException("No header");
 
     num_columns = count_columns(line);
     if (num_columns == 0)
@@ -208,13 +206,16 @@ const TurnPoint *SeeYouTurnPointReader::read() {
     Runway::type_t rwy_type = Runway::TYPE_UNKNOWN;
     unsigned rwy_direction = UINT_MAX, rwy_length = 0;
 
-    if (is_eof)
+    if (is_eof || stream->eof())
         return NULL;
 
-    stream->getline(line, sizeof(line));
-    if (stream->fail()) {
-        is_eof = 1;
-        return NULL;
+    try {
+        stream->getline(line, sizeof(line));
+    } catch (const std::ios_base::failure &e) {
+        if (stream->eof())
+            return NULL;
+        else
+            throw;
     }
 
     if (strncmp(p, "-----Related", 12) == 0) {

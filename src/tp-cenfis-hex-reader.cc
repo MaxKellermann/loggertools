@@ -152,13 +152,6 @@ static int decode_hexfile(std::istream *stream,
     if (ret < 0)
         return -1;
 
-    if (stream->bad()) {
-        if (dh.data != NULL)
-            free(dh.data);
-        errno = EIO;
-        return -1;
-    }
-
     if (!dh.eof) {
         if (dh.data != NULL)
             free(dh.data);

@@ -132,11 +132,19 @@ const TurnPoint *ZanderTurnPointReader::read() {
     Altitude *altitude = NULL;
     Runway::type_t rwy_type = Runway::TYPE_UNKNOWN;
 
-    if (is_eof)
+    if (is_eof || stream->eof())
         return NULL;
 
-    stream->getline(line, sizeof(line));
-    if (stream->fail() || line[0] == '\x1a') {
+    try {
+        stream->getline(line, sizeof(line));
+    } catch (const std::ios_base::failure &e) {
+        if (stream->eof())
+            return NULL;
+        else
+            throw;
+    }
+
+    if (line[0] == '\x1a') {
         is_eof = 1;
         return NULL;
     }

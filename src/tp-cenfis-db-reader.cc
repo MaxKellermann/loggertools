@@ -45,8 +45,6 @@ public:
 CenfisDatabaseReader::CenfisDatabaseReader(std::istream *_stream)
     :stream(_stream), current(0), overall_count(0) {
     stream->read((char*)&header, sizeof(header));
-    if (stream->bad())
-        throw TurnPointReaderException("failed to read header");
 
     if (ntohs(header.magic1) != 0x4610 &&
         ntohs(header.magic2) != 0x4131)
@@ -81,8 +79,6 @@ const TurnPoint *CenfisDatabaseReader::read() {
 
     /* read this record */
     stream->read((char*)&data, sizeof(data));
-    if (stream->bad())
-        throw TurnPointReaderException("failed to read data");
 
     ++current;
 
