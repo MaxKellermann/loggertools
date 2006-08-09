@@ -205,11 +205,11 @@ CenfisHexReader::CenfisHexReader(std::istream *_stream)
 
     const TurnPointFormat *format = getTurnPointFormat("dab");
     if (format == NULL)
-        throw TurnPointWriterException("no such format: dab");
+        throw std::runtime_error("no such format: dab");
 
     tpr = format->createReader(stream);
     if (tpr == NULL)
-        throw TurnPointWriterException("failed to create dab reader");
+        throw std::runtime_error("failed to create dab reader");
 }
 
 CenfisHexReader::~CenfisHexReader() {
