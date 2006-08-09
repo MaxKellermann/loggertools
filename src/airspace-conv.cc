@@ -34,7 +34,7 @@ using std::cerr;
 using std::endl;
 
 static void usage() {
-    cout << "usage: asconv [options] FILE\n"
+    cout << "usage: asconv [options] FILE1 ...\n"
         "options:\n"
         " -o outfile   write output to this file\n"
         " -f outformat write output to stdout with this format\n"
@@ -61,10 +61,9 @@ AirspaceFormat *getFormatFromFilename(const char *filename) {
 }
 
 int main(int argc, char **argv) {
-    const char *in_filename, *out_filename = NULL, *stdout_format = NULL;
-    AirspaceFormat *in_format, *out_format;
+    const char *out_filename = NULL, *stdout_format = NULL;
+    AirspaceFormat *out_format;
     std::ostream *out;
-    AirspaceReader *reader;
     AirspaceWriter *writer;
     const Airspace *tp;
 
@@ -108,9 +107,7 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    in_filename = argv[optind];
-
-    /* open files */
+    /* open output file */
 
     if (out_filename == NULL) {
         out_format = getAirspaceFormat(stdout_format);
@@ -121,20 +118,6 @@ int main(int argc, char **argv) {
         }
     } else {
         out_format = getFormatFromFilename(out_filename);
-    }
-    in_format = getFormatFromFilename(in_filename);
-
-    std::ifstream in(in_filename);
-    if (in.fail()) {
-        std::cerr << "Failed to open " << in_filename
-                  << ": " << strerror(errno) << std::endl;
-        exit(2);
-    }
-
-    reader = in_format->createReader(&in);
-    if (reader == NULL) {
-        cerr << "Reading this type is not supported" << endl;
-        exit(1);
     }
 
     if (out_filename == NULL) {
@@ -157,24 +140,44 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    /* transfer data */
-    try {
-        while ((tp = reader->read()) != NULL) {
-            writer->write(*tp);
-            delete tp;
+    /* read all input files */
+
+    while (optind < argc) {
+        const char *in_filename = argv[optind++];
+
+        const AirspaceFormat *in_format = getFormatFromFilename(in_filename);
+        std::ifstream in(in_filename);
+        if (in.fail()) {
+            std::cerr << "Failed to open " << in_filename
+                      << ": " << strerror(errno) << std::endl;
+            exit(2);
         }
 
-        writer->flush();
-    } catch (const std::exception &e) {
-        delete writer;
+        AirspaceReader *reader = in_format->createReader(&in);
+        if (reader == NULL) {
+            cerr << "Reading this type is not supported" << endl;
+            exit(1);
+        }
+
+        /* transfer data */
+        try {
+            while ((tp = reader->read()) != NULL) {
+                writer->write(*tp);
+                delete tp;
+            }
+        } catch (const std::exception &e) {
+            delete writer;
+            delete reader;
+            unlink(out_filename);
+            cerr << e.what() << endl;
+            exit(2);
+        }
+
         delete reader;
-        unlink(out_filename);
-        cerr << e.what() << endl;
-        exit(2);
     }
 
+    writer->flush();
     delete writer;
-    delete reader;
 
     if (out == &cout)
         out->flush();
