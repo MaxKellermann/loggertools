@@ -24,9 +24,9 @@
 
 #include <stdarg.h>
 
-static OpenAirAirspaceFormat openAirFormat;
+static const OpenAirAirspaceFormat openAirFormat;
 
-AirspaceFormat *getAirspaceFormat(const char *ext) {
+const AirspaceFormat *getAirspaceFormat(const char *ext) {
     if (strcasecmp(ext, "txt") == 0 || strcmp(ext, "openair") == 0)
         return &openAirFormat;
     else

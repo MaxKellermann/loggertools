@@ -38,6 +38,6 @@ public:
     virtual AirspaceWriter *createWriter(std::ostream *stream) const;
 };
 
-AirspaceFormat *getAirspaceFormat(const char *ext);
+const AirspaceFormat *getAirspaceFormat(const char *ext);
 
 #endif

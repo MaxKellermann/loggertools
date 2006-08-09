@@ -41,9 +41,9 @@ static void usage() {
         " -h           help (this text)\n";
 }
 
-AirspaceFormat *getFormatFromFilename(const char *filename) {
+const AirspaceFormat *getFormatFromFilename(const char *filename) {
     const char *dot;
-    AirspaceFormat *format;
+    const AirspaceFormat *format;
 
     dot = strchr(filename, '.');
     if (dot == NULL || dot[1] == 0) {
@@ -62,7 +62,7 @@ AirspaceFormat *getFormatFromFilename(const char *filename) {
 
 int main(int argc, char **argv) {
     const char *out_filename = NULL, *stdout_format = NULL;
-    AirspaceFormat *out_format;
+    const AirspaceFormat *out_format;
     std::ostream *out;
     AirspaceWriter *writer;
 
