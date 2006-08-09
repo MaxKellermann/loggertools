@@ -65,7 +65,6 @@ int main(int argc, char **argv) {
     AirspaceFormat *out_format;
     std::ostream *out;
     AirspaceWriter *writer;
-    const Airspace *tp;
 
     /* parse command line arguments */
     while (1) {
@@ -163,9 +162,11 @@ int main(int argc, char **argv) {
 
         /* transfer data */
         try {
-            while ((tp = reader->read()) != NULL) {
-                writer->write(*tp);
-                delete tp;
+            const Airspace *as;
+
+            while ((as = reader->read()) != NULL) {
+                writer->write(*as);
+                delete as;
             }
         } catch (const std::exception &e) {
             delete writer;
