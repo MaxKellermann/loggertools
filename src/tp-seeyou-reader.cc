@@ -139,6 +139,9 @@ SeeYouTurnPointReader::SeeYouTurnPointReader(std::istream *_stream)
 }
 
 SeeYouTurnPointReader::~SeeYouTurnPointReader() {
+    for (unsigned i = 0; i < num_columns; ++i)
+        if (columns[i] != NULL)
+            free(columns[i]);
     free(columns);
 }
 
