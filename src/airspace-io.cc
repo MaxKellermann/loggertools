@@ -22,8 +22,6 @@
 #include "airspace.hh"
 #include "airspace-io.hh"
 
-#include <stdarg.h>
-
 static const OpenAirAirspaceFormat openAirFormat;
 
 const AirspaceFormat *getAirspaceFormat(const char *ext) {

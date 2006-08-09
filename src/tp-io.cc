@@ -19,11 +19,6 @@
  * $Id$
  */
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <limits.h>
-
 #include "tp.hh"
 #include "tp-io.hh"
 

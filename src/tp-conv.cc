@@ -19,11 +19,8 @@
  * $Id$
  */
 
-#include <string.h>
 #include <errno.h>
-#include <stdio.h>
 #include <getopt.h>
-#include <unistd.h>
 
 #include "tp.hh"
 #include "tp-io.hh"
