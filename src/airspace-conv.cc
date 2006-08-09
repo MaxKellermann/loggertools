@@ -123,6 +123,10 @@ int main(int argc, char **argv) {
     in_format = getFormatFromFilename(in_filename);
 
     std::ifstream in(in_filename);
+    if (in.fail()) {
+        std::cerr << "Failed to open " << in_filename << std::endl;
+        exit(2);
+    }
 
     reader = in_format->createReader(&in);
     if (reader == NULL) {

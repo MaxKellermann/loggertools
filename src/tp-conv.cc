@@ -155,6 +155,11 @@ int main(int argc, char **argv) {
 
         const TurnPointFormat *in_format = getFormatFromFilename(in_filename);
         std::ifstream in(in_filename);
+        if (in.fail()) {
+            std::cerr << "Failed to open " << in_filename << std::endl;
+            exit(2);
+        }
+
         TurnPointReader *reader = in_format->createReader(&in);
         if (reader == NULL) {
             fprintf(stderr, "reading this type is not supported\n");
