@@ -32,11 +32,12 @@
 #include <iostream>
 #include <list>
 
+using std::cout;
 using std::cerr;
 using std::endl;
 
 static void usage() {
-    std::cout << "usage: loggerconv [options] FILE1 ...\n"
+    cout << "usage: loggerconv [options] FILE1 ...\n"
         "options:\n"
         " -o outfile   write output to this file\n"
         " -f outformat write output to stdout with this format\n"
@@ -130,12 +131,12 @@ int main(int argc, char **argv) {
     }
 
     if (out_filename == NULL) {
-        out = &std::cout;
+        out = &cout;
     } else {
         out = new std::ofstream(out_filename);
         if (out->fail()) {
-            std::cerr << "Failed to create " << out_filename
-                      << ": " << strerror(errno) << std::endl;
+            cerr << "Failed to create " << out_filename
+                 << ": " << strerror(errno) << endl;
             exit(2);
         }
     }
@@ -157,8 +158,8 @@ int main(int argc, char **argv) {
         const TurnPointFormat *in_format = getFormatFromFilename(in_filename);
         std::ifstream in(in_filename);
         if (in.fail()) {
-            std::cerr << "Failed to open " << in_filename
-                      << ": " << strerror(errno) << std::endl;
+            cerr << "Failed to open " << in_filename
+                 << ": " << strerror(errno) << endl;
             exit(2);
         }
 
@@ -210,7 +211,7 @@ int main(int argc, char **argv) {
 
     delete writer;
 
-    if (out == &std::cout)
+    if (out == &cout)
         out->flush();
     else
         delete out;
