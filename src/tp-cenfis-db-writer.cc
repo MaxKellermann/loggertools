@@ -120,7 +120,7 @@ void CenfisDatabaseWriter::write(const TurnPoint &tp) {
         throw already_flushed();
 
     if (tps.size() >= 0xffff)
-        throw TurnPointWriterException("too many turn points");
+        throw container_full("Cenfis databases cannot hold more than 65535 turn points");
 
     memset(&data, 0, sizeof(data));
 

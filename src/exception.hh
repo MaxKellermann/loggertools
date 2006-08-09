@@ -43,4 +43,17 @@ public:
     }
 };
 
+class container_full : public std::exception {
+private:
+    std::string msg;
+public:
+    container_full():msg("container cannot hold more") {}
+    container_full(const std::string &_msg):msg(_msg) {}
+    virtual ~container_full() throw() {}
+public:
+    virtual const char *what() const throw() {
+        return msg.c_str();
+    }
+};
+
 #endif
