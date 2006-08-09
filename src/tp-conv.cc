@@ -182,8 +182,6 @@ int main(int argc, char **argv) {
                 writer->write(*tp);
                 delete tp;
             }
-
-            writer->flush();
         } catch (const TurnPointReaderException &e) {
             delete writer;
             delete reader;
@@ -200,6 +198,8 @@ int main(int argc, char **argv) {
 
         delete reader;
     }
+
+    writer->flush();
 
     delete writer;
 
