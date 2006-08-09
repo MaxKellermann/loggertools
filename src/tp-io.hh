@@ -28,32 +28,6 @@
 
 #include "io.hh"
 
-class TurnPointReaderException : public std::exception {
-private:
-    std::string msg;
-public:
-    TurnPointReaderException(const char *fmt, ...)
-        __attribute__((format(printf, 2, 3)));
-    virtual ~TurnPointReaderException() throw();
-public:
-    virtual const char *what() const throw() {
-        return msg.c_str();
-    }
-};
-
-class TurnPointWriterException : public std::exception {
-private:
-    std::string msg;
-public:
-    TurnPointWriterException(const char *fmt, ...)
-        __attribute__((format(printf, 2, 3)));
-    virtual ~TurnPointWriterException() throw();
-public:
-    virtual const char *what() const throw() {
-        return msg.c_str();
-    }
-};
-
 typedef Reader<TurnPoint> TurnPointReader;
 typedef Writer<TurnPoint> TurnPointWriter;
 typedef Format<TurnPoint> TurnPointFormat;

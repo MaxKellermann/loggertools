@@ -192,13 +192,7 @@ int main(int argc, char **argv) {
                 writer->write(*tp);
                 delete tp;
             }
-        } catch (const TurnPointReaderException &e) {
-            delete writer;
-            delete reader;
-            unlink(out_filename);
-            cerr << e.what() << endl;
-            exit(2);
-        } catch (const TurnPointWriterException &e) {
+        } catch (const std::exception &e) {
             delete writer;
             delete reader;
             unlink(out_filename);

@@ -27,30 +27,6 @@
 #include "tp.hh"
 #include "tp-io.hh"
 
-TurnPointReaderException::TurnPointReaderException(const char *fmt, ...) {
-    va_list ap;
-    char buffer[4096];
-
-    va_start(ap, fmt);
-    vsnprintf(buffer, sizeof(buffer), fmt, ap);
-
-    msg = std::string(buffer);
-}
-
-TurnPointReaderException::~TurnPointReaderException() throw() {}
-
-TurnPointWriterException::TurnPointWriterException(const char *fmt, ...) {
-    va_list ap;
-    char buffer[4096];
-
-    va_start(ap, fmt);
-    vsnprintf(buffer, sizeof(buffer), fmt, ap);
-
-    msg = std::string(buffer);
-}
-
-TurnPointWriterException::~TurnPointWriterException() throw() {}
-
 TurnPointFilter::~TurnPointFilter(void) {
 }
 
