@@ -22,6 +22,7 @@
 #ifndef __LOGGERTOOLS_EARTH_HH
 #define __LOGGERTOOLS_EARTH_HH
 
+/** the great circle distance between two points on earth's surface */
 class Distance {
 public:
     enum unit_t {
@@ -74,6 +75,7 @@ public:
     }
 };
 
+/** vertical altitude of an object */
 class Altitude {
 public:
     enum unit_t {
@@ -110,6 +112,8 @@ public:
     }
 };
 
+/** abstract class: angle which describes the position of an object on
+    the earth */
 class Angle {
 private:
     static const int undef = 0x80000000;
@@ -132,6 +136,7 @@ public:
     }
 };
 
+/** the latitude value */
 class Latitude : public Angle {
 public:
     Latitude() {}
@@ -141,6 +146,7 @@ public:
         :Angle(sign, degrees, minutes, seconds) {}
 };
 
+/** the longitude value */
 class Longitude : public Angle {
 public:
     Longitude() {}
@@ -150,6 +156,7 @@ public:
         :Angle(sign, degrees, minutes, seconds) {}
 };
 
+/** the 3D position of an object on the earth */
 class Position {
 private:
     Latitude latitude;

@@ -27,6 +27,7 @@
 
 #include "earth.hh"
 
+/** a 2D position earth's surface */
 class Vertex {
 private:
     Latitude latitude;
@@ -49,6 +50,7 @@ public:
     }
 };
 
+/** an airspace: polygon with a lower and an upper bound */
 class Airspace {
 public:
     enum type_t {

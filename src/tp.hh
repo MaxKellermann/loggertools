@@ -26,6 +26,7 @@
 
 #include <string>
 
+/** description of an airfield's runway */
 class Runway {
 public:
     enum type_t {
@@ -52,6 +53,7 @@ public:
     }
 };
 
+/** a UHF radio frequency */
 class Frequency {
 private:
     unsigned hertz;
@@ -77,6 +79,7 @@ public:
     }
 };
 
+/** a turn point used for navigation */
 class TurnPoint {
 public:
     enum type_t {
