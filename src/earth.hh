@@ -53,9 +53,9 @@ public:
         case UNIT_METERS:
             return value;
         case UNIT_FEET:
-            return value / 3.2; // xxx
+            return value / 3.2808399;
         case UNIT_NAUTICAL_MILES:
-            return value / 1.85; // xxx
+            return value / 1.852;
         }
 
         return 0.0;
