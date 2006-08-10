@@ -112,16 +112,16 @@ public:
 
 class Angle {
 private:
+    static const int undef = 0x80000000;
     int value;
 protected:
-    Angle():value(0) {}
+    Angle():value(undef) {}
     Angle(int _value):value(_value) {}
     Angle(int _value, int factor);
     Angle(int sign, unsigned degrees, unsigned minutes, unsigned seconds);
 public:
     bool defined() const {
-        /* XXX */
-        return value != 0;
+        return value != undef;
     }
     int getValue() const {
         return value;
