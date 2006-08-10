@@ -31,6 +31,7 @@
 typedef Reader<TurnPoint> TurnPointReader;
 typedef Writer<TurnPoint> TurnPointWriter;
 typedef Format<TurnPoint> TurnPointFormat;
+typedef Filter<TurnPoint> TurnPointFilter;
 
 class SeeYouTurnPointFormat : public TurnPointFormat {
 public:
@@ -70,14 +71,6 @@ public:
 
 const TurnPointFormat *getTurnPointFormat(const char *ext);
 
-
-class TurnPointFilter {
-public:
-    virtual ~TurnPointFilter();
-public:
-    virtual TurnPointReader *createFilter(TurnPointReader *reader,
-                                          const char *args) const = 0;
-};
 
 class DistanceTurnPointFilter : public TurnPointFilter {
 public:

@@ -48,4 +48,13 @@ public:
     virtual Writer<T> *createWriter(std::ostream *stream) const = 0;
 };
 
+template<class T>
+class Filter {
+public:
+    virtual ~Filter() {}
+public:
+    virtual Reader<T> *createFilter(Reader<T> *reader,
+                                    const char *args) const = 0;
+};
+
 #endif

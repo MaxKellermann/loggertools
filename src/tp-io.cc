@@ -22,10 +22,6 @@
 #include "tp.hh"
 #include "tp-io.hh"
 
-TurnPointFilter::~TurnPointFilter(void) {
-}
-
-
 static const SeeYouTurnPointFormat seeYouFormat;
 static const CenfisTurnPointFormat cenfisFormat;
 static const CenfisDatabaseFormat cenfisDatabaseFormat;
