@@ -34,40 +34,61 @@ CFLAGS += -Wmissing-prototypes -Wwrite-strings -Wcast-qual -Wfloat-equal -Wshado
 CXXFLAGS += $(COMMON_CFLAGS)
 CXXFLAGS += -Wwrite-strings -Wcast-qual -Wfloat-equal -Wpointer-arith -Wsign-compare -Wmissing-format-attribute -Wredundant-decls -Winline -Wdisabled-optimization -Wno-long-long -Wundef
 
-all: src/tpconv src/asconv src/cenfistool src/hexfile src/filsertool src/fakefilser src/fwd
+all: bin/tpconv bin/asconv bin/cenfistool bin/hexfile bin/filsertool bin/fakefilser bin/fwd
 
 clean:
-	rm -f src/tpconv src/asconv src/cenfistool src/hexfile src/filsertool src/fakefilser src/*.[oa]
+	rm -rf bin
+
+bin:
+	mkdir -p bin
 
 tpconv_SOURCES = $(addprefix src/,tp-conv.cc earth.cc tp.cc tp-io.cc tp-cenfis-reader.cc tp-cenfis-writer.cc tp-cenfis-db-reader.cc tp-cenfis-db-writer.cc tp-cenfis-hex-reader.cc tp-cenfis-hex-writer.cc tp-seeyou-reader.cc tp-seeyou-writer.cc tp-filser-reader.cc tp-filser-writer.cc tp-zander-reader.cc tp-zander-writer.cc tp-distance.cc)
-tpconv_OBJECTS = $(patsubst %.cc,%.o,$(tpconv_SOURCES))
+tpconv_OBJECTS = $(patsubst src/%.cc,bin/%.o,$(tpconv_SOURCES))
 
 asconv_SOURCES = $(addprefix src/,airspace-conv.cc earth.cc airspace.cc airspace-io.cc airspace-openair-reader.cc airspace-openair-writer.cc)
-asconv_OBJECTS = $(patsubst %.cc,%.o,$(asconv_SOURCES))
+asconv_OBJECTS = $(patsubst src/%.cc,bin/%.o,$(asconv_SOURCES))
 
-src/libhexfile.a: src/hexfile-decoder.o
+cenfistool_SOURCES = src/cenfistool.c src/cenfis.c src/serialio.c
+cenfistool_OBJECTS = $(patsubst src/%.c,bin/%.o,$(cenfistool_SOURCES))
+
+filsertool_SOURCES = src/filsertool.c src/filser-crc.c src/filser-open.c src/filser-io.c src/filser-proto.c src/datadir.c src/filser-to-igc.c
+filsertool_OBJECTS = $(patsubst src/%.c,bin/%.o,$(filsertool_SOURCES))
+
+fakefilser_SOURCES = src/fakefilser.c src/filser-crc.c src/filser-open.c src/filser-io.c src/datadir.c
+fakefilser_OBJECTS = $(patsubst src/%.c,bin/%.o,$(fakefilser_SOURCES))
+
+c_SOURCES = $(wildcard src/*.c)
+c_OBJECTS = $(patsubst src/%.c,bin/%.o,$(c_SOURCES))
+
+cxx_SOURCES = $(wildcard src/*.cc)
+cxx_OBJECTS = $(patsubst src/%.cc,bin/%.o,$(cxx_SOURCES))
+
+$(c_OBJECTS): bin/%.o: src/%.c bin
+	$(CC) -c $(CFLAGS) -o $@ $<
+
+$(cxx_OBJECTS): bin/%.o: src/%.cc bin
+	$(CXX) -c $(CXXFLAGS) -o $@ $<
+
+bin/libhexfile.a: bin/hexfile-decoder.o
 	$(LD) -r -o $@ $^
 
-$(tpconv_OBJECTS): %.o: %.cc
-	$(CXX) -c $(CXXFLAGS) -o $@ $^
-
-src/tpconv: $(tpconv_OBJECTS) src/libhexfile.a
+bin/tpconv: $(tpconv_OBJECTS) bin/libhexfile.a
 	$(CXX) $(CXXFLAGS) -o $@ $^ -lstdc++
 
-src/asconv: $(asconv_OBJECTS)
+bin/asconv: $(asconv_OBJECTS)
 	$(CXX) $(CXXFLAGS) -o $@ $^ -lstdc++
 
-src/cenfistool: src/cenfistool.c src/cenfis.c src/serialio.c
+bin/cenfistool: $(cenfistool_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
 
-src/hexfile: src/hexfile-tool.c src/libhexfile.a
+bin/hexfile: bin/hexfile-tool.o bin/libhexfile.a
 	$(CC) $(CFLAGS) -o $@ $^
 
-src/filsertool: src/filsertool.c src/filser-crc.c src/filser-open.c src/filser-io.c src/filser-proto.c src/datadir.c src/filser-to-igc.c
+bin/filsertool: $(filsertool_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
 
-src/fakefilser: src/fakefilser.c src/filser-crc.c src/filser-open.c src/filser-io.c src/datadir.c
+bin/fakefilser: $(fakefilser_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
 
-src/fwd: src/fwd.c src/filser-proto.c
+bin/fwd: src/fwd.c bin/filser-proto.o
 	$(CC) $(CFLAGS) -o $@ $^
