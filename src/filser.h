@@ -202,6 +202,10 @@ int filser_read_crc(int fd, void *p, size_t length,
 
 /* filser-proto.c */
 
+int filser_send_syn(int fd);
+
+int filser_recv_ack(int fd);
+
 int filser_syn_ack(int fd);
 
 #ifdef __cplusplus

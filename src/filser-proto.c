@@ -1,6 +1,6 @@
 /*
  * loggertools
- * Copyright (C) 2004-2006 Max Kellermann (max@duempel.org)
+ * Copyright (C) 2004-2006 Max Kellermann <max@duempel.org>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -25,9 +25,8 @@
 
 #include "filser.h"
 
-int filser_syn_ack(int fd) {
-    static const char syn = FILSER_SYN, ack = FILSER_ACK;
-    char buffer;
+int filser_send_syn(int fd) {
+    static const char syn = FILSER_SYN;
     ssize_t nbytes;
 
     tcflush(fd, TCIOFLUSH);
@@ -36,10 +35,28 @@ int filser_syn_ack(int fd) {
     if (nbytes <= 0)
         return (int)nbytes;
 
+    return 1;
+}
+
+int filser_recv_ack(int fd) {
+    static const char ack = FILSER_ACK;
+    char buffer;
+    ssize_t nbytes;
+
     nbytes = read(fd, &buffer, sizeof(buffer));
     if (nbytes <= 0)
         return (int)nbytes;
 
     return buffer == ack
         ? 1 : 0;
+}
+
+int filser_syn_ack(int fd) {
+    int ret;
+
+    ret = filser_send_syn(fd);
+    if (ret <= 0)
+        return ret;
+
+    return filser_recv_ack(fd);
 }
