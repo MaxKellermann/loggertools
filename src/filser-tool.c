@@ -377,14 +377,12 @@ static int raw(struct config *config, int argc, char **argv) {
 }
 
 static int open_flight_list(int fd) {
-    unsigned char cmd[] = { FILSER_PREFIX, FILSER_READ_FLIGHT_LIST };
-    ssize_t nbytes;
+    int ret;
 
     syn_ack_wait(fd);
 
-    tcflush(fd, TCIOFLUSH);
-    nbytes = write(fd, cmd, sizeof(cmd));
-    if (nbytes < 0)
+    ret = filser_send_command(fd, FILSER_READ_FLIGHT_LIST);
+    if (ret <= 0)
         return -1;
 
     return 0;
@@ -460,7 +458,6 @@ static int flight_list(struct config *config, int argc, char **argv) {
 }
 
 static int get_basic_data(struct config *config, int argc, char **argv) {
-    unsigned char cmd[] = { FILSER_PREFIX, FILSER_READ_BASIC_DATA };
     int fd;
     unsigned char buffer[0x200];
     ssize_t nbytes;
@@ -478,8 +475,7 @@ static int get_basic_data(struct config *config, int argc, char **argv) {
 
     check_mem_settings(fd);
 
-    tcflush(fd, TCIOFLUSH);
-    write(fd, cmd, sizeof(cmd));
+    filser_send_command(fd, FILSER_READ_BASIC_DATA);
 
     nbytes = read_timeout(fd, buffer, sizeof(buffer));
     if (nbytes < 0) {
@@ -495,7 +491,6 @@ static int get_basic_data(struct config *config, int argc, char **argv) {
 }
 
 static int get_flight_info(struct config *config, int argc, char **argv) {
-    unsigned char cmd[] = { FILSER_PREFIX, FILSER_READ_FLIGHT_INFO };
     int fd;
     unsigned char buffer[0x200];
     ssize_t nbytes;
@@ -512,8 +507,7 @@ static int get_flight_info(struct config *config, int argc, char **argv) {
 
     check_mem_settings(fd);
 
-    tcflush(fd, TCIOFLUSH);
-    write(fd, cmd, sizeof(cmd));
+    filser_send_command(fd, FILSER_READ_FLIGHT_INFO);
 
     nbytes = read_timeout_crc(fd, buffer, sizeof(buffer));
     if (nbytes < 0) {
@@ -531,7 +525,6 @@ static int get_flight_info(struct config *config, int argc, char **argv) {
 }
 
 static int seek_mem_x(int fd, unsigned start_address, unsigned end_address) {
-    unsigned char cmd[] = { FILSER_PREFIX, FILSER_DEF_MEM, };
     struct filser_packet_def_mem packet;
     ssize_t nbytes;
     int ret;
@@ -551,8 +544,8 @@ static int seek_mem_x(int fd, unsigned start_address, unsigned end_address) {
 
     tcflush(fd, TCIOFLUSH);
 
-    nbytes = write(fd, cmd, sizeof(cmd));
-    if (nbytes <= 0)
+    ret = filser_send_command(fd, FILSER_DEF_MEM);
+    if (ret <= 0)
         return -1;
 
     ret = filser_write_crc(fd, &packet, sizeof(packet));
@@ -572,8 +565,8 @@ static int seek_mem_x(int fd, unsigned start_address, unsigned end_address) {
 }
 
 static int seek_mem(int fd, struct filser_flight_index *flight) {
-    unsigned char cmd[] = { FILSER_PREFIX, FILSER_DEF_MEM, };
     unsigned char buffer[7];
+    int ret;
     ssize_t nbytes;
     unsigned char response;
 
@@ -591,10 +584,8 @@ static int seek_mem(int fd, struct filser_flight_index *flight) {
 
     buffer[6] = filser_calc_crc((unsigned char*)buffer, 6);
 
-    tcflush(fd, TCIOFLUSH);
-
-    nbytes = write(fd, cmd, sizeof(cmd));
-    if (nbytes <= 0)
+    ret = filser_send_command(fd, FILSER_DEF_MEM);
+    if (ret <= 0)
         return -1;
 
     nbytes = write(fd, buffer, sizeof(buffer));
@@ -615,15 +606,13 @@ static int seek_mem(int fd, struct filser_flight_index *flight) {
 
 static int get_mem_section(int fd, size_t section_lengths[0x10],
                            size_t *overall_lengthp) {
-    unsigned char cmd[] = { FILSER_PREFIX, FILSER_GET_MEM_SECTION, };
     struct filser_packet_mem_section packet;
+    int ret;
     ssize_t nbytes;
     unsigned z;
 
-    tcflush(fd, TCIOFLUSH);
-
-    nbytes = write(fd, cmd, sizeof(cmd));
-    if (nbytes <= 0)
+    ret = filser_send_command(fd, FILSER_GET_MEM_SECTION);
+    if (ret <= 0)
         return -1;
 
     nbytes = read_full_crc(fd, &packet, sizeof(packet));
@@ -642,14 +631,11 @@ static int get_mem_section(int fd, size_t section_lengths[0x10],
 
 static int download_section(int fd, unsigned section,
                             unsigned char *buffer, size_t length) {
-    unsigned char cmd[] = { FILSER_PREFIX, FILSER_READ_LOGGER_DATA, };
+    int ret;
     ssize_t nbytes;
 
-    tcflush(fd, TCIOFLUSH);
-
-    cmd[1] += section;
-    nbytes = write(fd, cmd, sizeof(cmd));
-    if (nbytes <= 0)
+    ret = filser_send_command(fd, FILSER_READ_LOGGER_DATA + section);
+    if (ret <= 0)
         return -1;
 
     nbytes = read_full_crc(fd, buffer, length);

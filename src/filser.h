@@ -208,6 +208,8 @@ int filser_recv_ack(int fd);
 
 int filser_syn_ack(int fd);
 
+int filser_send_command(int fd, unsigned char cmd);
+
 #ifdef __cplusplus
 }
 #endif

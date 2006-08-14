@@ -60,3 +60,19 @@ int filser_syn_ack(int fd) {
 
     return filser_recv_ack(fd);
 }
+
+int filser_send_command(int fd, unsigned char cmd) {
+    const unsigned char buffer[2] = { FILSER_PREFIX, cmd };
+    ssize_t nbytes;
+
+    tcflush(fd, TCIOFLUSH);
+
+    nbytes = write(fd, buffer, sizeof(buffer));
+    if (nbytes <= 0)
+        return (int)nbytes;
+
+    if (nbytes != sizeof(buffer))
+        return 0;
+
+    return 1;
+}
