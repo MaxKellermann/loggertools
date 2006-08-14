@@ -39,8 +39,9 @@ all: bin/tpconv bin/asconv bin/cenfistool bin/hexfile bin/filsertool bin/fakefil
 clean:
 	rm -rf bin
 
-bin:
+bin/stamp:
 	mkdir -p bin
+	touch bin/stamp
 
 tpconv_SOURCES = $(addprefix src/,tp-conv.cc earth.cc tp.cc tp-io.cc tp-cenfis-reader.cc tp-cenfis-writer.cc tp-cenfis-db-reader.cc tp-cenfis-db-writer.cc tp-cenfis-hex-reader.cc tp-cenfis-hex-writer.cc tp-seeyou-reader.cc tp-seeyou-writer.cc tp-filser-reader.cc tp-filser-writer.cc tp-zander-reader.cc tp-zander-writer.cc tp-distance.cc)
 tpconv_OBJECTS = $(patsubst src/%.cc,bin/%.o,$(tpconv_SOURCES))
@@ -63,10 +64,10 @@ c_OBJECTS = $(patsubst src/%.c,bin/%.o,$(c_SOURCES))
 cxx_SOURCES = $(wildcard src/*.cc)
 cxx_OBJECTS = $(patsubst src/%.cc,bin/%.o,$(cxx_SOURCES))
 
-$(c_OBJECTS): bin/%.o: src/%.c bin
+$(c_OBJECTS): bin/%.o: src/%.c bin/stamp
 	$(CC) -c $(CFLAGS) -o $@ $<
 
-$(cxx_OBJECTS): bin/%.o: src/%.cc bin
+$(cxx_OBJECTS): bin/%.o: src/%.cc bin/stamp
 	$(CXX) -c $(CXXFLAGS) -o $@ $<
 
 bin/libhexfile.a: bin/hexfile-decoder.o
