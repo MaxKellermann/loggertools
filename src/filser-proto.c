@@ -26,7 +26,7 @@
 #include "filser.h"
 
 int filser_send_syn(int fd) {
-    static const char syn = FILSER_SYN;
+    static const unsigned char syn = FILSER_SYN;
     ssize_t nbytes;
 
     tcflush(fd, TCIOFLUSH);
@@ -39,8 +39,8 @@ int filser_send_syn(int fd) {
 }
 
 int filser_recv_ack(int fd) {
-    static const char ack = FILSER_ACK;
-    char buffer;
+    static const unsigned char ack = FILSER_ACK;
+    unsigned char buffer;
     ssize_t nbytes;
 
     nbytes = read(fd, &buffer, sizeof(buffer));
