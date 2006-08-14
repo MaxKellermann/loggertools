@@ -49,10 +49,10 @@ tpconv_OBJECTS = $(patsubst src/%.cc,bin/%.o,$(tpconv_SOURCES))
 asconv_SOURCES = $(addprefix src/,airspace-conv.cc earth.cc airspace.cc airspace-io.cc airspace-openair-reader.cc airspace-openair-writer.cc)
 asconv_OBJECTS = $(patsubst src/%.cc,bin/%.o,$(asconv_SOURCES))
 
-cenfistool_SOURCES = src/cenfistool.c src/cenfis.c src/serialio.c
+cenfistool_SOURCES = src/cenfis-tool.c src/cenfis.c src/serialio.c
 cenfistool_OBJECTS = $(patsubst src/%.c,bin/%.o,$(cenfistool_SOURCES))
 
-filsertool_SOURCES = src/filsertool.c src/filser-crc.c src/filser-open.c src/filser-io.c src/filser-proto.c src/datadir.c src/filser-to-igc.c
+filsertool_SOURCES = src/filser-tool.c src/filser-crc.c src/filser-open.c src/filser-io.c src/filser-proto.c src/datadir.c src/filser-to-igc.c
 filsertool_OBJECTS = $(patsubst src/%.c,bin/%.o,$(filsertool_SOURCES))
 
 fakefilser_SOURCES = src/fakefilser.c src/filser-crc.c src/filser-open.c src/filser-io.c src/datadir.c
