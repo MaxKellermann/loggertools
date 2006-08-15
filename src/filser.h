@@ -1,6 +1,6 @@
 /*
  * loggertools
- * Copyright (C) 2004-2005 Max Kellermann (max@duempel.org)
+ * Copyright (C) 2004-2006 Max Kellermann <max@duempel.org>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -21,6 +21,8 @@
 
 #ifndef __FILSER_H
 #define __FILSER_H
+
+#include <sys/types.h>
 
 struct filser_turn_point {
     char valid;
