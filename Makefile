@@ -29,12 +29,12 @@ COMMON_CFLAGS += -Werror -pedantic-errors
 
 CFLAGS = $(COMMON_CFLAGS)
 CFLAGS += -std=gnu99
-CFLAGS += -Wmissing-prototypes -Wwrite-strings -Wcast-qual -Wfloat-equal -Wshadow -Wpointer-arith -Wbad-function-cast -Wsign-compare -Waggregate-return -Wmissing-declarations -Wmissing-noreturn -Wmissing-format-attribute -Wredundant-decls -Wnested-externs -Winline -Wdisabled-optimization -Wno-long-long -Wstrict-prototypes -Wundef
+CFLAGS += -Wmissing-prototypes -Wcast-qual -Wfloat-equal -Wshadow -Wpointer-arith -Wbad-function-cast -Wsign-compare -Waggregate-return -Wmissing-declarations -Wmissing-noreturn -Wmissing-format-attribute -Wredundant-decls -Wnested-externs -Winline -Wdisabled-optimization -Wno-long-long -Wstrict-prototypes -Wundef
 
 CXXFLAGS += $(COMMON_CFLAGS)
 CXXFLAGS += -Wwrite-strings -Wcast-qual -Wfloat-equal -Wpointer-arith -Wsign-compare -Wmissing-format-attribute -Wredundant-decls -Winline -Wdisabled-optimization -Wno-long-long -Wundef
 
-all: bin/tpconv bin/asconv bin/cenfistool bin/hexfile bin/filsertool bin/fakefilser bin/fwd
+all: bin/tpconv bin/asconv bin/cenfistool bin/hexfile bin/filsertool bin/lxui bin/fakefilser bin/fwd
 
 clean:
 	rm -rf bin
@@ -54,6 +54,9 @@ cenfistool_OBJECTS = $(patsubst src/%.c,bin/%.o,$(cenfistool_SOURCES))
 
 filsertool_SOURCES = src/filser-tool.c src/filser-crc.c src/filser-open.c src/filser-io.c src/filser-proto.c src/datadir.c src/filser-to-igc.c
 filsertool_OBJECTS = $(patsubst src/%.c,bin/%.o,$(filsertool_SOURCES))
+
+lxui_SOURCES = src/lx-ui.c src/lx-ui-device.c src/lx-ui-setup.c src/lx-ui-flight-info.c src/lx-ui-igc.c src/filser-crc.c src/filser-open.c src/filser-io.c src/filser-proto.c src/filser-to-igc.c
+lxui_OBJECTS = $(patsubst src/%.c,bin/%.o,$(lxui_SOURCES))
 
 fakefilser_SOURCES = src/fakefilser.c src/filser-crc.c src/filser-open.c src/filser-io.c src/datadir.c
 fakefilser_OBJECTS = $(patsubst src/%.c,bin/%.o,$(fakefilser_SOURCES))
@@ -87,6 +90,9 @@ bin/hexfile: bin/hexfile-tool.o bin/libhexfile.a
 
 bin/filsertool: $(filsertool_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
+
+bin/lxui: $(lxui_OBJECTS)
+	$(CC) $(CFLAGS) -o $@ $^ -lnewt
 
 bin/fakefilser: $(fakefilser_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
