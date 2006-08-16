@@ -1,0 +1,15 @@
+Source: loggertools
+Section: misc
+Priority: optional
+Maintainer: Max Kellermann <mk@cm4all.com>
+Build-Depends: cdbs (>= 0.4), gcc (>= 3.3), g++ (>= 3.3), libnewt-dev (>= 0.51), libboost-iostreams-dev (>= 1.33)
+Standards-Version: 3.6.1
+
+Package: loggertools
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: communicate with flight recorders
+ loggertools is a collection of tools and libraries which talk to GPS
+ flight loggers.
+ .
+ Home page: http://max.kellermann.name/projects/loggertools/
