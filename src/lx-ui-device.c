@@ -21,6 +21,7 @@
 
 #include "lx-ui.h"
 
+#include <assert.h>
 #include <unistd.h>
 #include <time.h>
 #include <errno.h>
@@ -182,6 +183,50 @@ int lxui_device_tick(struct lxui *lxui) {
                 lxui->flight_index_ok = 1;
             else
                 lxui->status = LXUI_STATUS_IDLE;
+        }
+        break;
+
+    case LXUI_STATUS_DEF_MEM:
+        ret = filser_recv_ack(lxui->fd);
+        if (ret > 0) {
+            lxui->status = LXUI_STATUS_IDLE;
+            lxui->next_syn = now + 4;
+        } else {
+            lxui_device_send_syn(lxui, now);
+        }
+        break;
+
+    case LXUI_STATUS_GET_MEM_SECTION:
+        lxui->mem_section_ok = 0;
+        ret = filser_read_crc(lxui->fd, &lxui->mem_section,
+                              sizeof(lxui->mem_section), 5);
+        if (ret == -2) {
+            //fprintf(stderr, "CRC error\n");
+            lxui_device_send_syn(lxui, now);
+        } else if (ret <= 0) {
+            lxui_device_send_syn(lxui, now);
+        } else {
+            lxui->mem_section_ok = 1;
+            lxui->status = LXUI_STATUS_IDLE;
+            lxui->next_syn = now + 4;
+        }
+        break;
+
+    case LXUI_STATUS_READ_LOGGER_DATA:
+        assert(lxui->logger_data != NULL);
+        assert(lxui->logger_data_length > 0);
+        lxui->logger_data_ok = 0;
+        ret = filser_read_crc(lxui->fd, lxui->logger_data,
+                              lxui->logger_data_length, 5);
+        if (ret == -2) {
+            //fprintf(stderr, "CRC error\n");
+            lxui_device_send_syn(lxui, now);
+        } else if (ret <= 0) {
+            lxui_device_send_syn(lxui, now);
+        } else {
+            lxui->logger_data_ok = 1;
+            lxui->status = LXUI_STATUS_IDLE;
+            lxui->next_syn = now + 4;
         }
         break;
     }

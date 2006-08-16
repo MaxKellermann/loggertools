@@ -33,6 +33,9 @@ enum lxui_status {
     LXUI_STATUS_READ_BASIC,
     LXUI_STATUS_READ_FLIGHT_INFO,
     LXUI_STATUS_READ_FLIGHT_LIST,
+    LXUI_STATUS_DEF_MEM,
+    LXUI_STATUS_GET_MEM_SECTION,
+    LXUI_STATUS_READ_LOGGER_DATA,
 };
 
 struct lxui {
@@ -47,6 +50,12 @@ struct lxui {
     int flight_info_ok;
     struct filser_flight_index flight_index;
     int flight_index_ok;
+    struct filser_packet_mem_section mem_section;
+    int mem_section_ok;
+    unsigned current_mem_section;
+    unsigned char *logger_data;
+    size_t logger_data_length;
+    int logger_data_ok;
 };
 
 void lxui_device_close(struct lxui *lxui);
