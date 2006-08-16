@@ -544,11 +544,8 @@ static int seek_mem_x(int fd, unsigned start_address, unsigned end_address) {
 
     tcflush(fd, TCIOFLUSH);
 
-    ret = filser_send_command(fd, FILSER_DEF_MEM);
-    if (ret <= 0)
-        return -1;
-
-    ret = filser_write_crc(fd, &packet, sizeof(packet));
+    ret = filser_write_packet(fd, FILSER_DEF_MEM,
+                              &packet, sizeof(packet));
     if (ret <= 0)
         return -1;
 
@@ -565,7 +562,7 @@ static int seek_mem_x(int fd, unsigned start_address, unsigned end_address) {
 }
 
 static int seek_mem(int fd, const struct filser_flight_index *flight) {
-    unsigned char buffer[7];
+    struct filser_packet_def_mem packet;
     int ret;
     ssize_t nbytes;
     unsigned char response;
@@ -573,23 +570,20 @@ static int seek_mem(int fd, const struct filser_flight_index *flight) {
     /* ignore highest byte here, the same as in kflog */
 
     /* start address */
-    buffer[0] = flight->start_address0;
-    buffer[1] = flight->start_address1;
-    buffer[2] = flight->start_address2;
+    packet.start_address[0] = flight->start_address0;
+    packet.start_address[1] = flight->start_address1;
+    packet.start_address[2] = flight->start_address2;
 
     /* end address */
-    buffer[3] = flight->end_address0;
-    buffer[4] = flight->end_address1;
-    buffer[5] = flight->end_address2;
+    packet.end_address[0] = flight->end_address0;
+    packet.end_address[1] = flight->end_address1;
+    packet.end_address[2] = flight->end_address2;
 
-    buffer[6] = filser_calc_crc((unsigned char*)buffer, 6);
+    tcflush(fd, TCIOFLUSH);
 
-    ret = filser_send_command(fd, FILSER_DEF_MEM);
+    ret = filser_write_packet(fd, FILSER_DEF_MEM,
+                              &packet, sizeof(packet));
     if (ret <= 0)
-        return -1;
-
-    nbytes = write(fd, buffer, sizeof(buffer));
-    if (nbytes <= 0)
         return -1;
 
     nbytes = read_full(fd, &response, sizeof(response));
