@@ -564,7 +564,7 @@ static int seek_mem_x(int fd, unsigned start_address, unsigned end_address) {
     return 0;
 }
 
-static int seek_mem(int fd, struct filser_flight_index *flight) {
+static int seek_mem(int fd, const struct filser_flight_index *flight) {
     unsigned char buffer[7];
     int ret;
     ssize_t nbytes;
