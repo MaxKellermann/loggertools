@@ -106,7 +106,7 @@ int filser_read(int fd, void *p0, size_t length,
     unsigned char *p = p0;
     ssize_t nbytes;
     size_t pos = 0;
-    time_t end_time;
+    time_t end_time = 0;
 
     if (timeout > 0)
         end_time = time(NULL) + timeout;
