@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
  * 02111-1307, USA.
  *
- * $Id: filser-tool.c 232 2006-08-16 21:01:32Z max $
+ * $Id$
  */
 
 #include <assert.h>
