@@ -1,6 +1,6 @@
 /*
  * loggertools
- * Copyright (C) 2004-2006 Max Kellermann <max@duempel.org>
+ * Copyright (C) 2004-2007 Max Kellermann <max@duempel.org>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -211,6 +211,11 @@ int filser_recv_ack(int fd);
 int filser_syn_ack(int fd);
 
 int filser_send_command(int fd, unsigned char cmd);
+
+/* filser-filename.c */
+
+void filser_flight_filename(char *filename,
+                            const struct filser_flight_index *flight);
 
 #ifdef __cplusplus
 }
