@@ -34,7 +34,7 @@ CFLAGS += -Wmissing-prototypes -Wcast-qual -Wfloat-equal -Wshadow -Wpointer-arit
 CXXFLAGS += $(COMMON_CFLAGS)
 CXXFLAGS += -Wwrite-strings -Wcast-qual -Wfloat-equal -Wpointer-arith -Wsign-compare -Wmissing-format-attribute -Wredundant-decls -Winline -Wdisabled-optimization -Wno-long-long -Wundef
 
-all: bin/tpconv bin/asconv bin/cenfistool bin/hexfile bin/filsertool bin/lxui bin/lxigc bin/fakefilser bin/fwd
+all: bin/tpconv bin/asconv bin/cenfistool bin/hexfile bin/lxn2igc bin/filsertool bin/lxui bin/lxigc bin/fakefilser bin/fwd
 
 clean:
 	rm -rf bin
@@ -54,6 +54,9 @@ asconv_OBJECTS = $(patsubst src/%.cc,bin/%.o,$(asconv_SOURCES))
 
 cenfistool_SOURCES = src/cenfis-tool.c src/cenfis.c src/serialio.c
 cenfistool_OBJECTS = $(patsubst src/%.c,bin/%.o,$(cenfistool_SOURCES))
+
+lxn2igc_SOURCES = src/lxn2igc.c src/lxn-reader.c src/lxn-to-igc.c
+lxn2igc_OBJECTS = $(patsubst src/%.c,bin/%.o,$(lxn2igc_SOURCES))
 
 filsertool_SOURCES = src/filser-tool.c src/filser-crc.c src/filser-open.c src/filser-io.c src/filser-proto.c src/datadir.c src/lxn-reader.c src/lxn-to-igc.c
 filsertool_OBJECTS = $(patsubst src/%.c,bin/%.o,$(filsertool_SOURCES))
@@ -92,6 +95,9 @@ bin/cenfistool: $(cenfistool_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
 
 bin/hexfile: bin/hexfile-tool.o bin/libhexfile.a
+	$(CC) $(CFLAGS) -o $@ $^
+
+bin/lxn2igc: $(lxn2igc_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
 
 bin/filsertool: $(filsertool_OBJECTS)
