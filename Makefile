@@ -19,8 +19,8 @@
 #  $Id$
 #
 
-CC := $(firstword $(shell which gcc-4.1 gcc-4.0 gcc-3.4 gcc-3.3 gcc cc))
-CXX := $(firstword $(shell which g++-4.1 g++-4.0 g++-3.4 g++-3.3 g++ c++ cc))
+CC := gcc
+CXX := g++
 LD := ld
 
 COMMON_CFLAGS = -O0 -g
