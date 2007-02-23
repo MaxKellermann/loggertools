@@ -258,7 +258,6 @@ static int communicate(int fd, unsigned char cmd,
 static int filser_send(int fd, unsigned char cmd,
                        const void *buffer, size_t buffer_len,
                        int timeout) {
-    ssize_t nbytes;
     unsigned char response;
     int ret;
 
@@ -271,11 +270,11 @@ static int filser_send(int fd, unsigned char cmd,
     if (ret <= 0)
         return -1;
 
-    nbytes = filser_read(fd, &response, sizeof(response), timeout);
-    if (nbytes < 0)
+    ret = filser_read(fd, &response, sizeof(response), timeout);
+    if (ret < 0)
         return -1;
 
-    if ((size_t)nbytes < sizeof(response)) {
+    if (ret == 0) {
         fprintf(stderr, "no response\n");
         _exit(1);
     }
@@ -526,8 +525,13 @@ static int seek_mem_x(int fd, unsigned start_address, unsigned end_address) {
     alarm(40);
     ret = filser_read(fd, &response, sizeof(response), 40);
     alarm(0);
-    if (ret <= 0)
+    if (ret < 0)
         return -1;
+
+    if (ret == 0) {
+        fprintf(stderr, "no response\n");
+        exit(2);
+    }
 
     if (response != FILSER_ACK) {
         fprintf(stderr, "no ack in seek_mem\n");
@@ -564,8 +568,13 @@ static int seek_mem(int fd, const struct filser_flight_index *flight) {
     alarm(40);
     ret = filser_read(fd, &response, sizeof(response), 40);
     alarm(0);
-    if (ret <= 0)
+    if (ret < 0)
         return -1;
+
+    if (ret == 0) {
+        fprintf(stderr, "no response\n");
+        exit(2);
+    }
 
     if (response != FILSER_ACK) {
         fprintf(stderr, "no ack in seek_mem\n");

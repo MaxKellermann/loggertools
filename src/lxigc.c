@@ -311,8 +311,13 @@ static int seek_mem(int fd, const struct filser_flight_index *flight) {
     alarm(40);
     ret = filser_read(fd, &response, sizeof(response), 40);
     alarm(0);
-    if (ret <= 0)
+    if (ret < 0)
         return -1;
+
+    if (ret == 0) {
+        fprintf(stderr, "no response\n");
+        exit(2);
+    }
 
     if (response != FILSER_ACK) {
         fprintf(stderr, "no ack in seek_mem\n");
