@@ -98,7 +98,7 @@ bin/lxui: $(lxui_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^ -lnewt
 
 bin/lxigc: $(lxigc_OBJECTS)
-	$(CC) $(CFLAGS) -o $@ $^ -lreadline
+	$(CC) $(CFLAGS) -o $@ $^
 
 bin/fakefilser: $(fakefilser_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
