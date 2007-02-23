@@ -1,6 +1,6 @@
 /*
  * loggertools
- * Copyright (C) 2004-2006 Max Kellermann <max@duempel.org>
+ * Copyright (C) 2004-2007 Max Kellermann <max@duempel.org>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -35,10 +35,10 @@
 #include <errno.h>
 #include <netinet/in.h>
 
-#include "filser-to-igc.h"
+#include "lxn-to-igc.h"
 #include "lxn-reader.h"
 
-struct filser_to_igc {
+struct lxn_to_igc {
     struct lxn_reader reader;
     FILE *igc;
     unsigned char flight_no;
@@ -75,12 +75,12 @@ static const struct extension_definition extension_defs[16] = {
     { "XX3", 3 }
 };
 
-int filser_to_igc_open(FILE *igc, struct filser_to_igc **fti_r) {
-    struct filser_to_igc *fti;
+int lxn_to_igc_open(FILE *igc, struct lxn_to_igc **fti_r) {
+    struct lxn_to_igc *fti;
 
     assert(igc != NULL);
 
-    fti = (struct filser_to_igc*)calloc(1, sizeof(*fti));
+    fti = (struct lxn_to_igc*)calloc(1, sizeof(*fti));
     if (fti == NULL)
         return errno;
 
@@ -90,8 +90,8 @@ int filser_to_igc_open(FILE *igc, struct filser_to_igc **fti_r) {
     return 0;
 }
 
-int filser_to_igc_close(struct filser_to_igc **fti_r) {
-    struct filser_to_igc *fti;
+int lxn_to_igc_close(struct lxn_to_igc **fti_r) {
+    struct lxn_to_igc *fti;
 
     assert(fti_r != NULL);
     assert(*fti_r != NULL);
@@ -241,7 +241,7 @@ static const char *format_competition_class(unsigned char class_id) {
     return names[class_id];
 }
 
-static int handle_position(struct filser_to_igc *fti,
+static int handle_position(struct lxn_to_igc *fti,
                            const struct lxn_position *position) {
     int latitude, longitude;
 
@@ -274,9 +274,9 @@ static int handle_position(struct filser_to_igc *fti,
     return 0;
 }
 
-int filser_to_igc_process(struct filser_to_igc *fti,
-                          const unsigned char *fil,
-                          size_t length, size_t *consumed_r) {
+int lxn_to_igc_process(struct lxn_to_igc *fti,
+                       const unsigned char *fil,
+                       size_t length, size_t *consumed_r) {
     unsigned i, l;
     int ret;
     char ch;

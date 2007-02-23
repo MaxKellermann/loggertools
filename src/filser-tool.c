@@ -38,7 +38,7 @@
 
 #include "filser.h"
 #include "datadir.h"
-#include "filser-to-igc.h"
+#include "lxn-to-igc.h"
 
 #define VERSION "0.0.1"
 
@@ -952,7 +952,7 @@ static int cmd_lxn2igc(struct config *config, int argc, char **argv) {
     unsigned char buffer[4096];
     size_t start = 0, end = 0, consumed;
     ssize_t nbytes;
-    struct filser_to_igc *fti;
+    struct lxn_to_igc *fti;
 
     (void)config;
 
@@ -968,9 +968,9 @@ static int cmd_lxn2igc(struct config *config, int argc, char **argv) {
         return 2;
     }
 
-    ret = filser_to_igc_open(stdout, &fti);
+    ret = lxn_to_igc_open(stdout, &fti);
     if (ret != 0) {
-        fprintf(stderr, "filser_to_igc_open() failed\n");
+        fprintf(stderr, "lxn_to_igc_open() failed\n");
         return 2;
     }
 
@@ -995,11 +995,11 @@ static int cmd_lxn2igc(struct config *config, int argc, char **argv) {
         }
 
         if (end > start) {
-            ret = filser_to_igc_process(fti, buffer + start, end - start, &consumed);
+            ret = lxn_to_igc_process(fti, buffer + start, end - start, &consumed);
             if (ret == 0) {
                 done = 1;
             } else if (ret != EAGAIN) {
-                fprintf(stderr, "filser_to_igc_process() failed: %d\n", ret);
+                fprintf(stderr, "lxn_to_igc_process() failed: %d\n", ret);
                 return 2;
             }
 
@@ -1015,9 +1015,9 @@ static int cmd_lxn2igc(struct config *config, int argc, char **argv) {
         return 2;
     }
 
-    ret = filser_to_igc_close(&fti);
+    ret = lxn_to_igc_close(&fti);
     if (ret != 0) {
-        fprintf(stderr, "filser_to_igc_close() failed\n");
+        fprintf(stderr, "lxn_to_igc_close() failed\n");
         return 2;
     }
 

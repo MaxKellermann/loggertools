@@ -40,7 +40,7 @@
 #include "version.h"
 #include "filser.h"
 #include "datadir.h"
-#include "filser-to-igc.h"
+#include "lxn-to-igc.h"
 
 #define MAX_FLIGHTS 256
 
@@ -435,7 +435,7 @@ static int cmd_lxn2igc(const char *in_path, const char *out_path) {
     unsigned char buffer[4096];
     size_t start = 0, end = 0, consumed;
     ssize_t nbytes;
-    struct filser_to_igc *fti;
+    struct lxn_to_igc *fti;
 
     fd = open(in_path, O_RDONLY);
     if (fd < 0) {
@@ -451,9 +451,9 @@ static int cmd_lxn2igc(const char *in_path, const char *out_path) {
         return errno;
     }
 
-    ret = filser_to_igc_open(out, &fti);
+    ret = lxn_to_igc_open(out, &fti);
     if (ret != 0) {
-        fprintf(stderr, "filser_to_igc_open() failed\n");
+        fprintf(stderr, "lxn_to_igc_open() failed\n");
         return 2;
     }
 
@@ -478,11 +478,11 @@ static int cmd_lxn2igc(const char *in_path, const char *out_path) {
         }
 
         if (end > start) {
-            ret = filser_to_igc_process(fti, buffer + start, end - start, &consumed);
+            ret = lxn_to_igc_process(fti, buffer + start, end - start, &consumed);
             if (ret == 0) {
                 done = 1;
             } else if (ret != EAGAIN) {
-                fprintf(stderr, "filser_to_igc_process() failed: %d\n", ret);
+                fprintf(stderr, "lxn_to_igc_process() failed: %d\n", ret);
                 return 2;
             }
 
@@ -498,9 +498,9 @@ static int cmd_lxn2igc(const char *in_path, const char *out_path) {
         return 2;
     }
 
-    ret = filser_to_igc_close(&fti);
+    ret = lxn_to_igc_close(&fti);
     if (ret != 0) {
-        fprintf(stderr, "filser_to_igc_close() failed\n");
+        fprintf(stderr, "lxn_to_igc_close() failed\n");
         return 2;
     }
 

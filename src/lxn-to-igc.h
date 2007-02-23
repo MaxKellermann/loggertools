@@ -1,6 +1,6 @@
 /*
  * loggertools
- * Copyright (C) 2004-2006 Max Kellermann <max@duempel.org>
+ * Copyright (C) 2004-2007 Max Kellermann <max@duempel.org>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -19,19 +19,19 @@
  * $Id$
  */
 
-#ifndef __FILSER_TO_IGC_H
-#define __FILSER_TO_IGC_H
+#ifndef __LXN_TO_IGC_H
+#define __LXN_TO_IGC_H
 
 #include <stdio.h>
 
-struct filser_to_igc;
+struct lxn_to_igc;
 
-int filser_to_igc_open(FILE *igc, struct filser_to_igc **fti_r);
+int lxn_to_igc_open(FILE *igc, struct lxn_to_igc **fti_r);
 
-int filser_to_igc_close(struct filser_to_igc **fti_r);
+int lxn_to_igc_close(struct lxn_to_igc **fti_r);
 
-int filser_to_igc_process(struct filser_to_igc *fti,
-                          const unsigned char *fil,
-                          size_t fil_length, size_t *fil_consumed_r);
+int lxn_to_igc_process(struct lxn_to_igc *fti,
+                       const unsigned char *fil,
+                       size_t fil_length, size_t *fil_consumed_r);
 
 #endif
