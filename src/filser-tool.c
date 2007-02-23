@@ -204,19 +204,16 @@ static ssize_t read_timeout(int fd, unsigned char *buffer,
     }
 }
 
-static ssize_t read_full_crc(int fd, void *buffer, size_t len) {
+static int read_full_crc(int fd, void *buffer, size_t len) {
     int ret;
 
     ret = filser_read_crc(fd, buffer, len, 40);
     if (ret == -2) {
         fprintf(stderr, "CRC error\n");
-        _exit(1);
+        exit(1);
     }
 
-    if (ret <= 0)
-        return -1;
-
-    return (ssize_t)len;
+    return ret;
 }
 
 static ssize_t read_timeout_crc(int fd, unsigned char *buffer, size_t len) {
@@ -249,7 +246,7 @@ static int communicate(int fd, unsigned char cmd,
         return -1;
 
     ret = read_full_crc(fd, buffer, buffer_len);
-    if (ret < 0)
+    if (ret <= 0)
         return -1;
 
     return 1;
@@ -366,7 +363,7 @@ static int next_flight(int fd, struct filser_flight_index *flight) {
     int ret;
 
     ret = read_full_crc(fd, (unsigned char*)flight, sizeof(*flight));
-    if (ret < 0)
+    if (ret <= 0)
         return -1;
 
     if (flight->valid != 1)
@@ -588,15 +585,14 @@ static int get_mem_section(int fd, size_t section_lengths[0x10],
                            size_t *overall_lengthp) {
     struct filser_packet_mem_section packet;
     int ret;
-    ssize_t nbytes;
     unsigned z;
 
     ret = filser_send_command(fd, FILSER_GET_MEM_SECTION);
     if (ret <= 0)
         return -1;
 
-    nbytes = read_full_crc(fd, &packet, sizeof(packet));
-    if (nbytes <= 0)
+    ret = read_full_crc(fd, &packet, sizeof(packet));
+    if (ret <= 0)
         return -1;
 
     *overall_lengthp = 0;
@@ -612,14 +608,13 @@ static int get_mem_section(int fd, size_t section_lengths[0x10],
 static int download_section(int fd, unsigned section,
                             unsigned char *buffer, size_t length) {
     int ret;
-    ssize_t nbytes;
 
     ret = filser_send_command(fd, FILSER_READ_LOGGER_DATA + section);
     if (ret <= 0)
         return -1;
 
-    nbytes = read_full_crc(fd, buffer, length);
-    if (nbytes < 0)
+    ret = read_full_crc(fd, buffer, length);
+    if (ret <= 0)
         return -1;
 
     return 0;
