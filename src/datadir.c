@@ -39,7 +39,7 @@ struct datadir {
 struct datadir *datadir_open(const char *path) {
     struct datadir *dir;
 
-    dir = (struct datadir*)malloc(sizeof(*dir));
+    dir = (struct datadir*)calloc(1, sizeof(*dir));
     if (dir == NULL)
         return NULL;
 
