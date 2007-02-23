@@ -770,6 +770,8 @@ static int download_flight(struct config *config, int argc, char **argv) {
 
     close(fd2);
 
+    free(data);
+
     return 0;
 }
 

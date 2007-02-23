@@ -424,6 +424,8 @@ static int download_flight(const struct config *config,
 
     close(fd2);
 
+    free(data);
+
     return 0;
 }
 
