@@ -112,9 +112,8 @@ static void parse_cmdline(struct config *config,
             exit(0);
 
         case 'V':
-            printf("loggertools v%s (C) 2004-2007 Max Kellermann <max@duempel.org>\n"
-                   "http://max.kellermann.name/projects/loggertools/\n\n",
-                   VERSION);
+            puts("loggertools v" VERSION " (C) 2004-2007 Max Kellermann <max@duempel.org>\n"
+                 "http://max.kellermann.name/projects/loggertools/\n");
             exit(0);
 
         case 'v':
@@ -547,9 +546,8 @@ int main(int argc, char **argv) {
     if (optind < argc)
         arg_error("too many arguments");
 
-    fprintf(stderr, "loggertools v%s (C) 2004-2007 Max Kellermann <max@duempel.org>\n"
-            "http://max.kellermann.name/projects/loggertools/\n\n",
-            VERSION);
+    fputs("loggertools v" VERSION " (C) 2004-2007 Max Kellermann <max@duempel.org>\n"
+          "http://max.kellermann.name/projects/loggertools/\n\n", stderr);
 
     fd = filser_open(config.tty);
     if (fd < 0) {

@@ -163,8 +163,8 @@ static void parse_cmdline(struct config *config,
             exit(0);
 
         case 'V':
-            printf("fakefilser v" VERSION
-                   ", http://max.kellermann.name/projects/loggertools/\n");
+            puts("loggertools v" VERSION " (C) 2004-2007 Max Kellermann <max@duempel.org>\n"
+                 "http://max.kellermann.name/projects/loggertools/\n");
             exit(0);
 
         case 'v':
@@ -874,6 +874,9 @@ int main(int argc, char **argv) {
     int was_70 = 0;
 
     parse_cmdline(&config, argc, argv);
+
+    fputs("loggertools v" VERSION " (C) 2004-2007 Max Kellermann <max@duempel.org>\n"
+          "http://max.kellermann.name/projects/loggertools/\n\n", stderr);
 
     signal(SIGALRM, alarm_handler);
 

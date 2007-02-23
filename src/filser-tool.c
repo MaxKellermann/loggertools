@@ -108,8 +108,8 @@ static void parse_cmdline(struct config *config,
             exit(0);
 
         case 'V':
-            printf("filsertool v" VERSION
-                   ", http://max.kellermann.name/projects/loggertools/\n");
+            puts("loggertools v" VERSION " (C) 2004-2007 Max Kellermann <max@duempel.org>\n"
+                 "http://max.kellermann.name/projects/loggertools/\n");
             exit(0);
 
         case 'v':
