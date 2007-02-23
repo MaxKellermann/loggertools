@@ -28,6 +28,14 @@ struct datadir *datadir_open(const char *path);
 
 void datadir_close(struct datadir *dir);
 
+void datadir_list_begin(struct datadir *dir);
+
+const char *datadir_list_next(struct datadir *dir);
+
+int datadir_stat(struct datadir *dir,
+                 const char *filename,
+                 struct stat *st);
+
 void *datadir_read(struct datadir *dir,
                    const char *filename,
                    size_t length);

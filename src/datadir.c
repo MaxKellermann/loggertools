@@ -25,12 +25,15 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <dirent.h>
+#include <errno.h>
 
 #include "datadir.h"
 
 struct datadir {
     char *path;
     size_t path_length;
+    DIR *dir;
 };
 
 struct datadir *datadir_open(const char *path) {
@@ -56,6 +59,9 @@ void datadir_close(struct datadir *dir) {
     if (dir->path != NULL)
         free(dir->path);
 
+    if (dir->dir != NULL)
+        closedir(dir->dir);
+
     free(dir);
 }
 
@@ -72,6 +78,48 @@ static char *make_path(struct datadir *dir,
     memcpy(p + dir->path_length, filename, filename_length);
 
     return p;
+}
+
+void datadir_list_begin(struct datadir *dir) {
+    if (dir->dir != NULL)
+        closedir(dir->dir);
+
+    dir->dir = opendir(dir->path);
+}
+
+const char *datadir_list_next(struct datadir *dir) {
+    struct dirent *ent;
+
+    if (dir->dir == NULL)
+        return NULL;
+
+    do {
+        ent = readdir(dir->dir);
+        if (ent == NULL) {
+            closedir(dir->dir);
+            dir->dir = NULL;
+            return NULL;
+        }
+    } while (ent->d_name[0] == '.');
+
+    return ent->d_name;
+}
+
+int datadir_stat(struct datadir *dir,
+                 const char *filename,
+                 struct stat *st) {
+    char *path;
+    int ret;
+
+    path = make_path(dir, filename);
+    if (path == NULL) {
+        errno = ENOMEM;
+        return -1;
+    }
+
+    ret = stat(path, st);
+    free(path);
+    return ret;
 }
 
 void *datadir_read(struct datadir *dir,
