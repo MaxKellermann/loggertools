@@ -79,6 +79,13 @@ struct filser {
 };
 
 
+static int should_exit = 0;
+
+static void exit_handler(int dummy) {
+    (void)dummy;
+    should_exit = 1;
+}
+
 static void alarm_handler(int dummy) {
     (void)dummy;
 }
@@ -878,6 +885,9 @@ int main(int argc, char **argv) {
     fputs("loggertools v" VERSION " (C) 2004-2007 Max Kellermann <max@duempel.org>\n"
           "http://max.kellermann.name/projects/loggertools/\n\n", stderr);
 
+    signal(SIGINT, exit_handler);
+    signal(SIGTERM, exit_handler);
+    signal(SIGQUIT, exit_handler);
     signal(SIGALRM, alarm_handler);
 
     default_filser(&filser);
@@ -891,7 +901,7 @@ int main(int argc, char **argv) {
         exit(2);
     }
 
-    while (1) {
+    while (!should_exit) {
         unsigned char cmd;
         int ret;
 
@@ -902,6 +912,9 @@ int main(int argc, char **argv) {
                 filser.fd = open_tty(&config);
                 continue;
             }
+
+            if (errno == EINTR)
+                continue;
 
             fprintf(stderr, "read failed: %s\n", strerror(errno));
             _exit(1);
@@ -1047,6 +1060,9 @@ int main(int argc, char **argv) {
             _exit(1);
         }
     }
+
+    clear_flight_list(&filser);
+    datadir_close(filser.datadir);
 
     return 0;
 }
