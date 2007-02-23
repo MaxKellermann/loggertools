@@ -43,14 +43,16 @@ struct datadir *datadir_open(const char *path) {
     if (dir == NULL)
         return NULL;
 
-    dir->path = strdup(path);
+    dir->path_length = strlen(path);
+    dir->path = malloc(dir->path_length + 2);
     if (dir->path == NULL) {
         free(dir);
         return NULL;
     }
 
-    dir->path_length = strlen(dir->path);
+    memcpy(dir->path, path, dir->path_length);
     dir->path[dir->path_length++] = '/';
+    dir->path[dir->path_length] = 0;
 
     return dir;
 }
