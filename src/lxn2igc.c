@@ -128,12 +128,16 @@ static int run(int fd, lxn_to_igc_t filter) {
     int ret, is_eof = 0, done = 0;
 
     do {
+        /* realign buffer */
+
         if (start > 0) {
             if (end > start)
                 memmove(buffer, buffer + start, end - start);
             end -= start;
             start = 0;
         }
+
+        /* read from input file */
 
         if (end < sizeof(buffer)) {
             nbytes = read(fd, buffer + end, sizeof(buffer) - end);
@@ -145,6 +149,8 @@ static int run(int fd, lxn_to_igc_t filter) {
             else
                 end += (size_t)nbytes;
         }
+
+        /* convert a block */
 
         if (end > start) {
             ret = lxn_to_igc_process(filter, buffer + start, end - start, &consumed);
@@ -176,7 +182,11 @@ int main(int argc, char **argv) {
     FILE *output_file;
     lxn_to_igc_t filter;
 
+    /* configuration */
+
     parse_cmdline(&config, argc, argv);
+
+    /* open files */
 
     fd = open(config.input_path, O_RDONLY);
     if (fd < 0) {
@@ -202,7 +212,11 @@ int main(int argc, char **argv) {
         exit(2);
     }
 
+    /* convert */
+
     status = run(fd, filter);
+
+    /* cleanup */
 
     if (config.output_path != NULL) {
         fclose(output_file);
