@@ -202,6 +202,12 @@ int filser_read(int fd, void *p0, size_t length,
 int filser_read_crc(int fd, void *p, size_t length,
                     time_t timeout);
 
+ssize_t filser_read_most(int fd, void *p0, size_t length,
+                         time_t timeout);
+
+ssize_t filser_read_most_crc(int fd, void *buffer, size_t length,
+                             time_t timeout);
+
 /* filser-proto.c */
 
 int filser_send_syn(int fd);

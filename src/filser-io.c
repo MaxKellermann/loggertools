@@ -1,6 +1,6 @@
 /*
  * loggertools
- * Copyright (C) 2004-2006 Max Kellermann <max@duempel.org>
+ * Copyright (C) 2004-2007 Max Kellermann <max@duempel.org>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -20,9 +20,12 @@
  */
 
 #include <assert.h>
+#include <sys/select.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <time.h>
+#include <errno.h>
 
 #include "filser.h"
 
@@ -101,6 +104,19 @@ int filser_write_packet(int fd, unsigned char cmd,
     return 1;
 }
 
+static int filser_select(int fd, time_t seconds) {
+    fd_set rfds;
+    struct timeval tv;
+
+    tv.tv_sec = seconds;
+    tv.tv_usec = 0;
+
+    FD_ZERO(&rfds);
+    FD_SET(fd, &rfds);
+
+    return select(fd + 1, &rfds, NULL, NULL, &tv);
+}
+
 int filser_read(int fd, void *p0, size_t length,
                 time_t timeout) {
     unsigned char *p = p0;
@@ -147,4 +163,66 @@ int filser_read_crc(int fd, void *p0, size_t length,
         return -2;
 
     return 1;
+}
+
+ssize_t filser_read_most(int fd, void *p0, size_t length,
+                         time_t timeout) {
+    unsigned char *buffer = p0;
+    int ret;
+    ssize_t nbytes;
+    size_t pos = 0;
+    time_t end_time = time(NULL) + timeout, timeout2 = 0;
+
+    assert(length > 0);
+    assert(timeout > 0);
+
+    for (;;) {
+        ret = filser_select(fd, 1);
+        if (ret < 0)
+            return -1;
+
+        if (ret == 0)
+            return (ssize_t)pos;
+
+        nbytes = read(fd, buffer + pos, length - pos);
+        if (nbytes < 0)
+            return -1;
+
+        if (timeout2 == 0) {
+            if (nbytes == 0)
+                timeout2 = time(NULL) + 1;
+        } else {
+            if (nbytes > 0)
+                timeout2 = 0;
+        }
+
+        pos += (size_t)nbytes;
+        if (pos >= length)
+            return (ssize_t)pos;
+
+        if (timeout2 > 0 && time(NULL) >= timeout2)
+            return pos;
+
+        if (time(NULL) >= end_time) {
+            errno = EINTR;
+            return -1;
+        }
+    }
+}
+
+ssize_t filser_read_most_crc(int fd, void *p0, size_t length,
+                             time_t timeout) {
+    unsigned char *buffer = p0;
+    ssize_t nbytes;
+    unsigned char crc;
+
+    nbytes = filser_read_most(fd, buffer, length, timeout);
+    if (nbytes <= 0)
+        return nbytes;
+
+    crc = filser_calc_crc(buffer, nbytes - 1);
+    if (crc != buffer[nbytes - 1])
+        return -2;
+
+    return nbytes;
 }

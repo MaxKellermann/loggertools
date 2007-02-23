@@ -167,43 +167,6 @@ static void syn_ack_wait(int fd) {
     }
 }
 
-static ssize_t read_timeout(int fd, unsigned char *buffer,
-                            size_t len) {
-    ssize_t nbytes;
-    size_t pos = 0;
-    time_t timeout = time(NULL) + 10, timeout2 = 0;
-
-    for (;;) {
-        alarm(1);
-        nbytes = read(fd, buffer + pos, len - pos);
-        alarm(0);
-        if (nbytes < 0)
-            return errno == EINTR
-                ? (ssize_t)pos
-                : nbytes;
-
-        if (timeout2 == 0) {
-            if (nbytes == 0)
-                timeout2 = time(NULL) + 1;
-        } else {
-            if (nbytes > 0)
-                timeout2 = 0;
-        }
-
-        pos += (size_t)nbytes;
-        if (pos >= len)
-            return (ssize_t)pos;
-
-        if (timeout2 > 0 && time(NULL) >= timeout2)
-            return pos;
-
-        if (time(NULL) >= timeout) {
-            errno = EINTR;
-            return -1;
-        }
-    }
-}
-
 static int read_full_crc(int fd, void *buffer, size_t len) {
     int ret;
 
@@ -218,14 +181,9 @@ static int read_full_crc(int fd, void *buffer, size_t len) {
 
 static ssize_t read_timeout_crc(int fd, unsigned char *buffer, size_t len) {
     ssize_t nbytes;
-    unsigned char crc;
 
-    nbytes = read_timeout(fd, buffer, len);
-    if (nbytes < 0)
-        return nbytes;
-
-    crc = filser_calc_crc(buffer, nbytes - 1);
-    if (crc != buffer[nbytes - 1]) {
+    nbytes = filser_read_most_crc(fd, buffer, len, 10);
+    if (nbytes == -2) {
         fprintf(stderr, "CRC error\n");
         _exit(1);
     }
@@ -321,7 +279,7 @@ static int raw(struct config *config, int argc, char **argv) {
 
     check_mem_settings(fd);
 
-    nbytes1 = read_timeout(0, buffer, sizeof(buffer));
+    nbytes1 = filser_read_most(0, buffer, sizeof(buffer), 10);
     if (nbytes1 < 0) {
         fprintf(stderr, "failed to read from stdin: %s\n",
                 strerror(errno));
@@ -335,7 +293,7 @@ static int raw(struct config *config, int argc, char **argv) {
         _exit(1);
     }
 
-    nbytes1 = read_timeout(fd, buffer, sizeof(buffer));
+    nbytes1 = filser_read_most(fd, buffer, sizeof(buffer), 10);
     if (nbytes1 < 0) {
         fprintf(stderr, "failed to read from '%s': %s\n",
                 config->tty, strerror(errno));
@@ -448,7 +406,7 @@ static int get_basic_data(struct config *config, int argc, char **argv) {
 
     filser_send_command(fd, FILSER_READ_BASIC_DATA);
 
-    nbytes = read_timeout(fd, buffer, sizeof(buffer));
+    nbytes = filser_read_most(fd, buffer, sizeof(buffer), 10);
     if (nbytes < 0) {
         fprintf(stderr, "failed to read from '%s': %s\n",
                 config->tty, strerror(errno));
