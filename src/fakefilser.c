@@ -68,7 +68,7 @@ struct mem_block {
     size_t offset, length;
 };
 
-struct filser {
+struct fake_filser {
     int fd;
     struct datadir *datadir;
     struct filser_flight_info flight_info;
@@ -215,7 +215,7 @@ static void parse_cmdline(struct config *config,
     }
 }
 
-static void default_filser(struct filser *filser) {
+static void default_filser(struct fake_filser *filser) {
     /*unsigned i;*/
 
     memset(filser, 0, sizeof(*filser));
@@ -316,7 +316,7 @@ static void dump_buffer_crc(const void *q,
            filser_calc_crc((const unsigned char*)q, length));
 }
 
-static void dump_timeout(struct filser *filser) {
+static void dump_timeout(struct fake_filser *filser) {
     unsigned char data;
     ssize_t nbytes;
     time_t timeout = time(NULL) + 2;
@@ -362,7 +362,7 @@ static void dump_timeout(struct filser *filser) {
     printf("\n");
 }
 
-static void send_ack(struct filser *filser) {
+static void send_ack(struct fake_filser *filser) {
     static const unsigned char ack = 0x06;
     ssize_t nbytes;
 
@@ -378,7 +378,7 @@ static void send_ack(struct filser *filser) {
     }
 }
 
-static void download_to_file(struct filser *filser,
+static void download_to_file(struct fake_filser *filser,
                              const char *filename,
                              size_t length) {
     void *buffer;
@@ -413,7 +413,7 @@ static void download_to_file(struct filser *filser,
     free(buffer);
 }
 
-static void upload_from_file(struct filser *filser,
+static void upload_from_file(struct fake_filser *filser,
                              const char *filename,
                              size_t length) {
     void *buffer;
@@ -429,11 +429,11 @@ static void upload_from_file(struct filser *filser,
     free(buffer);
 }
 
-static void handle_syn(struct filser *filser) {
+static void handle_syn(struct fake_filser *filser) {
     send_ack(filser);
 }
 
-static void handle_check_mem_settings(struct filser *filser) {
+static void handle_check_mem_settings(struct fake_filser *filser) {
     static const unsigned char buffer[6] = {
         0x00, 0x00, 0x06, 0x80, 0x00, 0x0f,
     };
@@ -441,7 +441,7 @@ static void handle_check_mem_settings(struct filser *filser) {
     write_crc(filser->fd, buffer, sizeof(buffer));
 }
 
-static void clear_flight_list(struct filser *filser) {
+static void clear_flight_list(struct fake_filser *filser) {
     struct flight_file *flight;
 
     memset(filser->mem_blocks, 0, sizeof(filser->mem_blocks));
@@ -456,7 +456,7 @@ static void clear_flight_list(struct filser *filser) {
     }
 }
 
-static void fill_flight(struct filser *filser,
+static void fill_flight(struct fake_filser *filser,
                         struct filser_flight_index *flight,
                         const char *filename, size_t length) {
     unsigned char *data;
@@ -523,7 +523,7 @@ static void fill_flight(struct filser *filser,
     free(data);
 }
 
-static void fill_flight_list(struct filser *filser) {
+static void fill_flight_list(struct fake_filser *filser) {
     const char *filename;
     size_t length;
     int ret;
@@ -600,7 +600,7 @@ static void fill_flight_list(struct filser *filser) {
     }
 }
 
-static struct flight_file *find_flight_at(const struct filser *filser, unsigned address) {
+static struct flight_file *find_flight_at(const struct fake_filser *filser, unsigned address) {
     struct flight_file *flight;
 
     for (flight = filser->flights; flight != NULL; flight = flight->next) {
@@ -612,7 +612,7 @@ static struct flight_file *find_flight_at(const struct filser *filser, unsigned 
     return NULL;
 }
 
-static void handle_open_flight_list(struct filser *filser) {
+static void handle_open_flight_list(struct fake_filser *filser) {
     struct flight_file *flight;
     static struct filser_flight_index null;
 
@@ -628,17 +628,17 @@ static void handle_open_flight_list(struct filser *filser) {
     write_crc(filser->fd, (const unsigned char*)&null, sizeof(null));
 }
 
-static void handle_get_basic_data(struct filser *filser) {
+static void handle_get_basic_data(struct fake_filser *filser) {
     static const unsigned char buffer[0x148] = "\x0d\x0aVersion COLIBRI   V3.01\x0d\x0aSN13123,HW2.0\x0d\x0aID:313-[313]\x0d\x0aChecksum:64\x0d\x0aAPT:APTempty\x0d\x0a 10.6.3\x0d\x0aKey uploaded by\x0d\x0aMihelin Peter\x0d\x0aLX Navigation\x0d\x0a";
 
     write(filser->fd, buffer, sizeof(buffer));
 }
 
-static void handle_get_flight_info(struct filser *filser) {
+static void handle_get_flight_info(struct fake_filser *filser) {
     write_crc(filser->fd, (const unsigned char*)&filser->flight_info, sizeof(filser->flight_info));
 }
 
-static void handle_get_mem_section(struct filser *filser) {
+static void handle_get_mem_section(struct fake_filser *filser) {
     struct flight_file *flight;
     struct filser_packet_mem_section packet;
     unsigned i, address = filser->start_address;
@@ -666,7 +666,7 @@ static void handle_get_mem_section(struct filser *filser) {
     write_crc(filser->fd, &packet, sizeof(packet));
 }
 
-static void handle_def_mem(struct filser *filser) {
+static void handle_def_mem(struct fake_filser *filser) {
     struct filser_packet_def_mem packet;
 
     read_full_crc(filser->fd, &packet, sizeof(packet));
@@ -694,7 +694,7 @@ static void handle_def_mem(struct filser *filser) {
     send_ack(filser);
 }
 
-static void handle_get_logger_data(struct filser *filser, unsigned block) {
+static void handle_get_logger_data(struct fake_filser *filser, unsigned block) {
     unsigned size = 0;
     unsigned char *data = NULL;
     const void *buffer = "";
@@ -718,7 +718,7 @@ static void handle_get_logger_data(struct filser *filser, unsigned block) {
         free(data);
 }
 
-static void handle_write_flight_info(struct filser *filser) {
+static void handle_write_flight_info(struct fake_filser *filser) {
     struct filser_flight_info flight_info;
     ssize_t nbytes;
 
@@ -742,22 +742,22 @@ static void handle_write_flight_info(struct filser *filser) {
     send_ack(filser);
 }
 
-static void handle_read_tp_tsk(struct filser *filser) {
+static void handle_read_tp_tsk(struct fake_filser *filser) {
     upload_from_file(filser, "tp_tsk", 0x5528);
 }
 
-static void handle_write_tp_tsk(struct filser *filser) {
+static void handle_write_tp_tsk(struct fake_filser *filser) {
     download_to_file(filser, "tp_tsk", 0x5528);
 
     send_ack(filser);
 }
 
-static void handle_read_setup(struct filser *filser) {
+static void handle_read_setup(struct fake_filser *filser) {
     write_crc(filser->fd, (const unsigned char*)&filser->setup,
               sizeof(filser->setup));
 }
 
-static void handle_write_setup(struct filser *filser) {
+static void handle_write_setup(struct fake_filser *filser) {
     struct filser_setup setup;
     ssize_t nbytes;
 
@@ -776,29 +776,29 @@ static void handle_write_setup(struct filser *filser) {
     send_ack(filser);
 }
 
-static void handle_read_contest_class(struct filser *filser) {
+static void handle_read_contest_class(struct fake_filser *filser) {
     upload_from_file(filser, "contest_class",
                      sizeof(struct filser_contest_class));
 }
 
-static void handle_get_extra_data(struct filser *filser) {
+static void handle_get_extra_data(struct fake_filser *filser) {
     upload_from_file(filser, "extra_data", 0x100);
 }
 
-static void handle_write_contest_class(struct filser *filser) {
+static void handle_write_contest_class(struct fake_filser *filser) {
     download_to_file(filser, "contest_class",
                      sizeof(struct filser_contest_class));
 
     send_ack(filser);
 }
 
-static void handle_30(struct filser *filser) {
+static void handle_30(struct fake_filser *filser) {
     char foo[0x8000];
     memset(&foo, 0, sizeof(foo));
     write_crc(filser->fd, foo, sizeof(foo));
 }
 
-static void handle_apt_download(struct filser *filser,
+static void handle_apt_download(struct fake_filser *filser,
                                 unsigned idx) {
     char foo[16000];
 
@@ -807,7 +807,7 @@ static void handle_apt_download(struct filser *filser,
     write_crc(filser->fd, foo, 8164);
 }
 
-static void handle_apt_upload(struct filser *filser,
+static void handle_apt_upload(struct fake_filser *filser,
                               unsigned idx) {
     char filename[] = "apt_X";
 
@@ -817,7 +817,7 @@ static void handle_apt_upload(struct filser *filser,
     send_ack(filser);
 }
 
-static void handle_apt_state(struct filser *filser) {
+static void handle_apt_state(struct fake_filser *filser) {
     download_to_file(filser, "apt_state", 0xa07);
 
     send_ack(filser);
@@ -873,7 +873,7 @@ static int open_tty(struct config *config) {
 
 int main(int argc, char **argv) {
     struct config config;
-    struct filser filser;
+    struct fake_filser filser;
     int was_70 = 0;
 
     parse_cmdline(&config, argc, argv);
