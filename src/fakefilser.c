@@ -30,6 +30,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <strings.h>
 #include <errno.h>
 #include <termios.h>
 #include <signal.h>
@@ -43,6 +44,7 @@
 #include "version.h"
 #include "filser.h"
 #include "datadir.h"
+#include "lxn-reader.h"
 
 struct config {
     int verbose;
@@ -54,12 +56,26 @@ struct filser_wtf37 {
     char null;
 };
 
+struct flight_file {
+    struct flight_file *next;
+    char *filename;
+    size_t address, length;
+    struct filser_flight_index flight;
+};
+
+struct mem_block {
+    struct flight_file *flight;
+    size_t offset, length;
+};
+
 struct filser {
     int fd;
     struct datadir *datadir;
     struct filser_flight_info flight_info;
     struct filser_setup setup;
     unsigned start_address, end_address;
+    struct flight_file *flights;
+    struct mem_block mem_blocks[0x10];
 };
 
 
@@ -418,49 +434,195 @@ static void handle_check_mem_settings(struct filser *filser) {
     write_crc(filser->fd, buffer, sizeof(buffer));
 }
 
+static void clear_flight_list(struct filser *filser) {
+    struct flight_file *flight;
+
+    memset(filser->mem_blocks, 0, sizeof(filser->mem_blocks));
+
+    while (filser->flights != NULL) {
+        flight = filser->flights;
+        filser->flights = flight->next;
+
+        if (flight->filename != NULL)
+            free(flight->filename);
+        free(flight);
+    }
+}
+
+static void fill_flight(struct filser *filser,
+                        struct filser_flight_index *flight,
+                        const char *filename, size_t length) {
+    unsigned char *data;
+    struct lxn_reader reader;
+    int ret;
+
+    /* some generic defaults */
+
+    strcpy(flight->date, "00.00.00");
+    strcpy(flight->start_time, "00:00:00");
+    strcpy(flight->stop_time, "00:00:00");
+    strcpy(flight->pilot, "Unknown");
+
+    /* read the LXN file into memory */
+
+    data = (unsigned char*)datadir_read(filser->datadir, filename, length);
+    if (data == NULL)
+        return;
+
+    memset(&reader, 0, sizeof(reader));
+    reader.input = data;
+    reader.input_length = length;
+
+    /* XXX: extract start and landing time */
+
+    while (!reader.is_end && reader.input_consumed < reader.input_length) {
+        ret = lxn_read(&reader);
+        if (ret != 0) {
+            fprintf(stderr, "lxn_read() returned %d\n", ret);
+            break;
+        }
+
+        switch (*reader.packet.cmd) {
+        case LXN_SERIAL:
+            flight->logger_id = htons(atoi(reader.packet.serial->serial + 3));
+            break;
+
+        case LXN_EVENT:
+            fprintf(stderr, "EVENT '%s'\n", reader.packet.event->foo);
+            break;
+
+        case LXN_DATE:
+            snprintf(flight->date, sizeof(flight->date),
+                     "%02u.%02u.%02u\n",
+                     reader.packet.date->day,
+                     reader.packet.date->month,
+                     ntohs(reader.packet.date->year) % 100);
+            break;
+
+        case LXN_FLIGHT_INFO:
+            snprintf(flight->pilot, sizeof(flight->pilot),
+                     "%s", reader.packet.flight_info->pilot);
+            break;
+
+        default:
+            if (*reader.packet.cmd > 11 && *reader.packet.cmd < 0x40 &&
+                memcmp(reader.packet.cmd + 1, "HFPLTPILOT:", 11) == 0) {
+                /* parse pilot's name from text line */
+                size_t pilot_length = reader.packet_length - 12;
+                if (pilot_length >= sizeof(flight->pilot))
+                    pilot_length = sizeof(flight->pilot) - 1;
+                memcpy(flight->pilot, reader.packet.cmd + 12, pilot_length);
+                flight->pilot[pilot_length] = 0;
+            }
+        }
+    }
+
+    free(data);
+}
+
+static void fill_flight_list(struct filser *filser) {
+    const char *filename;
+    size_t length;
+    int ret;
+    struct stat st;
+    struct flight_file *flight, **next_p;
+    size_t address = 0;
+    char prev_date[9] = "";
+    unsigned prev_no = 0;
+
+    datadir_list_begin(filser->datadir);
+
+    next_p = &filser->flights;
+
+    while ((filename = datadir_list_next(filser->datadir)) != NULL) {
+        /* is it an LXN file? */
+        length = strlen(filename);
+        if (length < 5 ||
+            (strcasecmp(filename + length - 4, ".lxn") != 0 &&
+             strcasecmp(filename + length - 4, ".fil") != 0))
+            continue;
+
+        ret = datadir_stat(filser->datadir, filename, &st);
+        if (ret < 0 || !S_ISREG(st.st_mode) ||
+            st.st_size == 0 || st.st_size >= 8 * 1024 * 1024)
+            continue;
+
+        flight = calloc(1, sizeof(*flight));
+        if (flight == NULL)
+            break;
+
+        flight->filename = strdup(filename);
+        if (flight->filename == NULL) {
+            free(flight);
+            break;
+        }
+
+        flight->address = address;
+        flight->length = (size_t)st.st_size;
+
+        flight->flight.valid = 1;
+
+        /* generate a new LXN memory address */
+
+        flight->flight.start_address0 = address & 0xff;
+        flight->flight.start_address1 = (address >> 8) & 0xff;
+        flight->flight.start_address2 = (address >> 16) & 0xff;
+        flight->flight.start_address3 = (address >> 24) & 0xff;
+
+        address += flight->length;
+
+        flight->flight.end_address0 = address & 0xff;
+        flight->flight.end_address1 = (address >> 8) & 0xff;
+        flight->flight.end_address2 = (address >> 16) & 0xff;
+        flight->flight.end_address3 = (address >> 24) & 0xff;
+
+        /* parse the LXN file and extract some metadata for the flight
+           index */
+
+        fill_flight(filser, &flight->flight, filename, flight->length);
+
+        /* generate a flight number */
+
+        if (strcmp(prev_date, flight->flight.date) != 0) {
+            memcpy(prev_date, flight->flight.date, sizeof(prev_date));
+            prev_no = 0;
+        }
+
+        flight->flight.flight_no = ++prev_no;
+
+        /* add flight to tail of linked list */
+        flight->next = *next_p;
+        *next_p = flight;
+        next_p = &flight->next;
+    }
+}
+
+static struct flight_file *find_flight_at(const struct filser *filser, unsigned address) {
+    struct flight_file *flight;
+
+    for (flight = filser->flights; flight != NULL; flight = flight->next) {
+        if (address >= flight->address &&
+            address < flight->address + flight->length)
+            return flight;
+    }
+
+    return NULL;
+}
+
 static void handle_open_flight_list(struct filser *filser) {
-    struct filser_flight_index flight;
+    struct flight_file *flight;
+    static struct filser_flight_index null;
 
-    memset(&flight, 0, sizeof(flight));
+    clear_flight_list(filser);
+    fill_flight_list(filser);
 
-    flight.valid = 1;
-    flight.start_address2 = 0x06;
-    flight.end_address1 = 0x0f;
-    flight.end_address0 = 0xd1;
-    flight.end_address2 = 0x06;
-    strcpy(flight.date, "16.07.05");
-    strcpy(flight.start_time, "20:14:06");
-    strcpy(flight.stop_time, "21:07:47");
-    strcpy(flight.pilot, "Max Kellermann");
-    flight.logger_id = htons(15149);
-    flight.flight_no = 1;
-    dump_buffer_crc(&flight, sizeof(flight));
-    write_crc(filser->fd, (const unsigned char*)&flight, sizeof(flight));
+    for (flight = filser->flights; flight != NULL; flight = flight->next) {
+        dump_buffer_crc(&flight->flight, sizeof(flight->flight));
+        write_crc(filser->fd, (const unsigned char*)&flight->flight,
+                  sizeof(flight->flight));
+    }
 
-    flight.start_address0 = 0x01;
-    flight.start_address1 = 0x23;
-    flight.start_address2 = 0x45;
-    flight.start_address3 = 0x67;
-    flight.end_address0 = 0x01;
-    flight.end_address1 = 0x23;
-    flight.end_address2 = 0x45;
-    flight.end_address3 = 0x80;
-    strcpy(flight.date, "23.08.05");
-    strcpy(flight.start_time, "08:55:11");
-    strcpy(flight.stop_time, "16:22:33");
-    strcpy(flight.pilot, "Max Kellermann");
-    flight.flight_no++;
-    write_crc(filser->fd, (const unsigned char*)&flight, sizeof(flight));
-
-    strcpy(flight.date, "24.08.05");
-    strcpy(flight.start_time, "09:55:11");
-    strcpy(flight.stop_time, "15:22:33");
-    strcpy(flight.pilot, "Max Kellermann");
-    dump_buffer_crc(&flight, sizeof(flight));
-    write_crc(filser->fd, (const unsigned char*)&flight, sizeof(flight));
-
-    memset(&flight, 0, sizeof(flight));
-    write_crc(filser->fd, (const unsigned char*)&flight, sizeof(flight));
+    write_crc(filser->fd, (const unsigned char*)&null, sizeof(null));
 }
 
 static void handle_get_basic_data(struct filser *filser) {
@@ -474,10 +636,29 @@ static void handle_get_flight_info(struct filser *filser) {
 }
 
 static void handle_get_mem_section(struct filser *filser) {
+    struct flight_file *flight;
     struct filser_packet_mem_section packet;
+    unsigned i, address = filser->start_address;
 
     memset(&packet, 0, sizeof(packet));
-    packet.section_lengths[0] = htons(0x4000);
+    memset(filser->mem_blocks, 0, sizeof(filser->mem_blocks));
+
+    for (flight = find_flight_at(filser, filser->start_address), i = 0;
+         flight != NULL && address < filser->end_address && i < 0x10;
+         flight = flight->next, ++i) {
+        filser->mem_blocks[i].flight = flight;
+        filser->mem_blocks[i].offset = address - flight->address;
+
+        if (filser->end_address >= flight->address + flight->length) {
+            filser->mem_blocks[i].length = flight->address + flight->length - address;
+            address = flight->address + flight->length;
+        } else {
+            filser->mem_blocks[i].length = filser->end_address - address;
+            address = filser->end_address;
+        }
+
+        packet.section_lengths[i] = htons(filser->mem_blocks[i].length);
+    }
 
     write_crc(filser->fd, &packet, sizeof(packet));
 }
@@ -511,31 +692,27 @@ static void handle_def_mem(struct filser *filser) {
 }
 
 static void handle_get_logger_data(struct filser *filser, unsigned block) {
-    unsigned size;
-    unsigned char *foo;
+    unsigned size = 0;
+    unsigned char *data = NULL;
+    const void *buffer = "";
 
-    switch (block) {
-    case 0:
-        size = 0x740;
-        break;
-    case 1:
-        size = 0x9ef;
-        break;
-    default:
-        size = 0;
+    if (block < 0x10 && filser->mem_blocks[block].flight != NULL) {
+
+        data = datadir_read(filser->datadir,
+                            filser->mem_blocks[block].flight->filename,
+                            filser->mem_blocks[block].flight->length);
+        if (data != NULL) {
+            buffer = data + filser->mem_blocks[block].offset;
+            size = filser->mem_blocks[block].length;
+        }
     }
 
     printf("reading block %u size %u\n", block, size);
 
-    foo = malloc(size);
-    if (foo == NULL) {
-        fprintf(stderr, "malloc(%u) failed\n", size);
-        _exit(1);
-    }
+    write_crc(filser->fd, buffer, size);
 
-    memset(foo, 0, sizeof(foo));
-
-    write_crc(filser->fd, foo, size);
+    if (data != NULL)
+        free(data);
 }
 
 static void handle_write_flight_info(struct filser *filser) {

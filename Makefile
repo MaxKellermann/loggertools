@@ -61,7 +61,7 @@ lxui_OBJECTS = $(patsubst src/%.c,bin/%.o,$(lxui_SOURCES))
 lxigc_SOURCES = src/lxigc.c src/filser-crc.c src/filser-open.c src/filser-io.c src/filser-proto.c src/filser-filename.c src/lxn-reader.c src/filser-to-igc.c
 lxigc_OBJECTS = $(patsubst src/%.c,bin/%.o,$(lxigc_SOURCES))
 
-fakefilser_SOURCES = src/fakefilser.c src/filser-crc.c src/filser-open.c src/filser-io.c src/datadir.c
+fakefilser_SOURCES = src/fakefilser.c src/filser-crc.c src/filser-open.c src/filser-io.c src/datadir.c src/lxn-reader.c
 fakefilser_OBJECTS = $(patsubst src/%.c,bin/%.o,$(fakefilser_SOURCES))
 
 c_SOURCES = $(wildcard src/*.c)
