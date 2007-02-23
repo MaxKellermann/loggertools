@@ -171,31 +171,6 @@ static void syn_ack_wait(int fd) {
     }
 }
 
-static ssize_t read_full(int fd, unsigned char *buffer, size_t len) {
-    ssize_t nbytes;
-    size_t pos = 0;
-    time_t timeout = time(NULL) + 40;
-
-    alarm(40);
-
-    for (;;) {
-        nbytes = read(fd, buffer + pos, len - pos);
-        alarm(0);
-        if (nbytes < 0)
-            return (int)nbytes;
-
-        pos += (size_t)nbytes;
-        if (pos >= len)
-            return (ssize_t)pos;
-
-        if (time(NULL) > timeout) {
-            alarm(0);
-            errno = EINTR;
-            return -1;
-        }
-    }
-}
-
 static ssize_t read_full_crc(int fd, void *buffer, size_t len) {
     int ret;
 
@@ -312,7 +287,6 @@ static unsigned flight_list(int fd, struct filser_flight_index *flights,
 static int seek_mem(int fd, const struct filser_flight_index *flight) {
     struct filser_packet_def_mem packet;
     int ret;
-    ssize_t nbytes;
     unsigned char response;
 
     /* ignore highest byte here, the same as in kflog */
@@ -334,8 +308,10 @@ static int seek_mem(int fd, const struct filser_flight_index *flight) {
     if (ret <= 0)
         return -1;
 
-    nbytes = read_full(fd, &response, sizeof(response));
-    if (nbytes <= 0)
+    alarm(40);
+    ret = filser_read(fd, &response, sizeof(response), 40);
+    alarm(0);
+    if (ret <= 0)
         return -1;
 
     if (response != FILSER_ACK) {
