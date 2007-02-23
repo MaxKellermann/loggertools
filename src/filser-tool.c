@@ -1,6 +1,6 @@
 /*
  * loggertools
- * Copyright (C) 2004-2006 Max Kellermann (max@duempel.org)
+ * Copyright (C) 2004-2007 Max Kellermann (max@duempel.org)
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -36,11 +36,10 @@
 #include <getopt.h>
 #endif
 
+#include "version.h"
 #include "filser.h"
 #include "datadir.h"
 #include "lxn-to-igc.h"
-
-#define VERSION "0.0.1"
 
 struct config {
     int verbose;
