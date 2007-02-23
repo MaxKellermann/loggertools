@@ -42,7 +42,6 @@
 static FILE *dbg;
 
 struct config {
-    int verbose;
     const char *tty;
 };
 
@@ -79,7 +78,6 @@ static void parse_cmdline(struct config *config,
     static const struct option long_options[] = {
         {"help", 0, 0, 'h'},
         {"version", 0, 0, 'V'},
-        {"verbose", 0, 0, 'v'},
         {"quiet", 1, 0, 'q'},
         {"tty", 1, 0, 't'},
         {0,0,0,0}
@@ -93,7 +91,7 @@ static void parse_cmdline(struct config *config,
 #ifdef __GLIBC__
         int option_index = 0;
 
-        ret = getopt_long(argc, argv, "hVvqt:",
+        ret = getopt_long(argc, argv, "hVt:",
                           long_options, &option_index);
 #else
         ret = getopt(argc, argv, "hVvqt:");
@@ -110,14 +108,6 @@ static void parse_cmdline(struct config *config,
             printf("filsertool v" VERSION
                    ", http://max.kellermann.name/projects/loggertools/\n");
             exit(0);
-
-        case 'v':
-            ++config->verbose;
-            break;
-
-        case 'q':
-            config->verbose = 0;
-            break;
 
         case 't':
             config->tty = optarg;
