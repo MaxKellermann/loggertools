@@ -1,6 +1,6 @@
 /*
  * loggertools
- * Copyright (C) 2004-2006 Max Kellermann <max@duempel.org>
+ * Copyright (C) 2004-2007 Max Kellermann <max@duempel.org>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -26,16 +26,31 @@
 #include <unistd.h>
 #include <termios.h>
 #include <errno.h>
+#include <stdlib.h>
 
 #include "filser.h"
 
-int filser_open(const char *device) {
+int filser_fdopen(int fd, filser_t *device_r) {
+    filser_t device;
+
+    assert(device_r != NULL);
+    assert(fd >= 0);
+
+    device = calloc(1, sizeof(*device));
+    if (device == NULL)
+        return -1;
+
+    device->fd = fd;
+
+    *device_r = device;
+    return 0;
+}
+
+int filser_open(const char *device_path, filser_t *device_r) {
     int fd, ret;
     struct termios attr;
 
-    assert(device != NULL);
-
-    fd = open(device, O_RDWR | O_NOCTTY);
+    fd = open(device_path, O_RDWR | O_NOCTTY);
     if (fd < 0)
         return -1;
 
@@ -65,5 +80,24 @@ int filser_open(const char *device) {
         return -1;
     }
 
-    return fd;
+    ret = filser_fdopen(fd, device_r);
+    if (ret != 0)
+        close(fd);
+
+    return ret;
+}
+
+void filser_close(filser_t *device_r) {
+    filser_t device;
+
+    assert(device_r != NULL);
+    assert(*device_r != NULL);
+
+    device = *device_r;
+    *device_r = NULL;
+
+    if (device->fd >= 0)
+        close(device->fd);
+
+    free(device);
 }

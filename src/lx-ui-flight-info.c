@@ -49,7 +49,7 @@ void lxui_edit_flight_info(struct lxui *lxui) {
                           cancel_button = newtCompactButton(8, 9, "Cancel"),
                           NULL);
 
-    filser_send_command(lxui->fd, FILSER_READ_FLIGHT_INFO);
+    filser_send_command(lxui->device, FILSER_READ_FLIGHT_INFO);
     lxui->status = LXUI_STATUS_READ_FLIGHT_INFO;
 
     do {

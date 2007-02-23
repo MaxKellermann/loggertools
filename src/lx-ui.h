@@ -39,7 +39,7 @@ enum lxui_status {
 };
 
 struct lxui {
-    int fd;
+    filser_t device;
     int connected;
     time_t next_syn, ack_timeout;
     enum lxui_status status;

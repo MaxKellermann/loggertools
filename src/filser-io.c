@@ -29,22 +29,22 @@
 
 #include "filser.h"
 
-int filser_write_cmd(int fd, unsigned char cmd) {
+int filser_write_cmd(filser_t device, unsigned char cmd) {
     static const unsigned char prefix = FILSER_PREFIX;
     ssize_t nbytes;
 
-    nbytes = write(fd, &prefix, sizeof(prefix));
+    nbytes = write(device->fd, &prefix, sizeof(prefix));
     if (nbytes <= 0)
         return (int)nbytes;
 
-    nbytes = write(fd, &cmd, sizeof(cmd));
+    nbytes = write(device->fd, &cmd, sizeof(cmd));
     if (nbytes <= 0)
         return (int)nbytes;
 
     return 1;
 }
 
-int filser_write_crc(int fd, const void *p0, size_t length) {
+int filser_write_crc(filser_t device, const void *p0, size_t length) {
     const unsigned char *p = p0;
     ssize_t nbytes;
     unsigned char crc;
@@ -64,7 +64,7 @@ int filser_write_crc(int fd, const void *p0, size_t length) {
         if (sublen > 256)
             sublen = 256;
 
-        nbytes = write(fd, p + pos, sublen);
+        nbytes = write(device->fd, p + pos, sublen);
         if (nbytes < 0)
             return -1;
 
@@ -76,7 +76,7 @@ int filser_write_crc(int fd, const void *p0, size_t length) {
 
     crc = filser_calc_crc(p, length);
 
-    nbytes = write(fd, &crc, sizeof(crc));
+    nbytes = write(device->fd, &crc, sizeof(crc));
     if (nbytes < 0)
         return -1;
 
@@ -86,25 +86,25 @@ int filser_write_crc(int fd, const void *p0, size_t length) {
     return 1;
 }
 
-int filser_write_packet(int fd, unsigned char cmd,
+int filser_write_packet(filser_t device, unsigned char cmd,
                         const void *packet, size_t length) {
     int ret;
 
-    assert(fd >= 0);
+    assert(device->fd >= 0);
     assert(packet != NULL && length > 0);
 
-    ret = filser_write_cmd(fd, cmd);
+    ret = filser_write_cmd(device, cmd);
     if (ret <= 0)
         return ret;
 
-    ret = filser_write_crc(fd, packet, length);
+    ret = filser_write_crc(device, packet, length);
     if (ret <= 0)
         return ret;
 
     return 1;
 }
 
-static int filser_select(int fd, time_t seconds) {
+static int filser_select(filser_t device, time_t seconds) {
     fd_set rfds;
     struct timeval tv;
 
@@ -112,12 +112,12 @@ static int filser_select(int fd, time_t seconds) {
     tv.tv_usec = 0;
 
     FD_ZERO(&rfds);
-    FD_SET(fd, &rfds);
+    FD_SET(device->fd, &rfds);
 
-    return select(fd + 1, &rfds, NULL, NULL, &tv);
+    return select(device->fd + 1, &rfds, NULL, NULL, &tv);
 }
 
-int filser_read(int fd, void *p0, size_t length,
+int filser_read(filser_t device, void *p0, size_t length,
                 time_t timeout) {
     unsigned char *p = p0;
     ssize_t nbytes;
@@ -128,7 +128,7 @@ int filser_read(int fd, void *p0, size_t length,
         end_time = time(NULL) + timeout;
 
     for (;;) {
-        nbytes = read(fd, p + pos, length - pos);
+        nbytes = read(device->fd, p + pos, length - pos);
         if (nbytes < 0)
             return -1;
 
@@ -146,16 +146,16 @@ int filser_read(int fd, void *p0, size_t length,
     return 1;
 }
 
-int filser_read_crc(int fd, void *p0, size_t length,
+int filser_read_crc(filser_t device, void *p0, size_t length,
                     time_t timeout) {
     int ret;
     unsigned char crc;
 
-    ret = filser_read(fd, p0, length, timeout);
+    ret = filser_read(device, p0, length, timeout);
     if (ret <= 0)
         return ret;
 
-    ret = filser_read(fd, &crc, sizeof(crc), timeout);
+    ret = filser_read(device, &crc, sizeof(crc), timeout);
     if (ret <= 0)
         return ret;
 
@@ -165,7 +165,7 @@ int filser_read_crc(int fd, void *p0, size_t length,
     return 1;
 }
 
-ssize_t filser_read_most(int fd, void *p0, size_t length,
+ssize_t filser_read_most(filser_t device, void *p0, size_t length,
                          time_t timeout) {
     unsigned char *buffer = p0;
     int ret;
@@ -177,14 +177,14 @@ ssize_t filser_read_most(int fd, void *p0, size_t length,
     assert(timeout > 0);
 
     for (;;) {
-        ret = filser_select(fd, 1);
+        ret = filser_select(device, 1);
         if (ret < 0)
             return -1;
 
         if (ret == 0)
             return (ssize_t)pos;
 
-        nbytes = read(fd, buffer + pos, length - pos);
+        nbytes = read(device->fd, buffer + pos, length - pos);
         if (nbytes < 0)
             return -1;
 
@@ -210,13 +210,13 @@ ssize_t filser_read_most(int fd, void *p0, size_t length,
     }
 }
 
-ssize_t filser_read_most_crc(int fd, void *p0, size_t length,
+ssize_t filser_read_most_crc(filser_t device, void *p0, size_t length,
                              time_t timeout) {
     unsigned char *buffer = p0;
     ssize_t nbytes;
     unsigned char crc;
 
-    nbytes = filser_read_most(fd, buffer, length, timeout);
+    nbytes = filser_read_most(device, buffer, length, timeout);
     if (nbytes <= 0)
         return nbytes;
 

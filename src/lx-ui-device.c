@@ -27,52 +27,15 @@
 #include <errno.h>
 
 void lxui_device_close(struct lxui *lxui) {
-    if (lxui->fd >= 0)
-        close(lxui->fd);
+    if (lxui->device != NULL)
+        filser_close(&lxui->device);
     lxui->status = LXUI_STATUS_INIT;
 }
 
 static void lxui_device_send_syn(struct lxui *lxui, time_t now) {
-    filser_send_syn(lxui->fd);
+    filser_send_syn(lxui->device);
     lxui->status = LXUI_STATUS_SYN;
     lxui->ack_timeout = now + 2;
-}
-
-static ssize_t read_timeout(int fd, unsigned char *buffer,
-                            size_t len) {
-    ssize_t nbytes;
-    size_t pos = 0;
-    time_t timeout = time(NULL) + 10, timeout2 = 0;
-
-    for (;;) {
-        alarm(1);
-        nbytes = read(fd, buffer + pos, len - pos);
-        alarm(0);
-        if (nbytes < 0)
-            return errno == EINTR
-                ? (ssize_t)pos
-                : nbytes;
-
-        if (timeout2 == 0) {
-            if (nbytes == 0)
-                timeout2 = time(NULL) + 1;
-        } else {
-            if (nbytes > 0)
-                timeout2 = 0;
-        }
-
-        pos += (size_t)nbytes;
-        if (pos >= len)
-            return (ssize_t)pos;
-
-        if (timeout2 > 0 && time(NULL) >= timeout2)
-            return pos;
-
-        if (time(NULL) >= timeout) {
-            errno = EINTR;
-            return -1;
-        }
-    }
 }
 
 static void format_basic(char *p) {
@@ -96,11 +59,8 @@ int lxui_device_tick(struct lxui *lxui) {
     int ret;
     ssize_t nbytes;
 
-    if (lxui->fd < 0) {
-        if (lxui->fd < 0)
-            return -1;
-        lxui->status = LXUI_STATUS_INIT;
-    }
+    if (lxui->device == NULL)
+        return -1;
 
     /*newtTextboxSetText(lxui->newt_basic, "foo\nbar");*/
     switch (lxui->status) {
@@ -110,14 +70,14 @@ int lxui_device_tick(struct lxui *lxui) {
         break;
 
     case LXUI_STATUS_SYN:
-        ret = filser_recv_ack(lxui->fd);
+        ret = filser_recv_ack(lxui->device);
         if (ret > 0) {
             if (lxui->connected) {
                 lxui->status = LXUI_STATUS_IDLE;
                 lxui->next_syn = now + 4;
                 newtLabelSetText(lxui->newt_status, "connected");
             } else {
-                filser_send_command(lxui->fd, FILSER_READ_BASIC_DATA);
+                filser_send_command(lxui->device, FILSER_READ_BASIC_DATA);
                 lxui->status = LXUI_STATUS_READ_BASIC;
                 newtLabelSetText(lxui->newt_status, "reading info...");
             }
@@ -140,8 +100,8 @@ int lxui_device_tick(struct lxui *lxui) {
 
     case LXUI_STATUS_READ_BASIC:
         lxui->connected = 1;
-        nbytes = read_timeout(lxui->fd, (unsigned char*)lxui->basic,
-                              sizeof(lxui->basic) - 1);
+        nbytes = filser_read_most(lxui->device, (unsigned char*)lxui->basic,
+                                  sizeof(lxui->basic) - 1, 10);
         if (nbytes >= 0) {
             lxui->basic_length = (size_t)nbytes;
             lxui->basic[lxui->basic_length] = 0;
@@ -156,7 +116,7 @@ int lxui_device_tick(struct lxui *lxui) {
 
     case LXUI_STATUS_READ_FLIGHT_INFO:
         lxui->flight_info_ok = 0;
-        ret = filser_read_crc(lxui->fd, &lxui->flight_info,
+        ret = filser_read_crc(lxui->device, &lxui->flight_info,
                               sizeof(lxui->flight_info), 5);
         if (ret == -2) {
             //fprintf(stderr, "CRC error\n");
@@ -171,7 +131,7 @@ int lxui_device_tick(struct lxui *lxui) {
 
     case LXUI_STATUS_READ_FLIGHT_LIST:
         lxui->flight_info_ok = 0;
-        ret = filser_read_crc(lxui->fd, &lxui->flight_index,
+        ret = filser_read_crc(lxui->device, &lxui->flight_index,
                               sizeof(lxui->flight_index), 5);
         if (ret == -2) {
             //fprintf(stderr, "CRC error\n");
@@ -187,7 +147,7 @@ int lxui_device_tick(struct lxui *lxui) {
         break;
 
     case LXUI_STATUS_DEF_MEM:
-        ret = filser_recv_ack(lxui->fd);
+        ret = filser_recv_ack(lxui->device);
         if (ret > 0) {
             lxui->status = LXUI_STATUS_IDLE;
             lxui->next_syn = now + 4;
@@ -198,7 +158,7 @@ int lxui_device_tick(struct lxui *lxui) {
 
     case LXUI_STATUS_GET_MEM_SECTION:
         lxui->mem_section_ok = 0;
-        ret = filser_read_crc(lxui->fd, &lxui->mem_section,
+        ret = filser_read_crc(lxui->device, &lxui->mem_section,
                               sizeof(lxui->mem_section), 5);
         if (ret == -2) {
             //fprintf(stderr, "CRC error\n");
@@ -216,7 +176,7 @@ int lxui_device_tick(struct lxui *lxui) {
         assert(lxui->logger_data != NULL);
         assert(lxui->logger_data_length > 0);
         lxui->logger_data_ok = 0;
-        ret = filser_read_crc(lxui->fd, lxui->logger_data,
+        ret = filser_read_crc(lxui->device, lxui->logger_data,
                               lxui->logger_data_length, 5);
         if (ret == -2) {
             //fprintf(stderr, "CRC error\n");

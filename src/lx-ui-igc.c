@@ -29,7 +29,7 @@
 #include <termios.h>
 #include <netinet/in.h>
 
-static int send_seek_mem(int fd, const struct filser_flight_index *flight) {
+static int send_seek_mem(filser_t device, const struct filser_flight_index *flight) {
     struct filser_packet_def_mem packet;
     int ret;
 
@@ -45,9 +45,9 @@ static int send_seek_mem(int fd, const struct filser_flight_index *flight) {
     packet.end_address[1] = flight->end_address1;
     packet.end_address[2] = flight->end_address2;
 
-    tcflush(fd, TCIOFLUSH);
+    tcflush(device->fd, TCIOFLUSH);
 
-    ret = filser_write_packet(fd, FILSER_DEF_MEM,
+    ret = filser_write_packet(device, FILSER_DEF_MEM,
                               &packet, sizeof(packet));
     if (ret <= 0)
         return -1;
@@ -93,7 +93,7 @@ static int download_igc_flight(struct lxui *lxui,
 
     lxui->mem_section_ok = 0;
 
-    send_seek_mem(lxui->fd, flight);
+    send_seek_mem(lxui->device, flight);
     prev_status = lxui->status = LXUI_STATUS_DEF_MEM;
 
     newtCenteredWindow(35, 2, "Downloading");
@@ -119,7 +119,7 @@ static int download_igc_flight(struct lxui *lxui,
             if (lxui->status == LXUI_STATUS_IDLE) {
                 switch (prev_status) {
                 case LXUI_STATUS_DEF_MEM:
-                    ret = filser_send_command(lxui->fd, FILSER_GET_MEM_SECTION);
+                    ret = filser_send_command(lxui->device, FILSER_GET_MEM_SECTION);
                     if (ret > 0)
                         prev_status = lxui->status = LXUI_STATUS_GET_MEM_SECTION;
                     break;
@@ -135,13 +135,13 @@ static int download_igc_flight(struct lxui *lxui,
                         lxui->current_mem_section = 0;
                         if (section_lengths[lxui->current_mem_section] > 0) {
                             allocate_logger_data(lxui, section_lengths[lxui->current_mem_section]);
-                            filser_send_command(lxui->fd, FILSER_READ_LOGGER_DATA + lxui->current_mem_section);
+                            filser_send_command(lxui->device, FILSER_READ_LOGGER_DATA + lxui->current_mem_section);
                             prev_status = lxui->status = LXUI_STATUS_READ_LOGGER_DATA;
                         } else {
                             should_exit = 1;
                         }
                     } else {
-                        filser_send_command(lxui->fd, FILSER_GET_MEM_SECTION);
+                        filser_send_command(lxui->device, FILSER_GET_MEM_SECTION);
                         lxui->status = LXUI_STATUS_GET_MEM_SECTION;
                     }
                     break;
@@ -154,13 +154,13 @@ static int download_igc_flight(struct lxui *lxui,
                         if (lxui->current_mem_section < 0x10 &&
                             section_lengths[lxui->current_mem_section] > 0) {
                             allocate_logger_data(lxui, section_lengths[lxui->current_mem_section]);
-                            filser_send_command(lxui->fd, FILSER_READ_LOGGER_DATA + lxui->current_mem_section);
+                            filser_send_command(lxui->device, FILSER_READ_LOGGER_DATA + lxui->current_mem_section);
                             prev_status = lxui->status = LXUI_STATUS_READ_LOGGER_DATA;
                         } else {
                             should_exit = 1;
                         }
                     } else {
-                        filser_send_command(lxui->fd, FILSER_READ_LOGGER_DATA + lxui->current_mem_section);
+                        filser_send_command(lxui->device, FILSER_READ_LOGGER_DATA + lxui->current_mem_section);
                         lxui->status = LXUI_STATUS_READ_LOGGER_DATA;
                     }
                     break;
@@ -229,7 +229,7 @@ static int download_igc_flight_list(struct lxui *lxui,
     if (lxui_device_wait(lxui) <= 0)
         return -1;
 
-    filser_send_command(lxui->fd, FILSER_READ_FLIGHT_LIST);
+    filser_send_command(lxui->device, FILSER_READ_FLIGHT_LIST);
     lxui->status = LXUI_STATUS_READ_FLIGHT_LIST;
 
     newtCenteredWindow(35, 2, "Downloading");

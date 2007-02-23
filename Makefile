@@ -103,5 +103,5 @@ bin/lxigc: $(lxigc_OBJECTS)
 bin/fakefilser: $(fakefilser_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
 
-bin/fwd: src/fwd.c bin/filser-proto.o
+bin/fwd: src/fwd.c bin/filser-open.o bin/filser-proto.o
 	$(CC) $(CFLAGS) -o $@ $^

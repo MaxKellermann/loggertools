@@ -174,6 +174,12 @@ enum filser_command {
     FILSER_READ_LOGGER_DATA = 0xe6
 };
 
+struct filser {
+    int fd;
+};
+
+typedef struct filser *filser_t;
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -185,38 +191,42 @@ unsigned char filser_calc_crc(const void *p0, size_t len);
 
 /* filser-open.c */
 
-int filser_open(const char *device);
+int filser_fdopen(int fd, filser_t *device_r);
+
+int filser_open(const char *device_path, filser_t *device_r);
+
+void filser_close(filser_t *device_r);
 
 /* filser-io.c */
 
-int filser_write_cmd(int fd, unsigned char cmd);
+int filser_write_cmd(filser_t device, unsigned char cmd);
 
-int filser_write_crc(int fd, const void *p, size_t length);
+int filser_write_crc(filser_t device, const void *p, size_t length);
 
-int filser_write_packet(int fd, unsigned char cmd,
+int filser_write_packet(filser_t device, unsigned char cmd,
                         const void *packet, size_t length);
 
-int filser_read(int fd, void *p0, size_t length,
+int filser_read(filser_t device, void *p0, size_t length,
                 time_t timeout);
 
-int filser_read_crc(int fd, void *p, size_t length,
+int filser_read_crc(filser_t device, void *p, size_t length,
                     time_t timeout);
 
-ssize_t filser_read_most(int fd, void *p0, size_t length,
+ssize_t filser_read_most(filser_t device, void *p0, size_t length,
                          time_t timeout);
 
-ssize_t filser_read_most_crc(int fd, void *buffer, size_t length,
+ssize_t filser_read_most_crc(filser_t device, void *buffer, size_t length,
                              time_t timeout);
 
 /* filser-proto.c */
 
-int filser_send_syn(int fd);
+int filser_send_syn(filser_t device);
 
-int filser_recv_ack(int fd);
+int filser_recv_ack(filser_t device);
 
-int filser_syn_ack(int fd);
+int filser_syn_ack(filser_t device);
 
-int filser_send_command(int fd, unsigned char cmd);
+int filser_send_command(filser_t device, unsigned char cmd);
 
 /* filser-filename.c */
 

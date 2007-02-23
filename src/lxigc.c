@@ -145,13 +145,13 @@ static void alarm_handler(int dummy) {
     (void)dummy;
 }
 
-static void syn_ack_wait(int fd) {
+static void syn_ack_wait(filser_t device) {
     int ret;
     unsigned tries = 10;
 
     do {
         alarm(10);
-        ret = filser_syn_ack(fd);
+        ret = filser_syn_ack(device);
         alarm(0);
         if (ret < 0) {
             fprintf(stderr, "failed to connect: %s\n",
@@ -171,10 +171,10 @@ static void syn_ack_wait(int fd) {
     }
 }
 
-static int read_full_crc(int fd, void *buffer, size_t len) {
+static int read_full_crc(filser_t device, void *buffer, size_t len) {
     int ret;
 
-    ret = filser_read_crc(fd, buffer, len, 40);
+    ret = filser_read_crc(device, buffer, len, 40);
     if (ret == -2) {
         fprintf(stderr, "CRC error\n");
         exit(1);
@@ -183,30 +183,30 @@ static int read_full_crc(int fd, void *buffer, size_t len) {
     return ret;
 }
 
-static int communicate(int fd, unsigned char cmd,
+static int communicate(filser_t device, unsigned char cmd,
                        unsigned char *buffer, size_t buffer_len) {
     int ret;
 
-    syn_ack_wait(fd);
+    syn_ack_wait(device);
 
-    tcflush(fd, TCIOFLUSH);
+    tcflush(device->fd, TCIOFLUSH);
 
-    ret = filser_write_cmd(fd, cmd);
+    ret = filser_write_cmd(device, cmd);
     if (ret <= 0)
         return -1;
 
-    ret = read_full_crc(fd, buffer, buffer_len);
+    ret = read_full_crc(device, buffer, buffer_len);
     if (ret <= 0)
         return -1;
 
     return 1;
 }
 
-static int check_mem_settings(int fd) {
+static int check_mem_settings(filser_t device) {
     int ret;
     unsigned char buffer[6];
 
-    ret = communicate(fd, FILSER_CHECK_MEM_SETTINGS,
+    ret = communicate(device, FILSER_CHECK_MEM_SETTINGS,
                       buffer, sizeof(buffer));
     if (ret < 0) {
         fprintf(stderr, "failed to communicate: %s\n",
@@ -222,22 +222,22 @@ static int check_mem_settings(int fd) {
     return 0;
 }
 
-static int open_flight_list(int fd) {
+static int open_flight_list(filser_t device) {
     int ret;
 
-    syn_ack_wait(fd);
+    syn_ack_wait(device);
 
-    ret = filser_send_command(fd, FILSER_READ_FLIGHT_LIST);
+    ret = filser_send_command(device, FILSER_READ_FLIGHT_LIST);
     if (ret <= 0)
         return -1;
 
     return 0;
 }
 
-static int next_flight(int fd, struct filser_flight_index *flight) {
+static int next_flight(filser_t device, struct filser_flight_index *flight) {
     int ret;
 
-    ret = read_full_crc(fd, (unsigned char*)flight, sizeof(*flight));
+    ret = read_full_crc(device, (unsigned char*)flight, sizeof(*flight));
     if (ret <= 0)
         return -1;
 
@@ -247,13 +247,13 @@ static int next_flight(int fd, struct filser_flight_index *flight) {
     return 1;
 }
 
-static unsigned flight_list(int fd, struct filser_flight_index *flights,
+static unsigned flight_list(filser_t device, struct filser_flight_index *flights,
                             unsigned max_flights) {
     int ret;
     unsigned num_flights = 0;
     struct filser_flight_index *flight = flights;
 
-    ret = open_flight_list(fd);
+    ret = open_flight_list(device);
     if (ret < 0) {
         fprintf(stderr, "io error: %s\n", strerror(errno));
         exit(1);
@@ -263,7 +263,7 @@ static unsigned flight_list(int fd, struct filser_flight_index *flights,
            "No", "Date", "Time", "Pilot");
 
     for (num_flights = 0; num_flights < max_flights; ++num_flights, ++flight) {
-        ret = next_flight(fd, flight);
+        ret = next_flight(device, flight);
         if (ret < 0) {
             fprintf(stderr, "io error: %s\n", strerror(errno));
             exit(1);
@@ -281,7 +281,7 @@ static unsigned flight_list(int fd, struct filser_flight_index *flights,
     return num_flights;
 }
 
-static int seek_mem(int fd, const struct filser_flight_index *flight) {
+static int seek_mem(filser_t device, const struct filser_flight_index *flight) {
     struct filser_packet_def_mem packet;
     int ret;
     unsigned char response;
@@ -298,15 +298,15 @@ static int seek_mem(int fd, const struct filser_flight_index *flight) {
     packet.end_address[1] = flight->end_address1;
     packet.end_address[2] = flight->end_address2;
 
-    tcflush(fd, TCIOFLUSH);
+    tcflush(device->fd, TCIOFLUSH);
 
-    ret = filser_write_packet(fd, FILSER_DEF_MEM,
+    ret = filser_write_packet(device, FILSER_DEF_MEM,
                               &packet, sizeof(packet));
     if (ret <= 0)
         return -1;
 
     alarm(40);
-    ret = filser_read(fd, &response, sizeof(response), 40);
+    ret = filser_read(device, &response, sizeof(response), 40);
     alarm(0);
     if (ret < 0)
         return -1;
@@ -324,17 +324,17 @@ static int seek_mem(int fd, const struct filser_flight_index *flight) {
     return 0;
 }
 
-static int get_mem_section(int fd, size_t section_lengths[0x10],
+static int get_mem_section(filser_t device, size_t section_lengths[0x10],
                            size_t *overall_lengthp) {
     struct filser_packet_mem_section packet;
     int ret;
     unsigned z;
 
-    ret = filser_send_command(fd, FILSER_GET_MEM_SECTION);
+    ret = filser_send_command(device, FILSER_GET_MEM_SECTION);
     if (ret <= 0)
         return -1;
 
-    ret = read_full_crc(fd, &packet, sizeof(packet));
+    ret = read_full_crc(device, &packet, sizeof(packet));
     if (ret <= 0)
         return -1;
 
@@ -348,15 +348,15 @@ static int get_mem_section(int fd, size_t section_lengths[0x10],
     return 0;
 }
 
-static int download_section(int fd, unsigned section,
+static int download_section(filser_t device, unsigned section,
                             unsigned char *buffer, size_t length) {
     int ret;
 
-    ret = filser_send_command(fd, FILSER_READ_LOGGER_DATA + section);
+    ret = filser_send_command(device, FILSER_READ_LOGGER_DATA + section);
     if (ret <= 0)
         return -1;
 
-    ret = read_full_crc(fd, buffer, length);
+    ret = read_full_crc(device, buffer, length);
     if (ret <= 0)
         return -1;
 
@@ -364,18 +364,18 @@ static int download_section(int fd, unsigned section,
 }
 
 static int download_flight(const struct config *config,
-                           int fd, const struct filser_flight_index *flight,
+                           filser_t device, const struct filser_flight_index *flight,
                            const char *filename) {
     int ret, fd2;
     size_t section_lengths[0x10], overall_length;
     unsigned char *data, *p;
     unsigned i;
 
-    syn_ack_wait(fd);
+    syn_ack_wait(device);
 
     if (config->verbose >= 3)
         printf("seeking logger memory\n");
-    ret = seek_mem(fd, flight);
+    ret = seek_mem(device, flight);
     if (ret < 0) {
         fprintf(stderr, "io error: %s\n", strerror(errno));
         exit(1);
@@ -383,7 +383,7 @@ static int download_flight(const struct config *config,
 
     if (config->verbose >= 3)
         printf("obtaining logger memory section data\n");
-    ret = get_mem_section(fd, section_lengths, &overall_length);
+    ret = get_mem_section(device, section_lengths, &overall_length);
     if (ret < 0) {
         fprintf(stderr, "io error: %s\n", strerror(errno));
         exit(1);
@@ -410,7 +410,7 @@ static int download_flight(const struct config *config,
             printf("downloading memory section %u from logger, %lu bytes\n",
                    i, (unsigned long)section_lengths[i]);
 
-        ret = download_section(fd, i,
+        ret = download_section(device, i,
                                p, section_lengths[i]);
         if (ret < 0) {
             fprintf(stderr, "io error: %s\n", strerror(errno));
@@ -509,7 +509,8 @@ static int cmd_lxn2igc(const char *in_path, const char *out_path) {
 }
 
 int main(int argc, char **argv) {
-    int fd;
+    int ret;
+    filser_t device;
     struct config config;
     struct filser_flight_index flights[MAX_FLIGHTS];
     unsigned num_flights;
@@ -525,16 +526,16 @@ int main(int argc, char **argv) {
     fputs("loggertools v" VERSION " (C) 2004-2007 Max Kellermann <max@duempel.org>\n"
           "http://max.kellermann.name/projects/loggertools/\n\n", stderr);
 
-    fd = filser_open(config.tty);
-    if (fd < 0) {
+    ret = filser_open(config.tty, &device);
+    if (ret != 0) {
         fprintf(stderr, "filser_open failed: %s\n",
                 strerror(errno));
         exit(1);
     }
 
-    check_mem_settings(fd);
+    check_mem_settings(device);
 
-    num_flights = flight_list(fd, flights, MAX_FLIGHTS);
+    num_flights = flight_list(device, flights, MAX_FLIGHTS);
     if (num_flights == 0) {
         fprintf(stderr, "no flights on the device\n");
         exit(2);
@@ -581,7 +582,7 @@ int main(int argc, char **argv) {
             if (config.verbose >= 1)
                 printf("Downloading flight %u to %s\n", nr, lxn_filename);
 
-            download_flight(&config, fd, flight, lxn_filename);
+            download_flight(&config, device, flight, lxn_filename);
 
             if (config.verbose >= 1)
                 printf("Converting to %s\n", igc_filename);
@@ -594,4 +595,6 @@ int main(int argc, char **argv) {
             printf("Invalid command.  Type 'help' for more information.\n");
         }
     }
+
+    filser_close(&device);
 }

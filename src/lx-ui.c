@@ -128,6 +128,7 @@ int main(int argc, char **argv) {
         reconnect_button, quit_button;
     struct newtExitStruct es;
     static int should_exit;
+    int ret;
 
     signal(SIGALRM, alarm_handler);
 
@@ -136,8 +137,8 @@ int main(int argc, char **argv) {
     if (optind != argc)
         arg_error("too many arguments");
 
-    filser.fd = filser_open(config.tty);
-    if (filser.fd < 0) {
+    ret = filser_open(config.tty, &filser.device);
+    if (ret != 0) {
         fprintf(stderr, "failed to open %s: %s\n",
                 config.tty, strerror(errno));
         exit(2);
@@ -194,7 +195,7 @@ int main(int argc, char **argv) {
                 lxui_download_igc_flights(&filser);
             else if (es.u.co == reconnect_button) {
                 lxui_device_close(&filser);
-                filser.fd = filser_open(config.tty);
+                filser_open(config.tty, &filser.device);
             }  else if (es.u.co == quit_button)
                 should_exit = 1;
 

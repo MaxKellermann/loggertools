@@ -25,25 +25,25 @@
 
 #include "filser.h"
 
-int filser_send_syn(int fd) {
+int filser_send_syn(filser_t device) {
     static const unsigned char syn = FILSER_SYN;
     ssize_t nbytes;
 
-    tcflush(fd, TCIOFLUSH);
+    tcflush(device->fd, TCIOFLUSH);
 
-    nbytes = write(fd, &syn, sizeof(syn));
+    nbytes = write(device->fd, &syn, sizeof(syn));
     if (nbytes <= 0)
         return (int)nbytes;
 
     return 1;
 }
 
-int filser_recv_ack(int fd) {
+int filser_recv_ack(filser_t device) {
     static const unsigned char ack = FILSER_ACK;
     unsigned char buffer;
     ssize_t nbytes;
 
-    nbytes = read(fd, &buffer, sizeof(buffer));
+    nbytes = read(device->fd, &buffer, sizeof(buffer));
     if (nbytes <= 0)
         return (int)nbytes;
 
@@ -51,23 +51,23 @@ int filser_recv_ack(int fd) {
         ? 1 : 0;
 }
 
-int filser_syn_ack(int fd) {
+int filser_syn_ack(filser_t device) {
     int ret;
 
-    ret = filser_send_syn(fd);
+    ret = filser_send_syn(device);
     if (ret <= 0)
         return ret;
 
-    return filser_recv_ack(fd);
+    return filser_recv_ack(device);
 }
 
-int filser_send_command(int fd, unsigned char cmd) {
+int filser_send_command(filser_t device, unsigned char cmd) {
     const unsigned char buffer[2] = { FILSER_PREFIX, cmd };
     ssize_t nbytes;
 
-    tcflush(fd, TCIOFLUSH);
+    tcflush(device->fd, TCIOFLUSH);
 
-    nbytes = write(fd, buffer, sizeof(buffer));
+    nbytes = write(device->fd, buffer, sizeof(buffer));
     if (nbytes <= 0)
         return (int)nbytes;
 

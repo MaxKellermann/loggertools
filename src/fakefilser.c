@@ -69,7 +69,7 @@ struct mem_block {
 };
 
 struct fake_filser {
-    int fd;
+    filser_t device;
     struct datadir *datadir;
     struct filser_flight_info flight_info;
     struct filser_setup setup;
@@ -232,10 +232,10 @@ static void default_filser(struct fake_filser *filser) {
     filser->setup.tp_radius = htons(1000);
 }
 
-static void write_crc(int fd, const void *buffer, size_t length) {
+static void write_crc(filser_t device, const void *buffer, size_t length) {
     int ret;
 
-    ret = filser_write_crc(fd, buffer, length);
+    ret = filser_write_crc(device, buffer, length);
     if (ret < 0) {
         fprintf(stderr, "write failed: %s\n", strerror(errno));
         _exit(1);
@@ -247,10 +247,10 @@ static void write_crc(int fd, const void *buffer, size_t length) {
     }
 }
 
-static ssize_t read_full_crc(int fd, void *buffer, size_t len) {
+static ssize_t read_full_crc(filser_t device, void *buffer, size_t len) {
     int ret;
 
-    ret = filser_read_crc(fd, buffer, len, 40);
+    ret = filser_read_crc(device, buffer, len, 40);
     if (ret == -2) {
         fprintf(stderr, "CRC error\n");
         _exit(1);
@@ -325,7 +325,7 @@ static void dump_timeout(struct fake_filser *filser) {
 
     while (1) {
         alarm(1);
-        nbytes = read(filser->fd, &data, sizeof(data));
+        nbytes = read(filser->device->fd, &data, sizeof(data));
         alarm(0);
         if (nbytes < 0)
             break;
@@ -366,7 +366,7 @@ static void send_ack(struct fake_filser *filser) {
     static const unsigned char ack = 0x06;
     ssize_t nbytes;
 
-    nbytes = write(filser->fd, &ack, sizeof(ack));
+    nbytes = write(filser->device->fd, &ack, sizeof(ack));
     if (nbytes < 0) {
         fprintf(stderr, "write() failed: %s\n", strerror(errno));
         _exit(1);
@@ -390,7 +390,7 @@ static void download_to_file(struct fake_filser *filser,
         abort();
     }
 
-    ret = filser_read_crc(filser->fd, buffer, length, 10);
+    ret = filser_read_crc(filser->device, buffer, length, 10);
     if (ret <= 0) {
         fprintf(stderr, "error during filser_read_crc\n");
         exit(2);
@@ -424,7 +424,7 @@ static void upload_from_file(struct fake_filser *filser,
         exit(2);
     }
 
-    write_crc(filser->fd, buffer, length);
+    write_crc(filser->device, buffer, length);
 
     free(buffer);
 }
@@ -438,7 +438,7 @@ static void handle_check_mem_settings(struct fake_filser *filser) {
         0x00, 0x00, 0x06, 0x80, 0x00, 0x0f,
     };
 
-    write_crc(filser->fd, buffer, sizeof(buffer));
+    write_crc(filser->device, buffer, sizeof(buffer));
 }
 
 static void clear_flight_list(struct fake_filser *filser) {
@@ -621,21 +621,21 @@ static void handle_open_flight_list(struct fake_filser *filser) {
 
     for (flight = filser->flights; flight != NULL; flight = flight->next) {
         dump_buffer_crc(&flight->flight, sizeof(flight->flight));
-        write_crc(filser->fd, (const unsigned char*)&flight->flight,
+        write_crc(filser->device, (const unsigned char*)&flight->flight,
                   sizeof(flight->flight));
     }
 
-    write_crc(filser->fd, (const unsigned char*)&null, sizeof(null));
+    write_crc(filser->device, (const unsigned char*)&null, sizeof(null));
 }
 
 static void handle_get_basic_data(struct fake_filser *filser) {
     static const unsigned char buffer[0x148] = "\x0d\x0aVersion COLIBRI   V3.01\x0d\x0aSN13123,HW2.0\x0d\x0aID:313-[313]\x0d\x0aChecksum:64\x0d\x0aAPT:APTempty\x0d\x0a 10.6.3\x0d\x0aKey uploaded by\x0d\x0aMihelin Peter\x0d\x0aLX Navigation\x0d\x0a";
 
-    write(filser->fd, buffer, sizeof(buffer));
+    write(filser->device->fd, buffer, sizeof(buffer));
 }
 
 static void handle_get_flight_info(struct fake_filser *filser) {
-    write_crc(filser->fd, (const unsigned char*)&filser->flight_info, sizeof(filser->flight_info));
+    write_crc(filser->device, (const unsigned char*)&filser->flight_info, sizeof(filser->flight_info));
 }
 
 static void handle_get_mem_section(struct fake_filser *filser) {
@@ -663,13 +663,13 @@ static void handle_get_mem_section(struct fake_filser *filser) {
         packet.section_lengths[i] = htons(filser->mem_blocks[i].length);
     }
 
-    write_crc(filser->fd, &packet, sizeof(packet));
+    write_crc(filser->device, &packet, sizeof(packet));
 }
 
 static void handle_def_mem(struct fake_filser *filser) {
     struct filser_packet_def_mem packet;
 
-    read_full_crc(filser->fd, &packet, sizeof(packet));
+    read_full_crc(filser->device, &packet, sizeof(packet));
 
     filser->start_address
         = packet.start_address[2]
@@ -712,7 +712,7 @@ static void handle_get_logger_data(struct fake_filser *filser, unsigned block) {
 
     printf("reading block %u size %u\n", block, size);
 
-    write_crc(filser->fd, buffer, size);
+    write_crc(filser->device, buffer, size);
 
     if (data != NULL)
         free(data);
@@ -722,7 +722,7 @@ static void handle_write_flight_info(struct fake_filser *filser) {
     struct filser_flight_info flight_info;
     ssize_t nbytes;
 
-    nbytes = read_full_crc(filser->fd, &flight_info,
+    nbytes = read_full_crc(filser->device, &flight_info,
                            sizeof(flight_info));
     if (nbytes < 0) {
         fprintf(stderr, "read failed: %s\n", strerror(errno));
@@ -753,7 +753,7 @@ static void handle_write_tp_tsk(struct fake_filser *filser) {
 }
 
 static void handle_read_setup(struct fake_filser *filser) {
-    write_crc(filser->fd, (const unsigned char*)&filser->setup,
+    write_crc(filser->device, (const unsigned char*)&filser->setup,
               sizeof(filser->setup));
 }
 
@@ -761,7 +761,7 @@ static void handle_write_setup(struct fake_filser *filser) {
     struct filser_setup setup;
     ssize_t nbytes;
 
-    nbytes = read_full_crc(filser->fd, &setup, sizeof(setup));
+    nbytes = read_full_crc(filser->device, &setup, sizeof(setup));
     if (nbytes < 0) {
         fprintf(stderr, "read failed: %s\n", strerror(errno));
         _exit(1);
@@ -795,7 +795,7 @@ static void handle_write_contest_class(struct fake_filser *filser) {
 static void handle_30(struct fake_filser *filser) {
     char foo[0x8000];
     memset(&foo, 0, sizeof(foo));
-    write_crc(filser->fd, foo, sizeof(foo));
+    write_crc(filser->device, foo, sizeof(foo));
 }
 
 static void handle_apt_download(struct fake_filser *filser,
@@ -804,7 +804,7 @@ static void handle_apt_download(struct fake_filser *filser,
 
     (void)idx;
 
-    write_crc(filser->fd, foo, 8164);
+    write_crc(filser->device, foo, 8164);
 }
 
 static void handle_apt_upload(struct fake_filser *filser,
@@ -855,20 +855,28 @@ static int open_virtual(const char *symlink_path) {
     return fd;
 }
 
-static int open_tty(struct config *config) {
-    int fd;
+static void open_tty(struct config *config, filser_t *device_r) {
+    int fd, ret;
 
-    if (config->tty == NULL)
+    if (config->tty == NULL) {
         fd = open_virtual("/tmp/fakefilser");
-    else
-        fd = filser_open(config->tty);
+        if (fd < 0) {
+            fprintf(stderr, "failed to open tty\n");
+            exit(2);
+        }
 
-    if (fd < 0) {
-        fprintf(stderr, "failed to open tty\n");
-        exit(2);
+        ret = filser_fdopen(fd, device_r);
+        if (ret != 0) {
+            fprintf(stderr, "filser_fdopen() failed\n");
+            exit(2);
+        }
+    } else {
+        ret = filser_open(config->tty, device_r);
+        if (ret != 0) {
+            fprintf(stderr, "failed to open tty\n");
+            exit(2);
+        }
     }
-
-    return fd;
 }
 
 int main(int argc, char **argv) {
@@ -888,7 +896,7 @@ int main(int argc, char **argv) {
 
     default_filser(&filser);
 
-    filser.fd = open_tty(&config);
+    open_tty(&config, &filser.device);
 
     filser.datadir = datadir_open(config.datadir);
     if (filser.datadir == NULL) {
@@ -901,11 +909,11 @@ int main(int argc, char **argv) {
         unsigned char cmd;
         int ret;
 
-        ret = filser_read(filser.fd, &cmd, sizeof(cmd), 5);
+        ret = filser_read(filser.device, &cmd, sizeof(cmd), 5);
         if (ret < 0) {
             if (errno == EIO) {
-                close(filser.fd);
-                filser.fd = open_tty(&config);
+                filser_close(&filser.device);
+                open_tty(&config, &filser.device);
                 continue;
             }
 
@@ -927,7 +935,7 @@ int main(int argc, char **argv) {
             break;
 
         case FILSER_PREFIX:
-            ret = filser_read(filser.fd, &cmd, sizeof(cmd), 5);
+            ret = filser_read(filser.device, &cmd, sizeof(cmd), 5);
             if (ret <= 0) {
                 fprintf(stderr, "read failed: %s\n", strerror(errno));
                 _exit(1);
@@ -1059,6 +1067,7 @@ int main(int argc, char **argv) {
 
     clear_flight_list(&filser);
     datadir_close(filser.datadir);
+    filser_close(&filser.device);
 
     return 0;
 }
