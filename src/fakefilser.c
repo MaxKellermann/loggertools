@@ -494,10 +494,6 @@ static void fill_flight(struct filser *filser,
             flight->logger_id = htons(atoi(reader.packet.serial->serial + 3));
             break;
 
-        case LXN_EVENT:
-            fprintf(stderr, "EVENT '%s'\n", reader.packet.event->foo);
-            break;
-
         case LXN_DATE:
             snprintf(flight->date, sizeof(flight->date),
                      "%02u.%02u.%02u\n",
