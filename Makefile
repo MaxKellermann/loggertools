@@ -52,13 +52,13 @@ asconv_OBJECTS = $(patsubst src/%.cc,bin/%.o,$(asconv_SOURCES))
 cenfistool_SOURCES = src/cenfis-tool.c src/cenfis.c src/serialio.c
 cenfistool_OBJECTS = $(patsubst src/%.c,bin/%.o,$(cenfistool_SOURCES))
 
-filsertool_SOURCES = src/filser-tool.c src/filser-crc.c src/filser-open.c src/filser-io.c src/filser-proto.c src/datadir.c src/filser-to-igc.c
+filsertool_SOURCES = src/filser-tool.c src/filser-crc.c src/filser-open.c src/filser-io.c src/filser-proto.c src/datadir.c src/lxn-reader.c src/filser-to-igc.c
 filsertool_OBJECTS = $(patsubst src/%.c,bin/%.o,$(filsertool_SOURCES))
 
-lxui_SOURCES = src/lx-ui.c src/lx-ui-device.c src/lx-ui-setup.c src/lx-ui-flight-info.c src/lx-ui-igc.c src/filser-crc.c src/filser-open.c src/filser-io.c src/filser-proto.c src/filser-to-igc.c
+lxui_SOURCES = src/lx-ui.c src/lx-ui-device.c src/lx-ui-setup.c src/lx-ui-flight-info.c src/lx-ui-igc.c src/filser-crc.c src/filser-open.c src/filser-io.c src/filser-proto.c src/lxn-reader.c src/filser-to-igc.c
 lxui_OBJECTS = $(patsubst src/%.c,bin/%.o,$(lxui_SOURCES))
 
-lxigc_SOURCES = src/lxigc.c src/filser-crc.c src/filser-open.c src/filser-io.c src/filser-proto.c src/filser-filename.c src/filser-to-igc.c
+lxigc_SOURCES = src/lxigc.c src/filser-crc.c src/filser-open.c src/filser-io.c src/filser-proto.c src/filser-filename.c src/lxn-reader.c src/filser-to-igc.c
 lxigc_OBJECTS = $(patsubst src/%.c,bin/%.o,$(lxigc_SOURCES))
 
 fakefilser_SOURCES = src/fakefilser.c src/filser-crc.c src/filser-open.c src/filser-io.c src/datadir.c

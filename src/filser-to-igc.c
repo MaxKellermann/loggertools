@@ -36,154 +36,19 @@
 #include <netinet/in.h>
 
 #include "filser-to-igc.h"
-
-enum fil_commands {
-    FIL_END = 0x40,
-    FIL_VERSION = 0x7f,
-    FIL_START = 0x80,
-    FIL_ORIGIN = 0xa0,
-    FIL_SECURITY_OLD = 0xf5,
-    FIL_SERIAL = 0xf6,
-    FIL_POSITION_OK = 0xbf,
-    FIL_POSITION_BAD = 0xc3,
-    FIL_SECURITY = 0xf0,
-    FIL_COMPETITION_CLASS = 0xf1,
-    FIL_EVENT = 0xf4,
-    FIL_TASK = 0xf7,
-    FIL_B_EXT = 0xf9,
-    FIL_K_EXT = 0xfa,
-    FIL_DATE = 0xfb,
-    FIL_FLIGHT_INFO = 0xfc,
-    FIL_K_EXT_CONFIG = 0xfe, /* 'J': extensions in the 'K' record */
-    FIL_B_EXT_CONFIG = 0xff, /* 'I': extensions to the 'B' record */
-};
-
-enum fil_security_type {
-    FIL_SECURITY_LOW = 0x0d,
-    FIL_SECURITY_MED = 0x0e,
-    FIL_SECURITY_HIGH = 0x0f,
-};
-
-struct fil_string {
-    unsigned char length;
-    char value[];
-} __attribute__((packed));
-
-struct fil_end {
-    unsigned char cmd;
-} __attribute__((packed));
-
-struct fil_version {
-    unsigned char cmd;
-    unsigned char hardware, software;
-} __attribute__((packed));
-
-struct fil_start {
-    unsigned char cmd;
-    char streraz[8];
-    unsigned char flight_no;
-} __attribute__((packed));
-
-struct fil_origin {
-    unsigned char cmd;
-    u_int32_t time, latitude, longitude;
-} __attribute__((packed));
-
-struct fil_security_old {
-    unsigned char cmd;
-    char foo[22];
-} __attribute__((packed));
-
-struct fil_serial {
-    unsigned char cmd;
-    char serial[9];
-} __attribute__((packed));
-
-struct fil_position {
-    unsigned char cmd;
-    u_int16_t time, latitude, longitude, aalt, galt;
-} __attribute__((packed));
-
-struct fil_security {
-    unsigned char cmd;
-    unsigned char length, type;
-    unsigned char foo[64];
-} __attribute__((packed));
-
-struct fil_competition_class {
-    unsigned char cmd;
-    char class_id[9];
-} __attribute__((packed));
-
-struct fil_event {
-    unsigned char cmd;
-    char foo[9];
-} __attribute__((packed));
-
-struct fil_task {
-    unsigned char cmd;
-    u_int32_t time;
-    unsigned char day, month, year;
-    unsigned char day2, month2, year2;
-    u_int16_t task_id;
-    unsigned char num_tps;
-    unsigned char usage[12];
-    u_int32_t longitude[12], latitude[12];
-    char name[12][9];
-} __attribute__((packed));
-
-struct fil_b_ext {
-    unsigned char cmd;
-    u_int16_t data[];
-} __attribute__((packed));
-
-struct fil_k_ext {
-    unsigned char cmd;
-    unsigned char foo;
-    u_int16_t data[];
-} __attribute__((packed));
-
-struct fil_date {
-    unsigned char cmd;
-    unsigned char day, month;
-    u_int16_t year;
-} __attribute__((packed));
-
-struct fil_flight_info {
-    unsigned char cmd;
-    u_int16_t id;
-    char pilot[19];
-    char glider[12];
-    char registration[8];
-    char competition_class[4];
-    unsigned char competition_class_id;
-    char observer[10];
-    unsigned char gps_date;
-    unsigned char fix_accuracy;
-    char gps[60];
-} __attribute__((packed));
-
-struct fil_ext_config {
-    unsigned char cmd;
-    u_int16_t time, dat;
-} __attribute__((packed));
-
-struct extension_config {
-    unsigned num, widths[16];
-};
+#include "lxn-reader.h"
 
 struct filser_to_igc {
+    struct lxn_reader reader;
     FILE *igc;
     unsigned char flight_no;
     char date[7];
-    struct fil_flight_info flight_info;
-    struct extension_config k_ext, b_ext;
+    struct lxn_flight_info flight_info;
     unsigned time, origin_time;
     int origin_latitude, origin_longitude;
     int is_event;
-    struct fil_event event;
+    struct lxn_event event;
     char fix_stat;
-    int is_end;
 };
 
 struct extension_definition {
@@ -234,7 +99,7 @@ int filser_to_igc_close(struct filser_to_igc **fti_r) {
     fti = *fti_r;
     *fti_r = NULL;
 
-    if (!fti->is_end) {
+    if (!fti->reader.is_end) {
         free(fti);
         return -1;
     }
@@ -377,10 +242,10 @@ static const char *format_competition_class(unsigned char class_id) {
 }
 
 static int handle_position(struct filser_to_igc *fti,
-                           const struct fil_position *position) {
+                           const struct lxn_position *position) {
     int latitude, longitude;
 
-    fti->fix_stat = position->cmd == FIL_POSITION_OK ? 'A' : 'V';
+    fti->fix_stat = position->cmd == LXN_POSITION_OK ? 'A' : 'V';
     fti->time = fti->origin_time + (int16_t)ntohs(position->time);
     latitude = fti->origin_latitude + (int16_t)ntohs(position->latitude);
     longitude = fti->origin_longitude + (int16_t)ntohs(position->longitude);
@@ -403,43 +268,8 @@ static int handle_position(struct filser_to_igc *fti,
     fprintf(fti->igc, "%05d%05d",
             ntohs(position->aalt), ntohs(position->galt));
 
-    if (fti->b_ext.num == 0)
+    if (fti->reader.b_ext.num == 0)
         fprintf(fti->igc, "\r\n");
-
-    return 0;
-}
-
-static int handle_ext_config(struct filser_to_igc *fti,
-                             struct extension_config *config,
-                             const struct fil_ext_config *packet,
-                             char record, unsigned column) {
-    unsigned ext_dat, i, bit;
-
-    /* count bits in extension mask */
-    ext_dat = ntohs(packet->dat);
-    for (bit = 0, config->num = 0; bit < 16; ++bit)
-        if (ext_dat & (1 << bit))
-            ++config->num;
-
-    if (config->num == 0)
-        return 0;
-
-    /* begin record */
-    fprintf(fti->igc, "%c%02d", record, config->num);
-
-    /* write information about each extension */
-    for (i = 0, bit = 0; bit < 16; ++bit) {
-        if (ext_dat & (1 << bit)) {
-            fprintf(fti->igc, "%02d%02d%s", column,
-                    column + extension_defs[bit].width - 1,
-                    extension_defs[bit].name);
-            column += extension_defs[bit].width;
-            config->widths[i] = extension_defs[bit].width;
-            i++;
-        }
-    }
-
-    fprintf(fti->igc, "\r\n");
 
     return 0;
 }
@@ -450,92 +280,55 @@ int filser_to_igc_process(struct filser_to_igc *fti,
     unsigned i, l;
     int ret;
     char ch;
-    size_t position = 0;
-    union {
-        const unsigned char *cmd;
-        const struct fil_string *string;
-        const struct fil_end *end;
-        const struct fil_version *version;
-        const struct fil_start *start;
-        const struct fil_origin *origin;
-        const struct fil_security_old *security_old;
-        const struct fil_serial *serial;
-        const struct fil_position *position;
-        const struct fil_security *security;
-        const struct fil_competition_class *competition_class;
-        const struct fil_event *event;
-        const struct fil_task *task;
-        const struct fil_b_ext *b_ext;
-        const struct fil_k_ext *k_ext;
-        const struct fil_date *date;
-        const struct fil_flight_info *flight_info;
-        const struct fil_ext_config *ext_config;
-    } p;
+    union lxn_packet p;
 
     if (length <= 0)
         return EINVAL;
 
-    if (fti->is_end) {
+    if (fti->reader.is_end) {
         *consumed_r = length;
         return 0;
     }
 
-    while (position < length) {
-        p.cmd = fil + position;
+    fti->reader.input = fil;
+    fti->reader.input_length = length;
+    fti->reader.input_consumed = 0;
 
-        switch (fil[position]) {
+    while (fti->reader.input_consumed < fti->reader.input_length) {
+        ret = lxn_read(&fti->reader);
+        *consumed_r = fti->reader.input_consumed;
+        if (ret != 0)
+            return ret;
+
+        p = fti->reader.packet;
+
+        switch (*p.cmd) {
         case 0x00:
-            for (i = 1, ++position; position < length && fil[position] == 0; ++i)
-                ++position;
-            fprintf(fti->igc, "LFILEMPTY%u\r\n", i);
+            fprintf(fti->igc, "LFILEMPTY%u\r\n",
+                    (unsigned)fti->reader.packet_length);
             break;
 
-        case FIL_END:
-            if (length - position < sizeof(*p.version)) {
-                *consumed_r = position;
-                return EAGAIN;
-            }
-
-            fti->is_end = 1;
-
+        case LXN_END:
+            assert(fti->reader.is_end);
             *consumed_r = length;
             return 0;
 
-        case FIL_VERSION:
-            if (length - position < sizeof(*p.version)) {
-                *consumed_r = position;
-                return EAGAIN;
-            }
-
+        case LXN_VERSION:
             fprintf(fti->igc,
                     "HFRFWFIRMWAREVERSION:%3.1f\r\n"
                     "HFRHWHARDWAREVERSION:%3.1f\r\n",
                     p.version->software / 10.,
                     p.version->hardware / 10.);
-
-            position += sizeof(*p.version);
             break;
 
-        case FIL_START:
-            if (length - position < sizeof(*p.start)) {
-                *consumed_r = position;
-                return EAGAIN;
-            }
-
+        case LXN_START:
             if (memcmp(p.start->streraz, "STReRAZ\0", 8) != 0)
                 return -1;
 
             fti->flight_no = p.start->flight_no;
-
-            position += sizeof(*p.start);
             break;
 
-        case FIL_ORIGIN:
-            if (length - position < sizeof(*p.origin)) {
-                *consumed_r = position;
-                return EAGAIN;
-            }
-
+        case LXN_ORIGIN:
             fti->origin_time = ntohl(p.origin->time);
             fti->origin_latitude = (int32_t)ntohl(p.origin->latitude);
             fti->origin_longitude = (int32_t)ntohl(p.origin->longitude);
@@ -546,61 +339,33 @@ int filser_to_igc_process(struct filser_to_igc *fti,
                     fti->origin_latitude >= 0 ? 'N' : 'S',
                     abs(fti->origin_longitude) / 60000, abs(fti->origin_longitude) % 60000,
                     fti->origin_longitude >= 0 ? 'E' : 'W');
-
-            position += sizeof(*p.origin);
             break;
 
-        case FIL_SECURITY_OLD:
-            if (length - position < sizeof(*p.security_old)) {
-                *consumed_r = position;
-                return EAGAIN;
-            }
-
+        case LXN_SECURITY_OLD:
             fprintf(fti->igc, "G%22.22s\r\n", p.security_old->foo);
-
-            position += sizeof(*p.security_old);
             break;
 
-        case FIL_SERIAL:
-            if (length - position < sizeof(*p.serial)) {
-                *consumed_r = position;
-                return EAGAIN;
-            }
-
+        case LXN_SERIAL:
             if (!valid_string(p.serial->serial, sizeof(p.serial->serial)))
                 return -1;
 
             fprintf(fti->igc, "A%sFLIGHT:%u\r\nHFDTE%s\r\n",
                     p.serial->serial, fti->flight_no, fti->date);
-
-            position += sizeof(*p.serial);
             break;
 
-        case FIL_POSITION_OK:
-        case FIL_POSITION_BAD:
-            if (length - position < sizeof(*p.position)) {
-                *consumed_r = position;
-                return EAGAIN;
-            }
-
+        case LXN_POSITION_OK:
+        case LXN_POSITION_BAD:
             ret = handle_position(fti, p.position);
             if (ret != 0)
                 return ret;
-
-            position += sizeof(*p.position);
             break;
 
-        case FIL_SECURITY:
-            if (length - position < sizeof(*p.security)) {
-                *consumed_r = position;
-                return EAGAIN;
-            }
-
-            if (p.security->type == FIL_SECURITY_HIGH)
+        case LXN_SECURITY:
+            if (p.security->type == LXN_SECURITY_HIGH)
                 ch = '2';
-            else if (p.security->type == FIL_SECURITY_MED)
+            else if (p.security->type == LXN_SECURITY_MED)
                 ch = '1';
-            else if (p.security->type == FIL_SECURITY_LOW)
+            else if (p.security->type == LXN_SECURITY_LOW)
                 ch = '0';
             else
                 return -1;
@@ -611,16 +376,9 @@ int filser_to_igc_process(struct filser_to_igc *fti,
                 fprintf(fti->igc, "%02X", p.security->foo[i]);
 
             fprintf(fti->igc, "\r\n");
-
-            position += sizeof(*p.security);
             break;
 
-        case FIL_COMPETITION_CLASS:
-            if (length - position < sizeof(*p.competition_class)) {
-                *consumed_r = position;
-                return EAGAIN;
-            }
-
+        case LXN_COMPETITION_CLASS:
             if (!valid_string(p.competition_class->class_id,
                               sizeof(p.competition_class->class_id)))
                 return -1;
@@ -644,16 +402,9 @@ int filser_to_igc_process(struct filser_to_igc *fti,
                         fti->flight_info.competition_class,
                         p.competition_class->class_id,
                         fti->flight_info.gps);
-
-            position += sizeof(*p.competition_class);
             break;
 
-        case FIL_TASK:
-            if (length - position < sizeof(*p.task)) {
-                *consumed_r = position;
-                return EAGAIN;
-            }
-
+        case LXN_TASK:
             fti->time = ntohl(p.task->time);
 
             fprintf(fti->igc, "C%02d%02d%02d%02d%02d%02d"
@@ -677,65 +428,37 @@ int filser_to_igc_process(struct filser_to_igc *fti,
                             p.task->name[i]);
                 }
             }
-
-            position += sizeof(*p.task);
             break;
 
-        case FIL_EVENT:
-            if (length - position < sizeof(*p.event)) {
-                *consumed_r = position;
-                return EAGAIN;
-            }
-
+        case LXN_EVENT:
             if (!valid_string(p.event->foo, sizeof(p.event->foo)))
                 return -1;
 
             fti->event = *p.event;
             fti->is_event = 1;
-
-            position += sizeof(*p.event);
             break;
 
-        case FIL_B_EXT:
-            if (length - position < sizeof(*p.b_ext)) {
-                *consumed_r = position;
-                return EAGAIN;
-            }
-
-            for (i = 0; i < fti->b_ext.num; ++i)
-                fprintf(fti->igc, "%0*u", fti->b_ext.widths[i],
+        case LXN_B_EXT:
+            for (i = 0; i < fti->reader.b_ext.num; ++i)
+                fprintf(fti->igc, "%0*u", fti->reader.b_ext.widths[i],
                         ntohs(p.b_ext->data[i]));
 
             fprintf(fti->igc, "\r\n");
-
-            position += sizeof(*p.b_ext) + fti->b_ext.num * sizeof(p.b_ext->data[0]);
             break;
 
-        case FIL_K_EXT:
-            if (length - position < sizeof(*p.k_ext)) {
-                *consumed_r = position;
-                return EAGAIN;
-            }
-
+        case LXN_K_EXT:
             l = fti->time + p.k_ext->foo;
             fprintf(fti->igc, "K%02d%02d%02d",
                     l / 3600, l % 3600 / 60, l % 60);
 
-            for (i = 0; i < fti->k_ext.num; ++i)
-                fprintf(fti->igc, "%0*u", fti->k_ext.widths[i],
+            for (i = 0; i < fti->reader.k_ext.num; ++i)
+                fprintf(fti->igc, "%0*u", fti->reader.k_ext.widths[i],
                         ntohs(p.k_ext->data[i]));
 
             fprintf(fti->igc, "\r\n");
-
-            position += sizeof(*p.k_ext) + fti->k_ext.num * sizeof(p.k_ext->data[0]);
             break;
 
-        case FIL_DATE:
-            if (length - position < sizeof(*p.date)) {
-                *consumed_r = position;
-                return EAGAIN;
-            }
-
+        case LXN_DATE:
             if (p.date->day > 31 || p.date->month > 12)
                 return -1;
 
@@ -743,16 +466,9 @@ int filser_to_igc_process(struct filser_to_igc *fti,
                      "%02d%02d%02d",
                      p.date->day % 100, p.date->month % 100,
                      ntohs(p.date->year));
-
-            position += sizeof(*p.date);
             break;
 
-        case FIL_FLIGHT_INFO:
-            if (length - position < sizeof(*p.flight_info)) {
-                *consumed_r = position;
-                return EAGAIN;
-            }
-
+        case LXN_FLIGHT_INFO:
             if (!valid_string(p.flight_info->pilot,
                               sizeof(p.flight_info->pilot)) ||
                 !valid_string(p.flight_info->glider,
@@ -788,54 +504,21 @@ int filser_to_igc_process(struct filser_to_igc *fti,
                         p.flight_info->gps);
 
             fti->flight_info = *p.flight_info;
-
-            position += sizeof(*p.flight_info);
             break;
 
-        case FIL_K_EXT_CONFIG:
-            if (length - position < sizeof(*p.ext_config)) {
-                *consumed_r = position;
-                return EAGAIN;
-            }
-
-            ret = handle_ext_config(fti, &fti->k_ext, p.ext_config, 'J', 8);
-            if (ret != 0)
-                return ret;
-
-            position += sizeof(*p.ext_config);
-            break;
-
-
-        case FIL_B_EXT_CONFIG:
-            if (length - position < sizeof(*p.ext_config)) {
-                *consumed_r = position;
-                return EAGAIN;
-            }
-
-            ret = handle_ext_config(fti, &fti->b_ext, p.ext_config, 'I', 36);
-            if (ret != 0)
-                return ret;
-
-            position += sizeof(*p.ext_config);
+        case LXN_K_EXT_CONFIG:
+        case LXN_B_EXT_CONFIG:
             break;
 
         default:
             if (*p.cmd < 0x40) {
-                if (length - position < sizeof(*p.string) + p.string->length) {
-                    *consumed_r = position;
-                    return EAGAIN;
-                }
-
                 fprintf(fti->igc, "%.*s\r\n",
                         p.string->length, p.string->value);
-
-                position += sizeof(*p.string) + p.string->length;
             } else {
                 return -1;
             }
         }
     }
 
-    *consumed_r = position;
     return EAGAIN;
 }
