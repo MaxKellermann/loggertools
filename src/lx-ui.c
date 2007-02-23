@@ -39,8 +39,6 @@
 #include "version.h"
 #include "lx-ui.h"
 
-static FILE *dbg;
-
 struct config {
     const char *tty;
 };
@@ -130,8 +128,6 @@ int main(int argc, char **argv) {
         reconnect_button, quit_button;
     struct newtExitStruct es;
     static int should_exit;
-
-    dbg = fopen("/tmp/filser-ui.log", "w");
 
     signal(SIGALRM, alarm_handler);
 
