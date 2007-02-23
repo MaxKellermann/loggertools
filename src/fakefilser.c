@@ -70,6 +70,9 @@ static void alarm_handler(int dummy) {
 static void usage(void) {
     puts("usage: fakefilser [options]\n\n"
          "valid options:\n"
+#ifdef __GLIBC__
+         " --help\n"
+#endif
          " -h             help (this text)\n"
 #ifdef __GLIBC__
          " --version\n"

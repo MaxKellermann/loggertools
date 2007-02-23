@@ -53,6 +53,22 @@ static void usage(void) {
     puts("usage: lxigc [OPTIONS]\n"
          "valid options:\n"
 #ifdef __GLIBC__
+         " --help\n"
+#endif
+         " -h             help (this text)\n"
+#ifdef __GLIBC__
+         " --version\n"
+#endif
+         " -V             show fakefilser version\n"
+#ifdef __GLIBC__
+         " --verbose\n"
+#endif
+         " -v             be more verbose\n"
+#ifdef __GLIBC__
+         " --quiet\n"
+#endif
+         " -q             be quiet\n"
+#ifdef __GLIBC__
          " --tty DEVICE\n"
 #endif
          " -t DEVICE      open this tty device (default /dev/ttyS0)\n"

@@ -49,24 +49,17 @@ static void usage(void) {
     puts("usage: lxui [OPTIONS]\n"
          "valid options:\n"
 #ifdef __GLIBC__
+         " --help\n"
+#endif
+         " -h             help (this text)\n"
+#ifdef __GLIBC__
+         " --version\n"
+#endif
+         " -V             show fakefilser version\n"
+#ifdef __GLIBC__
          " --tty DEVICE\n"
 #endif
          " -t DEVICE      open this tty device (default /dev/ttyS0)\n"
-         "valid commands:\n"
-         "  list\n"
-         "        print a list of flights\n"
-         "  read_tp_tsk <out_filename.da4>\n"
-         "        read the TP and TSK database from the device\n"
-         "  write_tp_tsk <in_filename.da4>\n"
-         "        write the TP and TSK database to the device\n"
-         "  write_apt <data_dir>\n"
-         "        write the APT database to the device\n"
-         "  mem_section <start_adddress> <end_address>\n"
-         "        print memory section info\n"
-         "  raw_mem <start_adddress> <end_address>\n"
-         "        download raw memory\n"
-         "  lxn2igc FILENAME.LXN\n"
-         "        convert a .lxn file to .igc\n"
          );
 }
 
@@ -78,7 +71,6 @@ static void parse_cmdline(struct config *config,
     static const struct option long_options[] = {
         {"help", 0, 0, 'h'},
         {"version", 0, 0, 'V'},
-        {"quiet", 1, 0, 'q'},
         {"tty", 1, 0, 't'},
         {0,0,0,0}
     };
