@@ -50,13 +50,13 @@ struct config {
 };
 
 static void usage(void) {
-    printf("usage: lxigc [OPTIONS]\n"
-           "valid options:\n"
+    puts("usage: lxigc [OPTIONS]\n"
+         "valid options:\n"
 #ifdef __GLIBC__
-           " --tty DEVICE\n"
+         " --tty DEVICE\n"
 #endif
-           " -t DEVICE      open this tty device (default /dev/ttyS0)\n"
-           );
+         " -t DEVICE      open this tty device (default /dev/ttyS0)\n"
+         );
 }
 
 /** read configuration options from the command line */
