@@ -37,11 +37,10 @@
 #include <getopt.h>
 #endif
 
+#include "version.h"
 #include "filser.h"
 #include "datadir.h"
 #include "filser-to-igc.h"
-
-#define VERSION "0.0.1"
 
 #define MAX_FLIGHTS 256
 
@@ -97,8 +96,9 @@ static void parse_cmdline(struct config *config,
             exit(0);
 
         case 'V':
-            printf("filsertool v" VERSION
-                   ", http://max.kellermann.name/projects/loggertools/\n");
+            printf("loggertools v%s (C) 2004-2007 Max Kellermann <max@duempel.org>\n"
+                   "http://max.kellermann.name/projects/loggertools/\n\n",
+                   VERSION);
             exit(0);
 
         case 'v':
@@ -531,8 +531,9 @@ int main(int argc, char **argv) {
     if (optind < argc)
         arg_error("too many arguments");
 
-    fprintf(stderr, "loggertools (C) 2004-2007 Max Kellermann <max@duempel.org>\n"
-            "http://max.kellermann.name/projects/loggertools/\n\n");
+    fprintf(stderr, "loggertools v%s (C) 2004-2007 Max Kellermann <max@duempel.org>\n"
+            "http://max.kellermann.name/projects/loggertools/\n\n",
+            VERSION);
 
     fd = filser_open(config.tty);
     if (fd < 0) {

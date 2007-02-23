@@ -40,10 +40,9 @@
 #include <getopt.h>
 #endif
 
+#include "version.h"
 #include "filser.h"
 #include "datadir.h"
-
-#define VERSION "0.0.1"
 
 struct config {
     int verbose;

@@ -36,9 +36,8 @@
 #include <getopt.h>
 #endif
 
+#include "version.h"
 #include "lx-ui.h"
-
-#define VERSION "0.0.1"
 
 static FILE *dbg;
 
