@@ -952,7 +952,7 @@ static int cmd_lxn2igc(struct config *config, int argc, char **argv) {
     unsigned char buffer[4096];
     size_t start = 0, end = 0, consumed;
     ssize_t nbytes;
-    struct lxn_to_igc *fti;
+    lxn_to_igc_t fti;
 
     (void)config;
 

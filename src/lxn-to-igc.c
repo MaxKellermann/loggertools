@@ -75,12 +75,12 @@ static const struct extension_definition extension_defs[16] = {
     { "XX3", 3 }
 };
 
-int lxn_to_igc_open(FILE *igc, struct lxn_to_igc **fti_r) {
-    struct lxn_to_igc *fti;
+int lxn_to_igc_open(FILE *igc, lxn_to_igc_t *fti_r) {
+    lxn_to_igc_t fti;
 
     assert(igc != NULL);
 
-    fti = (struct lxn_to_igc*)calloc(1, sizeof(*fti));
+    fti = (lxn_to_igc_t)calloc(1, sizeof(*fti));
     if (fti == NULL)
         return errno;
 
@@ -90,8 +90,8 @@ int lxn_to_igc_open(FILE *igc, struct lxn_to_igc **fti_r) {
     return 0;
 }
 
-int lxn_to_igc_close(struct lxn_to_igc **fti_r) {
-    struct lxn_to_igc *fti;
+int lxn_to_igc_close(lxn_to_igc_t *fti_r) {
+    lxn_to_igc_t fti;
 
     assert(fti_r != NULL);
     assert(*fti_r != NULL);
@@ -241,7 +241,7 @@ static const char *format_competition_class(unsigned char class_id) {
     return names[class_id];
 }
 
-static int handle_position(struct lxn_to_igc *fti,
+static int handle_position(lxn_to_igc_t fti,
                            const struct lxn_position *position) {
     int latitude, longitude;
 
@@ -274,7 +274,7 @@ static int handle_position(struct lxn_to_igc *fti,
     return 0;
 }
 
-int lxn_to_igc_process(struct lxn_to_igc *fti,
+int lxn_to_igc_process(lxn_to_igc_t fti,
                        const unsigned char *fil,
                        size_t length, size_t *consumed_r) {
     unsigned i, l;

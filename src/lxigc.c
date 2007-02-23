@@ -435,7 +435,7 @@ static int cmd_lxn2igc(const char *in_path, const char *out_path) {
     unsigned char buffer[4096];
     size_t start = 0, end = 0, consumed;
     ssize_t nbytes;
-    struct lxn_to_igc *fti;
+    lxn_to_igc_t fti;
 
     fd = open(in_path, O_RDONLY);
     if (fd < 0) {

@@ -24,13 +24,13 @@
 
 #include <stdio.h>
 
-struct lxn_to_igc;
+typedef struct lxn_to_igc *lxn_to_igc_t;
 
-int lxn_to_igc_open(FILE *igc, struct lxn_to_igc **fti_r);
+int lxn_to_igc_open(FILE *igc, lxn_to_igc_t *fti_r);
 
-int lxn_to_igc_close(struct lxn_to_igc **fti_r);
+int lxn_to_igc_close(lxn_to_igc_t *fti_r);
 
-int lxn_to_igc_process(struct lxn_to_igc *fti,
+int lxn_to_igc_process(lxn_to_igc_t fti,
                        const unsigned char *fil,
                        size_t fil_length, size_t *fil_consumed_r);
 
