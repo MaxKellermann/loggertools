@@ -155,8 +155,14 @@ struct lxn_ext_config {
     u_int16_t time, dat;
 } __attribute__((packed));
 
+struct extension_definition {
+    char name[4];
+    unsigned width;
+};
+
 struct extension_config {
-    unsigned num, widths[16];
+    unsigned num;
+    struct extension_definition extensions[16];
 };
 
 union lxn_packet {

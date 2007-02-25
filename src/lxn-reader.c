@@ -47,11 +47,6 @@ static size_t packet_lengths[0x100] = {
     [LXN_B_EXT_CONFIG] = sizeof(*hack.ext_config),
 };
 
-struct extension_definition {
-    char name[4];
-    unsigned width;
-};
-
 static const struct extension_definition extension_defs[16] = {
     { "FXA", 3 },
     { "VXA", 3 },
@@ -89,8 +84,7 @@ static void handle_ext_config(struct extension_config *config,
     for (i = 0, bit = 0; bit < 16; ++bit) {
         if (ext_dat & (1 << bit)) {
             column += extension_defs[bit].width;
-            config->widths[i] = extension_defs[bit].width;
-            i++;
+            config->extensions[i++] = extension_defs[bit];
         }
     }
 }
