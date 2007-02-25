@@ -157,7 +157,10 @@ static int run(int fd, lxn_to_igc_t filter) {
             if (ret == 0) {
                 done = 1;
             } else if (ret != EAGAIN) {
-                fprintf(stderr, "lxn_to_igc_process() failed: %d\n", ret);
+                if (ret == -1 && lxn_to_igc_error(filter) != NULL)
+                    fprintf(stderr, "lxn_to_igc_process() failed: %s\n", lxn_to_igc_error(filter));
+                else
+                    fprintf(stderr, "lxn_to_igc_process() failed: %d\n", ret);
                 return 2;
             }
 

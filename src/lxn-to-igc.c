@@ -49,6 +49,7 @@ struct lxn_to_igc {
     int is_event;
     struct lxn_event event;
     char fix_stat;
+    const char *error;
 };
 
 struct extension_definition {
@@ -107,6 +108,11 @@ int lxn_to_igc_close(lxn_to_igc_t *fti_r) {
     free(fti);
 
     return 0;
+}
+
+static int set_error(lxn_to_igc_t fti, const char *error) {
+    fti->error = error;
+    return -1;
 }
 
 static int valid_string(const char *p, size_t size) {
@@ -323,7 +329,7 @@ int lxn_to_igc_process(lxn_to_igc_t fti,
 
         case LXN_START:
             if (memcmp(p.start->streraz, "STReRAZ\0", 8) != 0)
-                return -1;
+                return set_error(fti, "Invalid signature LXN_START packet");
 
             fti->flight_no = p.start->flight_no;
             break;
@@ -347,7 +353,7 @@ int lxn_to_igc_process(lxn_to_igc_t fti,
 
         case LXN_SERIAL:
             if (!valid_string(p.serial->serial, sizeof(p.serial->serial)))
-                return -1;
+                return set_error(fti, "Invalid serial number in LXN_SERIAL packet");
 
             fprintf(fti->igc, "A%sFLIGHT:%u\r\nHFDTE%s\r\n",
                     p.serial->serial, fti->flight_no, fti->date);
@@ -368,7 +374,7 @@ int lxn_to_igc_process(lxn_to_igc_t fti,
             else if (p.security->type == LXN_SECURITY_LOW)
                 ch = '0';
             else
-                return -1;
+                return set_error(fti, "Invalid security type");
 
             fprintf(fti->igc, "G%c", ch);
 
@@ -381,7 +387,7 @@ int lxn_to_igc_process(lxn_to_igc_t fti,
         case LXN_COMPETITION_CLASS:
             if (!valid_string(p.competition_class->class_id,
                               sizeof(p.competition_class->class_id)))
-                return -1;
+                return set_error(fti, "Invalid competition class");
 
             if (fti->flight_info.competition_class_id == 7)
                 fprintf(fti->igc,
@@ -420,7 +426,7 @@ int lxn_to_igc_process(lxn_to_igc_t fti,
                     int longitude = (int32_t)ntohl(p.task->longitude[i]);
 
                     if (!valid_string(p.task->name[i], sizeof(p.task->name[i])))
-                        return -1;
+                        return set_error(fti, "Invalid task name");
 
                     fprintf(fti->igc, "C%02d%05d%c" "%03d%05d%c" "%s\r\n",
                             abs(latitude) / 60000, abs(latitude) % 60000, latitude >= 0 ?  'N' : 'S',
@@ -432,7 +438,7 @@ int lxn_to_igc_process(lxn_to_igc_t fti,
 
         case LXN_EVENT:
             if (!valid_string(p.event->foo, sizeof(p.event->foo)))
-                return -1;
+                return set_error(fti, "Invalid event name");
 
             fti->event = *p.event;
             fti->is_event = 1;
@@ -460,7 +466,7 @@ int lxn_to_igc_process(lxn_to_igc_t fti,
 
         case LXN_DATE:
             if (p.date->day > 31 || p.date->month > 12)
-                return -1;
+                return set_error(fti, "Invalid date");
 
             snprintf(fti->date, sizeof(fti->date),
                      "%02d%02d%02d",
@@ -478,10 +484,10 @@ int lxn_to_igc_process(lxn_to_igc_t fti,
                 !valid_string(p.flight_info->competition_class,
                               sizeof(p.flight_info->competition_class)) ||
                 !valid_string(p.flight_info->gps, sizeof(p.flight_info->gps)))
-                return -1;
+                return set_error(fti, "Invalid LXN_FLIGHT_INFO packet");
 
             if (p.flight_info->competition_class_id > 7)
-                return -1;
+                return set_error(fti, "Invalid competition class id in LXN_FLIGHT_INFO packet");
 
             if (p.flight_info->competition_class_id < 7)
                 fprintf(fti->igc,
@@ -515,10 +521,14 @@ int lxn_to_igc_process(lxn_to_igc_t fti,
                 fprintf(fti->igc, "%.*s\r\n",
                         p.string->length, p.string->value);
             } else {
-                return -1;
+                return set_error(fti, "Unknown packet");
             }
         }
     }
 
     return EAGAIN;
+}
+
+const char *lxn_to_igc_error(lxn_to_igc_t fti) {
+    return fti->error;
 }

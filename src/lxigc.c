@@ -482,7 +482,10 @@ static int cmd_lxn2igc(const char *in_path, const char *out_path) {
             if (ret == 0) {
                 done = 1;
             } else if (ret != EAGAIN) {
-                fprintf(stderr, "lxn_to_igc_process() failed: %d\n", ret);
+                if (ret == -1 && lxn_to_igc_error(fti) != NULL)
+                    fprintf(stderr, "lxn_to_igc_process() failed: %s\n", lxn_to_igc_error(fti));
+                else
+                    fprintf(stderr, "lxn_to_igc_process() failed: %d\n", ret);
                 return 2;
             }
 

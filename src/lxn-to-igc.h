@@ -34,4 +34,6 @@ int lxn_to_igc_process(lxn_to_igc_t fti,
                        const unsigned char *fil,
                        size_t fil_length, size_t *fil_consumed_r);
 
+const char *lxn_to_igc_error(lxn_to_igc_t fti);
+
 #endif
