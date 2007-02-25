@@ -1,0 +1,122 @@
+\documentclass{article}
+
+\usepackage{hyperref}
+
+\title{loggertools}
+\author{Max Kellermann}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+
+\section{Abstract}
+
+{\em loggertools} is a collection of free tools and libraries which
+talk to GPS flight loggers.
+
+The project is aimed at users of alternative operating systems like
+Linux and Mac OS X, who usually receive no support from the hardware
+vendors.
+
+
+\section{Installing {\em loggertools}}
+
+To install {\em loggertools}, you need GNU make and gcc.  Download the
+{\em loggertools} source tarball:
+
+\begin{verbatim}
+wget http://max.kellermann.name/download/loggertools/0.x/loggertools-0.1.0.tar.gz
+tar xzf loggertools-0.1.0.tar.gz
+cd loggertools-0.1.0
+make
+make install
+\end{verbatim}
+
+The last step must be done as {\em root}.
+
+
+\section{Tools for Filser / LX Navigation devices}
+
+\subsection{{\em lxn-logger}: Downloading flights from IGC loggers}
+
+The program {\em lxn-logger} can download flights from IGC loggers
+like the Colibri.  When you start the program, it contacts the device
+({\em /dev/ttyS0} by default) and presents you a list of all flights.
+You will be prompted to enter the number of the flights which should
+be downloaded.
+
+After a successful download, the current directory will contain the
+flight file in {\em LXN} and {\em IGC} format.  The latter is the
+interesting one, which is required by competitions like the Online
+Contest (OLC).
+
+\subsection{{\em lxn2igc}: file converter}
+
+This is a small utility which converts {\em LXN} files to the {\em
+IGC} format.  Its code is contained in {\em lxn-logger}, so normally
+you will not need it.
+
+
+\section{Tools for Holltronic (Cenfis) devices}
+
+\subsection{{\em cenfistool}}
+
+{\em cenfistool} can upload files in the Hexfile format to the Cenfis
+device.  The hexfiles may contain firmware upgrades, turnpoints or
+airspace definitions.
+
+To perform a firmware upgrade, you have to press the dark green and
+the red button while switching the Cenfis on.  Read the instructions
+on the screen carefully and start {\em cenfistool} with the ``upload''
+command.
+
+Turnpoint and airspace uploads are launched in the ``red button
+menu''.
+
+
+\section{Database converters}
+
+There are several free-of-charge databases on the net, like
+\href{http://www.segelflug.de/segelflieger/michael.meier/}{Open-Air},
+and {\em loggertools} provides the tools to work with these databases.
+
+Most formats are not documented and had to be reverse engineered.
+
+
+\subsection{{\em tpconv}: Turn point converter}
+
+{\em tpconv} can convert turn point databases between several formats
+and supports filtering.
+
+Some formats are richer than others.  Keep in mind that information
+can be lost during conversion.
+
+The following formats are supported:
+
+\begin{tabular}{|l|l|}
+\hline
+SeeYou & *.cup \\
+\hline
+Cenfis & *.cdb, *.idb, *.dab, *.bhf \\
+\hline
+Filser / LXN & *.da4 \\
+\hline
+Zander & *.wz \\
+\hline
+\end{tabular}
+
+To convert the SeeYou file {\em TurnPoints.cup} to a Cenfis Hexfile,
+enter:
+
+\begin{verbatim}
+tpconv TurnPoints.cup -o TurnPoints.bhf 
+\end{verbatim}
+
+
+\subsection{{\em asconv}: Airspace converter}
+
+This tool is under development and not yet usable.
+
+
+\end{document}

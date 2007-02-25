@@ -114,3 +114,14 @@ bin/fakefilser: $(fakefilser_OBJECTS)
 
 bin/fwd: src/fwd.c bin/filser-open.o bin/filser-proto.o
 	$(CC) $(CFLAGS) -o $@ $^
+
+#
+# documentation
+#
+
+.PHONY: documentation
+
+documentation: doc/loggertools.dvi
+
+doc/loggertools.dvi: doc/loggertools.tex
+	cd doc && latex loggertools.tex

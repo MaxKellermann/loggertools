@@ -7,8 +7,8 @@ $Id$
 What is loggertools?
 --------------------
 
-loggertools is a collection of tools and libraries which talk to GPS
-flight loggers.
+loggertools is a collection of free tools and libraries which talk to
+GPS flight loggers.
 
 
 Installation
@@ -20,12 +20,6 @@ Run "make" to compile. You need the following stuff for that:
 - a POSIX operating system
 
 The "src" directory now contains the binary programs.
-
-
-The programs
-------------
-
-cenfistool - talks to a Holltronic Cenfis device.
 
 
 Boring legal stuff
