@@ -39,7 +39,6 @@
 #include "version.h"
 #include "filser.h"
 #include "datadir.h"
-#include "lxn-to-igc.h"
 
 struct config {
     int verbose;
@@ -66,8 +65,6 @@ static void usage(void) {
            "        print memory section info\n"
            "  raw_mem <start_adddress> <end_address>\n"
            "        download raw memory\n"
-           "  lxn2igc FILENAME.LXN\n"
-           "        convert a .lxn file to .igc\n"
            );
 }
 
@@ -946,85 +943,6 @@ static int cmd_write_apt(struct config *config, int argc, char **argv) {
     return 0;
 }
 
-static int cmd_lxn2igc(struct config *config, int argc, char **argv) {
-    int fd, ret, is_eof = 0, done = 0;
-    unsigned char buffer[4096];
-    size_t start = 0, end = 0, consumed;
-    ssize_t nbytes;
-    lxn_to_igc_t fti;
-
-    (void)config;
-
-    if (argc - optind < 1)
-        arg_error("No .lxn file specified");
-    if (argc - optind > 1)
-        arg_error("Too many arguments");
-
-    fd = open(argv[optind], O_RDONLY);
-    if (fd < 0) {
-        fprintf(stderr, "failed to open %s: %s\n",
-                argv[optind], strerror(errno));
-        return 2;
-    }
-
-    ret = lxn_to_igc_open(stdout, &fti);
-    if (ret != 0) {
-        fprintf(stderr, "lxn_to_igc_open() failed\n");
-        return 2;
-    }
-
-    do {
-        if (start > 0) {
-            if (end > start)
-                memmove(buffer, buffer + start, end - start);
-            end -= start;
-            start = 0;
-        }
-
-        if (end < sizeof(buffer)) {
-            nbytes = read(fd, buffer + end, sizeof(buffer) - end);
-            if (nbytes < 0) {
-                fprintf(stderr, "failed to read from %s: %s\n",
-                        argv[optind], strerror(errno));
-                return 2;
-            } else if (nbytes == 0)
-                is_eof = 1;
-            else
-                end += (size_t)nbytes;
-        }
-
-        if (end > start) {
-            ret = lxn_to_igc_process(fti, buffer + start, end - start, &consumed);
-            if (ret == 0) {
-                done = 1;
-            } else if (ret != EAGAIN) {
-                fprintf(stderr, "lxn_to_igc_process() failed: %d\n", ret);
-                return 2;
-            }
-
-            assert(consumed > 0);
-            assert(start + consumed <= end);
-
-            start += consumed;
-        }
-    } while (!is_eof && !done);
-
-    if (end > start) {
-        fprintf(stderr, "unexpected eof\n");
-        return 2;
-    }
-
-    ret = lxn_to_igc_close(&fti);
-    if (ret != 0) {
-        fprintf(stderr, "lxn_to_igc_close() failed\n");
-        return 2;
-    }
-
-    close(fd);
-
-    return 0;
-}
-
 int main(int argc, char **argv) {
     struct config config;
     const char *cmd;
@@ -1058,8 +976,6 @@ int main(int argc, char **argv) {
         return cmd_write_tp_tsk(&config, argc, argv);
     } else if (strcmp(cmd, "write_apt") == 0) {
         return cmd_write_apt(&config, argc, argv);
-    } else if (strcmp(cmd, "lxn2igc") == 0) {
-        return cmd_lxn2igc(&config, argc, argv);
     } else {
         arg_error("unknown command");
     }
