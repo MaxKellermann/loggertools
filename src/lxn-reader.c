@@ -129,6 +129,11 @@ static size_t get_packet_length(struct lxn_reader *lxn) {
     return 0;
 }
 
+static int set_error(struct lxn_reader *reader, const char *error) {
+    reader->error = error;
+    return -1;
+}
+
 int lxn_read(struct lxn_reader *lxn) {
     size_t packet_length;
 
@@ -136,12 +141,12 @@ int lxn_read(struct lxn_reader *lxn) {
         return EINVAL;
 
     if (lxn->is_end)
-        return -1;
+        return set_error(lxn, "Read past LXN_END packet");
 
     lxn->packet.cmd = lxn->input + lxn->input_consumed;
     packet_length = get_packet_length(lxn);
     if (packet_length == 0)
-        return -1;
+        return set_error(lxn, "Unknown LXN packet");
 
     if (packet_length > lxn->input_length - lxn->input_consumed)
         return EAGAIN;

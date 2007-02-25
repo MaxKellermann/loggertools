@@ -303,8 +303,11 @@ int lxn_to_igc_process(lxn_to_igc_t fti,
     while (fti->reader.input_consumed < fti->reader.input_length) {
         ret = lxn_read(&fti->reader);
         *consumed_r = fti->reader.input_consumed;
-        if (ret != 0)
+        if (ret != 0) {
+            if (ret == -1 && fti->reader.error != NULL)
+                return set_error(fti, fti->reader.error);
             return ret;
+        }
 
         p = fti->reader.packet;
 

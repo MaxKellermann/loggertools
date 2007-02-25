@@ -187,6 +187,8 @@ struct lxn_reader {
 
     int is_end;
     struct extension_config k_ext, b_ext;
+
+    const char *error;
 };
 
 int lxn_read(struct lxn_reader *lxn);
