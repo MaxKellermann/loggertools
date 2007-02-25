@@ -1,6 +1,6 @@
 /*
  * loggertools
- * Copyright (C) 2004-2005 Max Kellermann <max@duempel.org>
+ * Copyright (C) 2004-2007 Max Kellermann <max@duempel.org>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -45,6 +45,7 @@
 #include "filser.h"
 #include "datadir.h"
 #include "lxn-reader.h"
+#include "dump.h"
 
 struct config {
     int verbose;
@@ -262,56 +263,9 @@ static ssize_t read_full_crc(filser_t device, void *buffer, size_t len) {
     return (ssize_t)len;
 }
 
-static void dump_line(size_t offset,
-                      const unsigned char *line,
-                      size_t length) {
-    size_t i;
-
-    assert(length > 0);
-    assert(length <= 0x10);
-
-    if (length == 0)
-        return;
-
-    printf("%04x ", (unsigned)offset);
-
-    for (i = 0; i < 0x10; i++) {
-        if (i % 8 == 0)
-            printf(" ");
-
-        if (i >= length)
-            printf("   ");
-        else
-            printf(" %02x", line[i]);
-    }
-
-    printf(" | ");
-    for (i = 0; i < length; i++)
-        putchar(line[i] >= 0x20 && line[i] < 0x80 ? line[i] : '.');
-
-    printf("\n");
-}
-
-static void dump_buffer(const void *q,
-                        size_t length) {
-    const unsigned char *p = q;
-    size_t offset = 0;
-
-    while (length >= 0x10) {
-        dump_line(offset, p, 0x10);
-
-        p += 0x10;
-        length -= 0x10;
-        offset += 0x10;
-    }
-
-    if (length > 0)
-        dump_line(offset, p, length);
-}
-
 static void dump_buffer_crc(const void *q,
                             size_t length) {
-    dump_buffer(q, length);
+    hexdump_buffer(0, q, length);
     printf("crc = %02x\n",
            filser_calc_crc((const unsigned char*)q, length));
 }
