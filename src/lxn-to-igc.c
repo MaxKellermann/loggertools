@@ -52,30 +52,6 @@ struct lxn_to_igc {
     const char *error;
 };
 
-struct extension_definition {
-    char name[4];
-    unsigned width;
-};
-
-static const struct extension_definition extension_defs[16] = {
-    { "FXA", 3 },
-    { "VXA", 3 },
-    { "RPM", 5 },
-    { "GSP", 5 },
-    { "IAS", 5 },
-    { "TAS", 5 },
-    { "HDM", 3 },
-    { "HDT", 3 },
-    { "TRM", 3 },
-    { "TRT", 3 },
-    { "TEN", 5 },
-    { "WDI", 3 },
-    { "WVE", 5 },
-    { "ENL", 3 },
-    { "VAR", 3 },
-    { "XX3", 3 }
-};
-
 int lxn_to_igc_open(FILE *igc, lxn_to_igc_t *fti_r) {
     lxn_to_igc_t fti;
 
@@ -280,6 +256,28 @@ static int handle_position(lxn_to_igc_t fti,
     return 0;
 }
 
+static void handle_ext_config(lxn_to_igc_t fti,
+                              const struct extension_config *config,
+                              char record, unsigned column) {
+    unsigned i;
+
+    if (config->num == 0)
+        return;
+
+    /* begin record */
+    fprintf(fti->igc, "%c%02d", record, config->num);
+
+    /* write information about each extension */
+    for (i = 0; i < config->num; ++i) {
+        fprintf(fti->igc, "%02d%02d%s", column,
+                column + config->extensions[i].width - 1,
+                config->extensions[i].name);
+        column += config->extensions[i].width;
+    }
+
+    fprintf(fti->igc, "\r\n");
+}
+
 int lxn_to_igc_process(lxn_to_igc_t fti,
                        const unsigned char *fil,
                        size_t length, size_t *consumed_r) {
@@ -449,7 +447,8 @@ int lxn_to_igc_process(lxn_to_igc_t fti,
 
         case LXN_B_EXT:
             for (i = 0; i < fti->reader.b_ext.num; ++i)
-                fprintf(fti->igc, "%0*u", fti->reader.b_ext.widths[i],
+                fprintf(fti->igc, "%0*u",
+                        fti->reader.b_ext.extensions[i].width,
                         ntohs(p.b_ext->data[i]));
 
             fprintf(fti->igc, "\r\n");
@@ -461,7 +460,8 @@ int lxn_to_igc_process(lxn_to_igc_t fti,
                     l / 3600, l % 3600 / 60, l % 60);
 
             for (i = 0; i < fti->reader.k_ext.num; ++i)
-                fprintf(fti->igc, "%0*u", fti->reader.k_ext.widths[i],
+                fprintf(fti->igc, "%0*u",
+                        fti->reader.k_ext.extensions[i].width,
                         ntohs(p.k_ext->data[i]));
 
             fprintf(fti->igc, "\r\n");
@@ -516,7 +516,11 @@ int lxn_to_igc_process(lxn_to_igc_t fti,
             break;
 
         case LXN_K_EXT_CONFIG:
+            handle_ext_config(fti, &fti->reader.k_ext, 'J', 8);
+            break;
+
         case LXN_B_EXT_CONFIG:
+            handle_ext_config(fti, &fti->reader.b_ext, 'I', 36);
             break;
 
         default:
