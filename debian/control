@@ -1,7 +1,7 @@
 Source: loggertools
 Section: misc
 Priority: optional
-Maintainer: Max Kellermann <mk@cm4all.com>
+Maintainer: Max Kellermann <max@duempel.org>
 Build-Depends: debhelper (>= 5), gcc (>= 3.3), g++ (>= 3.3), libboost-iostreams-dev (>= 1.33)
 Standards-Version: 3.7.2
 
