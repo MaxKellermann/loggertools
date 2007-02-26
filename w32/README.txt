@@ -21,7 +21,7 @@ Cenfis machen laesst. Es laeuft auf einem Windows-Computer, und
 kommuniziert ueber ein serielles Kabel mit dem Cenfis, und stellt eine
 Alternative zum Programm "XTS" von Holltronic dar.
 
-Hubert Oberhollenzer (der Entwickler von Cenfis), war so nett und hat
+Hubert Oberhollenzer (der Entwickler des Cenfis) war so nett und hat
 mir den Quellcode von XTS zur Verfuegung gestellt. Dort konnte ich das
 Protokoll entnehmen.
 
