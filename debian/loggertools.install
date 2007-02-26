@@ -1,1 +1,1 @@
-bin/{asconv,tpconv,hexfile,cenfistool,filsertool} usr/bin
+bin/{asconv,tpconv,hexfile,cenfistool,filsertool,lxn2igc,lxn-logger} usr/bin
