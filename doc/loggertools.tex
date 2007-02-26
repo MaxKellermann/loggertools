@@ -74,6 +74,19 @@ command.
 Turnpoint and airspace uploads are launched in the ``red button
 menu''.
 
+\subsection{{\em hexfile}}
+
+This program can encode files into the Hexfile format, more precisely
+the Hexfile dialect suitable for the Cenfis, which requires bank
+switching for 32 kB banks.
+
+In the following sample, {\em hexfile} decodes the firmware image into
+binary:
+
+\begin{verbatim}
+hexfile -d -o cfp_v37c.hex cfp_v37c.bhf
+\end{verbatim}
+
 
 \section{Database converters}
 
