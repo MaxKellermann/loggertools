@@ -19,13 +19,24 @@
  * $Id$
  */
 
+#include "version.h"
 #include "hexfile-decoder.h"
 
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#ifdef __GLIBC__
+#include <getopt.h>
+#endif
+
+struct config {
+    int verbose;
+    const char *input_path, *output_path;
+    int decode;
+};
 
 const unsigned BANK_SIZE = 0x8000;
 
@@ -39,6 +50,89 @@ static void usage(void) {
     fprintf(stderr, " -o outfile   write output to this file\n");
     fprintf(stderr, " -h           help (this text)\n");
     _exit(1);
+}
+
+static void arg_error(const char *msg) __attribute__ ((noreturn));
+static void arg_error(const char *msg) {
+    fprintf(stderr, "lxn2igc: %s\n", msg);
+    fprintf(stderr, "Try 'lxn2igc --help' for more information.\n");
+    exit(1);
+}
+
+/** read configuration options from the command line */
+static void parse_cmdline(struct config *config,
+                          int argc, char **argv) {
+    int ret;
+#ifdef __GLIBC__
+    static const struct option long_options[] = {
+        {"help", 0, 0, 'h'},
+        {"version", 0, 0, 'V'},
+        {"verbose", 0, 0, 'v'},
+        {"quiet", 1, 0, 'q'},
+        {"output", 1, 0, 'o'},
+        {"decode", 0, 0, 'd'},
+        {0,0,0,0}
+    };
+#endif
+
+    memset(config, 0, sizeof(*config));
+    config->verbose = 1;
+
+    while (1) {
+#ifdef __GLIBC__
+        int option_index = 0;
+
+        ret = getopt_long(argc, argv, "hVvqo:d",
+                          long_options, &option_index);
+#else
+        ret = getopt(argc, argv, "hVvqo:d");
+#endif
+        if (ret == -1)
+            break;
+
+        switch (ret) {
+        case 'h':
+            usage();
+            exit(0);
+
+        case 'V':
+            puts("loggertools v" VERSION " (C) 2004-2007 Max Kellermann <max@duempel.org>\n"
+                 "http://max.kellermann.name/projects/loggertools/\n");
+            exit(0);
+
+        case 'v':
+            ++config->verbose;
+            break;
+
+        case 'q':
+            config->verbose = 0;
+            break;
+
+        case 'o':
+            config->output_path = optarg;
+            break;
+
+        case 'd':
+            config->decode = 1;
+            break;
+
+        default:
+            exit(1);
+        }
+    }
+
+    if (optind == argc)
+        arg_error("No input file specified");
+
+    if (optind < argc - 1)
+        arg_error("Too many arguments");
+
+    config->input_path = argv[optind];
+    if (strcmp(config->input_path, "-") == 0)
+        config->input_path = NULL;
+
+    if (strcmp(config->output_path, "-") == 0)
+        config->output_path = NULL;
 }
 
 static void write_record(FILE *file, size_t length, unsigned address,
@@ -218,67 +312,35 @@ static int decode(FILE *in, FILE *out) {
 }
 
 int main(int argc, char **argv) {
-    FILE *in, *out = NULL;
-    int decode_flag = 0;
+    struct config config;
+    FILE *in, *out;
 
-    /* parse command line arguments */
-    while (1) {
-        int c;
+    parse_cmdline(&config, argc, argv);
 
-        c = getopt(argc, argv, "dho:");
-        if (c == -1)
-            break;
-
-        switch (c) {
-        case 'd':
-            decode_flag = 1;
-            break;
-
-        case 'h':
-            usage();
-            break;
-
-        case 'o':
-            if (out != NULL)
-                fclose(out);
-            out = fopen(optarg, "w");
-            if (out == NULL) {
-                fprintf(stderr, "failed to create '%s': %s\n",
-                        optarg, strerror(errno));
-                _exit(1);
-            }
-            break;
-
-        default:
-            fprintf(stderr, "invalid getopt code\n");
-            _exit(1);
-        }
-    }
-
-    /* open input stream */
-    if (optind < argc) {
-        if (optind + 1 < argc) {
-            fprintf(stderr, "invalid argument: %s",
-                    argv[optind + 1]);
-            _exit(1);
-        }
-
+    if (config.input_path == NULL) {
+        in = stdin;
+    } else {
         in = fopen(argv[optind], "r");
         if (in == NULL) {
             fprintf(stderr, "failed to open '%s': %s",
                     argv[optind], strerror(errno));
             _exit(1);
         }
-    } else {
-        in = stdin;
     }
 
-    /* open output stream */
-    if (out == NULL)
+    if (config.output_path == NULL) {
         out = stdout;
+    } else {
+        out = fopen(optarg, "w");
+        if (out == NULL) {
+            fprintf(stderr, "failed to create '%s': %s\n",
+                    optarg, strerror(errno));
+            _exit(1);
+        }
+    }
 
     /* do it */
-    if (decode_flag) {
+    if (config.decode) {
         return decode(in, out);
     } else {
         return encode(in, out);
