@@ -22,6 +22,9 @@
 CC := gcc
 CXX := g++
 LD := ld
+FAKEROOT = fakeroot
+
+VERSION = $(shell ./bin/version)
 
 COMMON_CFLAGS = -O0 -g
 COMMON_CFLAGS += -Wall -W -pedantic
@@ -132,3 +135,17 @@ documentation: doc/loggertools.dvi
 
 doc/loggertools.dvi: doc/loggertools.tex
 	cd doc && latex loggertools.tex
+
+#
+# packages
+#
+
+.PHONY: svn-export dist
+
+dist: documentation svn-export
+	cp doc/loggertools.dvi /tmp/loggertools-$(VERSION)/doc/
+	cd /tmp && $(FAKEROOT) tar cjf loggertools-$(VERSION).tar.bz2 loggertools-$(VERSION)
+
+svn-export: bin/version
+	rm -rf /tmp/loggertools-$(VERSION)
+	svn export . /tmp/loggertools-$(VERSION)
