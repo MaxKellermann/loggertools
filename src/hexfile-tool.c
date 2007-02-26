@@ -35,7 +35,7 @@
 struct config {
     int verbose;
     const char *input_path, *output_path;
-    int decode;
+    int decode, map;
 };
 
 const unsigned BANK_SIZE = 0x8000;
@@ -68,6 +68,10 @@ static void usage(void) {
          " --decode\n"
 #endif
          " -d             decode a hexfile instead of encoding it\n"
+#ifdef __GLIBC__
+         " --map\n"
+#endif
+         " -m             print the map of a hexfile\n"
          );
 }
 
@@ -90,6 +94,7 @@ static void parse_cmdline(struct config *config,
         {"quiet", 1, 0, 'q'},
         {"output", 1, 0, 'o'},
         {"decode", 0, 0, 'd'},
+        {"map", 0, 0, 'm'},
         {0,0,0,0}
     };
 #endif
@@ -101,10 +106,10 @@ static void parse_cmdline(struct config *config,
 #ifdef __GLIBC__
         int option_index = 0;
 
-        ret = getopt_long(argc, argv, "hVvqo:d",
+        ret = getopt_long(argc, argv, "hVvqo:dm",
                           long_options, &option_index);
 #else
-        ret = getopt(argc, argv, "hVvqo:d");
+        ret = getopt(argc, argv, "hVvqo:dm");
 #endif
         if (ret == -1)
             break;
@@ -132,7 +137,13 @@ static void parse_cmdline(struct config *config,
             break;
 
         case 'd':
+            config->map = 0;
             config->decode = 1;
+            break;
+
+        case 'm':
+            config->decode = 0;
+            config->map = 1;
             break;
 
         default:
@@ -333,6 +344,107 @@ static int decode(FILE *in, FILE *out) {
     return 0;
 }
 
+struct mapper {
+    unsigned base, start, end;
+    FILE *file;
+    int eof;
+};
+
+static void map_print(const struct mapper *mapper) {
+    if (mapper->end > mapper->start)
+        fprintf(mapper->file, "0x%08x-0x%08x\n", mapper->start, mapper->end);
+}
+
+static int map_callback(void *ctx,
+                        unsigned char type, unsigned offset,
+                        unsigned char *data, size_t length) {
+    struct mapper *mapper = (struct mapper*)ctx;
+
+    (void)data;
+
+    if (mapper->eof) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    if (type == 0x00) {
+        /* data record */
+        unsigned new_position, new_end;
+
+        new_position = (mapper->base + offset) & ~0xf;
+        new_end = (new_position + length) | 0xf;
+
+        if (new_position < mapper->start || new_position > mapper->end + 1) {
+            map_print(mapper);
+            mapper->start = new_position;
+            mapper->end = new_end;
+        } else if (new_end > mapper->end) {
+            mapper->end = new_end;
+        }
+
+        return 0;
+    } else if (type == 0x01) {
+        /* EOF record */
+        mapper->eof = 1;
+        return 0;
+    } else if (type >= 0x10) {
+        /* switch memory bank */
+        unsigned new_base = (type - 0x10) * BANK_SIZE;
+
+        if (mapper->end != new_base) {
+            map_print(mapper);
+            mapper->start = mapper->end = new_base;
+        }
+
+        mapper->base = new_base;
+        return 0;
+    } else {
+        errno = ENOSYS;
+        return -1;
+    }
+}
+
+static int map(FILE *in, FILE *out) {
+    struct hexfile_decoder *hfd = NULL;
+    struct mapper mapper = {
+        .base = 0,
+        .start = 0,
+        .end = 0,
+        .file = out,
+        .eof = 0,
+    };
+    char buffer[4096];
+    int ret;
+    size_t nbytes;
+
+    ret = hexfile_decoder_new(map_callback, &mapper, &hfd);
+    if (ret < 0) {
+        fprintf(stderr, "failed to create hexfile decoder\n");
+        _exit(2);
+    }
+
+    while ((nbytes = fread(buffer, 1, sizeof(buffer), in)) > 0) {
+        ret = hexfile_decoder_feed(hfd, buffer, nbytes);
+        if (ret < 0) {
+            fprintf(stderr, "failed to decode hexfile\n");
+            _exit(2);
+        }
+    }
+
+    ret = hexfile_decoder_close(&hfd);
+    if (ret < 0) {
+        fprintf(stderr, "failed to close hexfile decoder\n");
+        _exit(2);
+    }
+
+    if (!mapper.eof) {
+        fprintf(stderr, "no EOF record\n");
+        _exit(1);
+    }
+
+    return 0;
+}
+
 int main(int argc, char **argv) {
     struct config config;
     FILE *in, *out;
@@ -364,6 +476,8 @@ int main(int argc, char **argv) {
     /* do it */
     if (config.decode) {
         return decode(in, out);
+    } else if (config.map) {
+        return map(in, out);
     } else {
         return encode(in, out);
     }
