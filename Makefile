@@ -131,10 +131,13 @@ bin/version: $(version_OBJECTS)
 
 .PHONY: documentation
 
-documentation: doc/loggertools.dvi
+documentation: doc/loggertools.dvi doc/loggertools.pdf
 
 doc/loggertools.dvi: doc/loggertools.tex
 	cd doc && latex loggertools.tex
+
+doc/loggertools.pdf: doc/loggertools.tex
+	cd doc && pdflatex loggertools.tex
 
 #
 # packages
@@ -143,7 +146,7 @@ doc/loggertools.dvi: doc/loggertools.tex
 .PHONY: svn-export dist
 
 dist: documentation svn-export
-	cp doc/loggertools.dvi /tmp/loggertools-$(VERSION)/doc/
+	cp doc/loggertools.dvi doc/loggertools.pdf /tmp/loggertools-$(VERSION)/doc/
 	cd /tmp && $(FAKEROOT) tar cjf loggertools-$(VERSION).tar.bz2 loggertools-$(VERSION)
 
 svn-export: bin/version
