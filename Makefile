@@ -37,7 +37,7 @@ CFLAGS += -Wmissing-prototypes -Wcast-qual -Wfloat-equal -Wshadow -Wpointer-arit
 CXXFLAGS += $(COMMON_CFLAGS)
 CXXFLAGS += -Wwrite-strings -Wcast-qual -Wfloat-equal -Wpointer-arith -Wsign-compare -Wmissing-format-attribute -Wredundant-decls -Winline -Wdisabled-optimization -Wno-long-long -Wundef
 
-all: bin/tpconv bin/asconv bin/cenfistool bin/hexfile bin/lxn2igc bin/filsertool bin/lxui bin/lxn-logger bin/fakefilser bin/fwd
+all: bin/tpconv bin/asconv bin/cenfistool bin/hexfile bin/lxn2igc bin/filsertool bin/lxn-logger bin/fakefilser bin/fwd
 
 clean:
 	rm -rf bin
@@ -64,9 +64,6 @@ lxn2igc_OBJECTS = $(patsubst src/%.c,bin/%.o,$(lxn2igc_SOURCES))
 
 filsertool_SOURCES = src/filser-tool.c src/filser-crc.c src/filser-open.c src/filser-io.c src/filser-proto.c src/datadir.c src/lxn-reader.c src/lxn-to-igc.c
 filsertool_OBJECTS = $(patsubst src/%.c,bin/%.o,$(filsertool_SOURCES))
-
-lxui_SOURCES = src/lx-ui.c src/lx-ui-device.c src/lx-ui-setup.c src/lx-ui-flight-info.c src/lx-ui-igc.c src/filser-crc.c src/filser-open.c src/filser-io.c src/filser-proto.c src/lxn-reader.c src/lxn-to-igc.c
-lxui_OBJECTS = $(patsubst src/%.c,bin/%.o,$(lxui_SOURCES))
 
 lxn_logger_SOURCES = src/lxn-logger.c src/filser-crc.c src/filser-open.c src/filser-io.c src/filser-proto.c src/filser-filename.c src/lxn-reader.c src/lxn-to-igc.c
 lxn_logger_OBJECTS = $(patsubst src/%.c,bin/%.o,$(lxn_logger_SOURCES))
@@ -109,9 +106,6 @@ bin/lxn2igc: $(lxn2igc_OBJECTS)
 
 bin/filsertool: $(filsertool_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
-
-bin/lxui: $(lxui_OBJECTS)
-	$(CC) $(CFLAGS) -o $@ $^ -lnewt
 
 bin/lxn-logger: $(lxn_logger_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
