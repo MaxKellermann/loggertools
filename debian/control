@@ -2,8 +2,8 @@ Source: loggertools
 Section: misc
 Priority: optional
 Maintainer: Max Kellermann <mk@cm4all.com>
-Build-Depends: cdbs (>= 0.4), gcc (>= 3.3), g++ (>= 3.3), libnewt-dev (>= 0.51), libboost-iostreams-dev (>= 1.33)
-Standards-Version: 3.6.1
+Build-Depends: debhelper (>= 5), gcc (>= 3.3), g++ (>= 3.3), libnewt-dev (>= 0.51), libboost-iostreams-dev (>= 1.33)
+Standards-Version: 3.7.2
 
 Package: loggertools
 Architecture: any
