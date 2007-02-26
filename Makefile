@@ -141,8 +141,9 @@ doc/loggertools.pdf: doc/loggertools.tex
 
 .PHONY: install
 install: bin/tpconv bin/cenfistool bin/hexfile bin/lxn2igc bin/filsertool bin/lxn-logger documentation
-	install -d -m 0755 $(DESTDIR)$(PREFIX)/bin
+	install -d -m 0755 $(DESTDIR)$(PREFIX)/bin $(DESTDIR)$(PREFIX)/share/man/man1
 	install -m 0755 bin/tpconv bin/cenfistool bin/hexfile bin/lxn2igc bin/filsertool bin/lxn-logger $(DESTDIR)$(PREFIX)/bin
+	install -m 0644 doc/lxn-logger.1 doc/lxn2igc.1 $(DESTDIR)$(PREFIX)/share/man/man1
 
 #
 # packages

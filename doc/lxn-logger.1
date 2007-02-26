@@ -1,0 +1,26 @@
+.TH "lxn-logger" "1" "February 2007"
+.PP
+.SH "NAME"
+lxn-logger \- download IGC files from a LX Navigation logger
+.PP
+.SH "SYNOPSIS"
+.B lxn-logger
+[\fIOPTION\fR]...
+.SH DESCRIPTION
+.PP
+Download flights from an LX Navigation logger device (like Colibri or
+LX20) over the serial port, and convert them into a signed IGC file.
+.TP
+\fB\-t\fR, \fB\-\-tty\fI=DEVICE\fR
+Specify a device node different than /dev/ttyS0
+.SH AUTHOR
+Max Kellermann <max@duempel.org>
+.SH COPYRIGHT
+Copyright (C) 2004-2007 Max Kellermann
+.br
+This is free software.  You may redistribute copies of it under the
+terms of the GNU General Public License
+<http://www.gnu.org/licenses/gpl.html>.  There is NO WARRANTY, to the
+extent permitted by law.
+.SH "SEE ALSO"
+\fBlxn2igc\fR(1), \fBfilsertool\fR(1)

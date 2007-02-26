@@ -1,0 +1,27 @@
+.TH "lxn2igc" "1" "February 2007"
+.PP
+.SH "NAME"
+lxn2igc \- convert files from the LXN format to IGC
+.PP
+.SH "SYNOPSIS"
+.B lxn2igc
+\fI-o\fR \fBOUTFILE.igc\fR
+\fBINFILE.lxn\fR
+.SH DESCRIPTION
+.PP
+Converts a file in the LXN format (retrieved from a LX Navigation
+device) to the IGC format.  IGC signatures are preserved.
+.PP
+The LXN format used to be called \fBFIL\fR, i.e. lxn2igc is also able
+to handle files in the \fBFIL\fR format.
+.SH AUTHOR
+Max Kellermann <max@duempel.org>
+.SH COPYRIGHT
+Copyright (C) 2004-2007 Max Kellermann
+.br
+This is free software.  You may redistribute copies of it under the
+terms of the GNU General Public License
+<http://www.gnu.org/licenses/gpl.html>.  There is NO WARRANTY, to the
+extent permitted by law.
+.SH "SEE ALSO"
+\fBlxn-logger\fR(1), \fBfilsertool\fR(1)
