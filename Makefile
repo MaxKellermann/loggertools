@@ -24,6 +24,8 @@ CXX := g++
 LD := ld
 FAKEROOT = fakeroot
 
+PREFIX = /usr/local
+
 VERSION = $(shell ./bin/version)
 
 COMMON_CFLAGS = -O0 -g
@@ -132,6 +134,15 @@ doc/loggertools.dvi: doc/loggertools.tex
 
 doc/loggertools.pdf: doc/loggertools.tex
 	cd doc && pdflatex loggertools.tex
+
+#
+# installation
+#
+
+.PHONY: install
+install: bin/tpconv bin/cenfistool bin/hexfile bin/lxn2igc bin/filsertool bin/lxn-logger documentation
+	install -d -m 0755 $(DESTDIR)$(PREFIX)/bin
+	install -m 0755 bin/tpconv bin/cenfistool bin/hexfile bin/lxn2igc bin/filsertool bin/lxn-logger $(DESTDIR)$(PREFIX)/bin
 
 #
 # packages
