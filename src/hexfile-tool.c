@@ -152,6 +152,9 @@ static void parse_cmdline(struct config *config,
 
     if (strcmp(config->output_path, "-") == 0)
         config->output_path = NULL;
+
+    if (config->decode && config->output_path == NULL)
+        arg_error("Cannot decode to stdout, please specify a file with the '-o' option");
 }
 
 static void write_record(FILE *file, size_t length, unsigned address,
