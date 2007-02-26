@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
  * 02111-1307, USA.
  *
- * $Id: version.h 239 2007-02-23 06:45:46Z max $
+ * $Id$
  */
 
 #include "version.h"
