@@ -71,6 +71,9 @@ lxn_logger_OBJECTS = $(patsubst src/%.c,bin/%.o,$(lxn_logger_SOURCES))
 fakefilser_SOURCES = src/fakefilser.c src/filser-crc.c src/filser-open.c src/filser-io.c src/datadir.c src/lxn-reader.c src/dump.c
 fakefilser_OBJECTS = $(patsubst src/%.c,bin/%.o,$(fakefilser_SOURCES))
 
+version_SOURCES = src/version.c
+version_OBJECTS = $(patsubst src/%.c,bin/%.o,$(version_SOURCES))
+
 c_SOURCES = $(wildcard src/*.c)
 c_OBJECTS = $(patsubst src/%.c,bin/%.o,$(c_SOURCES))
 
@@ -114,6 +117,9 @@ bin/fakefilser: $(fakefilser_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
 
 bin/fwd: src/fwd.c bin/filser-open.o bin/filser-proto.o
+	$(CC) $(CFLAGS) -o $@ $^
+
+bin/version: $(version_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
 
 #
