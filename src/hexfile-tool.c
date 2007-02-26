@@ -40,16 +40,35 @@ struct config {
 
 const unsigned BANK_SIZE = 0x8000;
 
-static void usage(void)
-     __attribute__((noreturn));
-
 static void usage(void) {
-    fprintf(stderr, "usage: hexfile [options] [filename]\n");
-    fprintf(stderr, "options:\n");
-    fprintf(stderr, " -d           decode\n");
-    fprintf(stderr, " -o outfile   write output to this file\n");
-    fprintf(stderr, " -h           help (this text)\n");
-    _exit(1);
+    puts("usage: hexfile [-o FILENAME.bhf] FILENAME.bin\n"
+         "       hexfile -d [-o FILENAME.bin] FILENAME.bhf\n"
+         "valid options:\n"
+#ifdef __GLIBC__
+         " --help\n"
+#endif
+         " -h             help (this text)\n"
+#ifdef __GLIBC__
+         " --version\n"
+#endif
+         " -V             show fakefilser version\n"
+#ifdef __GLIBC__
+         " --verbose\n"
+#endif
+         " -v             be more verbose\n"
+#ifdef __GLIBC__
+         " --quiet\n"
+#endif
+         " -q             be quiet\n"
+#ifdef __GLIBC__
+         " --output FILENAME\n"
+#endif
+         " -o FILENAME    write output to this file\n"
+#ifdef __GLIBC__
+         " --decode\n"
+#endif
+         " -d             decode a hexfile instead of encoding it\n"
+         );
 }
 
 static void arg_error(const char *msg) __attribute__ ((noreturn));
