@@ -38,6 +38,7 @@ all: bin/tpconv bin/asconv bin/cenfistool bin/hexfile bin/lxn2igc bin/filsertool
 
 clean:
 	rm -rf bin
+	rm -f $(addprefix doc/loggertools.,aux dvi log out toc)
 
 bin/stamp:
 	mkdir -p bin
