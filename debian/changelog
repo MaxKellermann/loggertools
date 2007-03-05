@@ -2,4 +2,4 @@ loggertools (0.0.1) unstable; urgency=low
 
   * initial Debian package
 
- --
+ -- Max Kellermann <max@duempel.org>  Mon,  5 Mar 2007 13:57:22 +0100
