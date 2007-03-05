@@ -28,7 +28,7 @@
 #include "cenfis.h"
 
 static void usage(void) {
-    puts("usage: cenfistool <command> <arguments...>\n"
+    puts("usage: cenfistool COMMAND [ARGUMENTS]\n"
          "commands:\n"
          "  send <filename.bhf>\n"
          "      directly send the specified file to the Cenfis device\n"
