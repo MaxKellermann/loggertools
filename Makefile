@@ -88,10 +88,7 @@ $(c_OBJECTS): bin/%.o: src/%.c bin/stamp $(C_HEADERS)
 $(cxx_OBJECTS): bin/%.o: src/%.cc bin/stamp $(CC_HEADERS)
 	$(CXX) -c $(CXXFLAGS) -o $@ $<
 
-bin/libhexfile.a: bin/hexfile-decoder.o
-	$(LD) -r -o $@ $^
-
-bin/tpconv: $(tpconv_OBJECTS) bin/libhexfile.a
+bin/tpconv: $(tpconv_OBJECTS) bin/hexfile-decoder.o
 	$(CXX) $(CXXFLAGS) -o $@ $^ -lstdc++
 
 bin/asconv: $(asconv_OBJECTS)
@@ -100,7 +97,7 @@ bin/asconv: $(asconv_OBJECTS)
 bin/cenfistool: $(cenfistool_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
 
-bin/hexfile: bin/hexfile-tool.o bin/libhexfile.a
+bin/hexfile: bin/hexfile-tool.o bin/hexfile-decoder.o
 	$(CC) $(CFLAGS) -o $@ $^
 
 bin/lxn2igc: $(lxn2igc_OBJECTS)
