@@ -34,4 +34,4 @@ rm -rf $RPM_BUILD_ROOT
 
 %changelog
 * Tue Mar  5 2007 Max Kellermann <mk@cm4all.com> 0.0.1-1
-- initial package
+- initial RPM package

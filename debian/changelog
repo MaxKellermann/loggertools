@@ -1,5 +1,5 @@
-loggertools (0.0.0) unstable; urgency=low
+loggertools (0.0.1) unstable; urgency=low
 
-  * initial version
+  * initial Debian package
 
  --
