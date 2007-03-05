@@ -28,14 +28,14 @@
 #include "cenfis.h"
 
 static void usage(void) {
-    printf("usage: cenfistool <command> <arguments...>\n");
-    printf("commands:\n");
-    printf("  send <filename.bhf>\n");
-    printf("      directly send the specified file to the Cenfis device\n");
-    printf("  upload <filename.bhf>\n");
-    printf("      wait for the Cenfis device to be ready, then upload the specified hexfile\n");
-    printf("  help\n");
-    printf("      print this help page\n");
+    puts("usage: cenfistool <command> <arguments...>\n"
+         "commands:\n"
+         "  send <filename.bhf>\n"
+         "      directly send the specified file to the Cenfis device\n"
+         "  upload <filename.bhf>\n"
+         "      wait for the Cenfis device to be ready, then upload the specified hexfile\n"
+         "  help\n"
+         "      print this help page\n");
 }
 
 static void arg_error(const char *msg) __attribute__ ((noreturn));
