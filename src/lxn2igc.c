@@ -50,7 +50,7 @@ static void usage(void) {
 static void arg_error(const char *msg) __attribute__ ((noreturn));
 static void arg_error(const char *msg) {
     fprintf(stderr, "lxn2igc: %s\n", msg);
-    fprintf(stderr, "Try 'lxn2igc --help' for more information.\n");
+    fprintf(stderr, "Try 'lxn2igc -h' for more information.\n");
     exit(1);
 }
 

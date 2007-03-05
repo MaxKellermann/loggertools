@@ -129,7 +129,7 @@ static void parse_cmdline(struct config *config,
 static void arg_error(const char *msg) __attribute__ ((noreturn));
 static void arg_error(const char *msg) {
     fprintf(stderr, "filsertool: %s\n", msg);
-    fprintf(stderr, "Try 'filsertool --help' for more information.\n");
+    fprintf(stderr, "Try 'filsertool -h' for more information.\n");
     _exit(1);
 }
 

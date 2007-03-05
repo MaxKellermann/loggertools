@@ -41,7 +41,7 @@ static void usage(void) {
 static void arg_error(const char *msg) __attribute__ ((noreturn));
 static void arg_error(const char *msg) {
     fprintf(stderr, "cenfistool: %s\n", msg);
-    fprintf(stderr, "Try 'cenfistool --help' for more information.\n");
+    fprintf(stderr, "Try 'cenfistool -h' for more information.\n");
     _exit(1);
 }
 

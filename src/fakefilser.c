@@ -129,7 +129,7 @@ static void usage(void) {
 static void arg_error(const char *msg) __attribute__ ((noreturn));
 static void arg_error(const char *msg) {
     fprintf(stderr, "fakefilser: %s\n", msg);
-    fprintf(stderr, "Try 'fakefilser --help' for more information.\n");
+    fprintf(stderr, "Try 'fakefilser -h' for more information.\n");
     _exit(1);
 }
 
