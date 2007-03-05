@@ -202,18 +202,11 @@ static void parse_cmdline(struct config *config,
 
     /* check non-option arguments */
 
-    if (optind < argc) {
-        fprintf(stderr, "fakefilser: unrecognized argument: %s\n",
-                argv[optind]);
-        fprintf(stderr, "Try 'fakefilser -h' for more information\n");
-        exit(1);
-    }
+    if (optind < argc)
+        arg_error("Too many arguments");
 
-    if (config->datadir == NULL) {
-        fprintf(stderr, "fakefilser: data directory not specified\n");
-        fprintf(stderr, "Try 'fakefilser -h' for more information\n");
-        exit(1);
-    }
+    if (config->datadir == NULL)
+        arg_error("Data directory not specified");
 }
 
 static void default_filser(struct fake_filser *filser) {
