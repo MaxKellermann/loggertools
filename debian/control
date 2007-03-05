@@ -8,7 +8,7 @@ Standards-Version: 3.7.2
 Package: loggertools
 Architecture: any
 Depends: ${shlibs:Depends}
-Description: communicate with flight recorders
+Description: tools for flight recorders
  loggertools is a collection of tools and libraries which talk to GPS
  flight loggers.
  .
