@@ -1,0 +1,47 @@
+.TH "filsertool" "1" "February 2007"
+.PP
+.SH "NAME"
+filsertool \- miscellaneous operations on an LXN navigation system
+.PP
+.SH "SYNOPSIS"
+.B filsertool
+[\fIOPTION\fR]...
+\fBCOMMAND\fR
+[\fIARGUMENTS\fR]...
+.SH DESCRIPTION
+.PP
+This program talks to an LXN navigation system like LX4000 or Colibri
+over a serial cable.  It can perform several actions like uploading
+turn points or a task declaration.  It is a low-level tool meant for
+debugging.
+.TP
+\fB\-t\fR, \fB\-\-tty\fI=DEVICE\fR
+Specify a device node different than /dev/ttyS0
+.SH COMMANDS
+.TP
+\fBraw\fR
+Raw direct communication test.  Really only for debugging.
+.TP
+\fBbasic\fR
+Download the "basic data section" from the device and prints it to
+standard output.
+.TP
+\fBread_tp_task\fR \fIFILENAME.da4\fR
+Download the turnpoint and task database and save it into a file.
+.TP
+\fBwrite_tp_task\fR \fIFILENAME.da4\fR
+Upload the turnpoint and task database to the device.
+.TP
+\fBwrite_apt\fR
+Upload the airport database to the device. XXX
+.SH AUTHOR
+Max Kellermann <max@duempel.org>
+.SH COPYRIGHT
+Copyright (C) 2004-2007 Max Kellermann
+.br
+This is free software.  You may redistribute copies of it under the
+terms of the GNU General Public License
+<http://www.gnu.org/licenses/gpl.html>.  There is NO WARRANTY, to the
+extent permitted by law.
+.SH "SEE ALSO"
+\fBlxn2igc\fR(1), \fBfilsertool\fR(1)
