@@ -139,6 +139,8 @@ int flarm_recv_frame(flarm_t flarm,
     }
 
     ret = flarm_recv_unescape(flarm);
+    if (ret == ENOSPC)
+        flarm->frame_started = 0;
     if (ret != 0 && ret != ECONNRESET)
         return ret;
 
