@@ -61,6 +61,12 @@ void fifo_buffer_delete(fifo_buffer_t *buffer_r) {
     free(buffer);
 }
 
+void fifo_buffer_clear(fifo_buffer_t buffer) {
+    assert(buffer != NULL);
+    buffer->start = 0;
+    buffer->end = 0;
+}
+
 const void *fifo_buffer_read(fifo_buffer_t buffer, size_t *length_r) {
     assert(buffer != NULL);
     assert(buffer->end >= buffer->start);

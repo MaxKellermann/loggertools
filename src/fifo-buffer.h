@@ -35,6 +35,8 @@ int fifo_buffer_new(size_t size, fifo_buffer_t *buffer_r);
 
 void fifo_buffer_delete(fifo_buffer_t *buffer_r);
 
+void fifo_buffer_clear(fifo_buffer_t buffer);
+
 const void *fifo_buffer_read(fifo_buffer_t buffer, size_t *length_r);
 
 void fifo_buffer_consume(fifo_buffer_t buffer, size_t length);
