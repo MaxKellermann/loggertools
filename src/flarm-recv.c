@@ -23,6 +23,7 @@
 
 #include <assert.h>
 #include <unistd.h>
+#include <string.h>
 #include <errno.h>
 
 static int flarm_fill_in(flarm_t flarm) {
@@ -60,6 +61,26 @@ static int flarm_read(flarm_t flarm, const uint8_t **p_r, size_t *length_r) {
         return EAGAIN;
 
     return 0;
+}
+
+static int flarm_wait_startframe(flarm_t flarm) {
+    int ret;
+    const uint8_t *src, *startframe;
+    size_t length;
+
+    for (;;) {
+        ret = flarm_read(flarm, &src, &length);
+        if (ret != 0)
+            return ret;
+
+        startframe = memchr(src, FLARM_STARTFRAME, length);
+        if (startframe == NULL) {
+            fifo_buffer_consume(flarm->in, length);
+        } else {
+            fifo_buffer_consume(flarm->in, startframe - src);
+            return 0;
+        }
+    }
 }
 
 static int flarm_recv_unescape(flarm_t flarm, void *dest0, size_t length) {
@@ -102,6 +123,12 @@ int flarm_recv_frame(flarm_t flarm,
     assert(type_r != NULL);
     assert(payload_r != NULL);
     assert(length_r != NULL);
+
+    ret = flarm_wait_startframe(flarm);
+    if (ret != 0)
+        return ret;
+
+    fifo_buffer_consume(flarm->in, 1);
 
     ret = flarm_recv_unescape(flarm, &header, sizeof(header));
     if (ret != 0)
