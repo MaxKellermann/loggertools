@@ -23,6 +23,7 @@
 #define __FLARM_INTERNAL_H
 
 #include "flarm.h"
+#include "fifo-buffer.h"
 
 /* for ssize_t */
 #include <sys/types.h>
@@ -37,6 +38,7 @@ struct flarm {
     unsigned last_seq_no;
     uint8_t *buffer;
     size_t buffer_size;
+    fifo_buffer_t in;
 };
 
 struct flarm_frame_header {

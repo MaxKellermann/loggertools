@@ -73,7 +73,7 @@ lxn_logger_OBJECTS = $(patsubst src/%.c,bin/%.o,$(lxn_logger_SOURCES))
 fakefilser_SOURCES = src/fakefilser.c src/filser-crc.c src/filser-open.c src/filser-io.c src/datadir.c src/lxn-reader.c src/dump.c
 fakefilser_OBJECTS = $(patsubst src/%.c,bin/%.o,$(fakefilser_SOURCES))
 
-flarmtool_SOURCES = src/flarm-tool.c src/flarm-crc.c src/flarm-open.c src/flarm-escape.c src/flarm-buffer.c src/flarm-send.c src/flarm-recv.c
+flarmtool_SOURCES = src/flarm-tool.c src/flarm-crc.c src/flarm-open.c src/flarm-escape.c src/fifo-buffer.c src/flarm-buffer.c src/flarm-send.c src/flarm-recv.c
 flarmtool_OBJECTS = $(patsubst src/%.c,bin/%.o,$(flarmtool_SOURCES))
 
 version_SOURCES = src/version.c

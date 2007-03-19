@@ -25,23 +25,54 @@
 #include <unistd.h>
 #include <errno.h>
 
+static int flarm_fill_in(flarm_t flarm) {
+    void *p;
+    size_t max_length;
+    ssize_t nbytes;
+
+    p = fifo_buffer_write(flarm->in, &max_length);
+    if (p == NULL)
+        return ENOSPC;
+
+    assert(max_length > 0);
+
+    nbytes = read(flarm->fd, p, max_length);
+    if (nbytes < 0)
+        return errno;
+
+    fifo_buffer_append(flarm->in, (size_t)nbytes);
+    return 0;
+}
+
 static int flarm_recv_unescape(flarm_t flarm, void *dest0, size_t length) {
     uint8_t *dest = (uint8_t*)dest0;
-    size_t dest_pos = 0;
+    int ret;
+    const uint8_t *src;
+    size_t dest_pos = 0, in_length;
     ssize_t nbytes;
 
     while (dest_pos < length) {
-        nbytes = read(flarm->fd, dest + dest_pos, length - dest_pos);
-        if (nbytes < 0)
-            return errno;
+        src = (const uint8_t*)fifo_buffer_read(flarm->in, &in_length);
+        if (src == NULL) {
+            ret = flarm_fill_in(flarm);
+            if (ret != 0)
+                return ret;
 
-        if (nbytes == 0)
-            return ENOSPC;
+            src = (const uint8_t*)fifo_buffer_read(flarm->in, &in_length);
+            if (src == NULL)
+                return EAGAIN;
+        }
 
-        nbytes = flarm_unescape(dest + dest_pos, dest + dest_pos, (size_t)nbytes);
-        if (nbytes < 0)
-            return EAGAIN; /* XXX */
+        if (in_length > length - dest_pos)
+            in_length = length - dest_pos;
 
+        nbytes = flarm_unescape(dest + dest_pos, src, in_length);
+        if (nbytes < 0) {
+            fifo_buffer_consume(flarm->in, (size_t)-nbytes);
+            return ECONNRESET; /* XXX */
+        }
+
+        fifo_buffer_consume(flarm->in, in_length);
         dest_pos += (size_t)nbytes;
     }
 
