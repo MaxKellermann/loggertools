@@ -83,32 +83,35 @@ static int flarm_wait_startframe(flarm_t flarm) {
     }
 }
 
-static int flarm_recv_unescape(flarm_t flarm, void *dest0, size_t length) {
-    uint8_t *dest = (uint8_t*)dest0;
-    int ret;
+static int flarm_recv_unescape(flarm_t flarm) {
     const uint8_t *src;
-    size_t dest_pos = 0, in_length;
-    ssize_t nbytes;
+    uint8_t *dest;
+    int ret;
+    size_t in_length, max_length, src_pos, dest_pos;
 
-    while (dest_pos < length) {
-        ret = flarm_read(flarm, &src, &in_length);
-        if (ret != 0)
-            return ret;
+    ret = flarm_read(flarm, &src, &in_length);
+    if (ret != 0)
+        return ret;
 
-        if (in_length > length - dest_pos)
-            in_length = length - dest_pos;
+    dest = (uint8_t*)fifo_buffer_write(flarm->frame, &max_length);
+    if (dest == NULL)
+        return ENOSPC;
 
-        nbytes = flarm_unescape(dest + dest_pos, src, in_length);
-        if (nbytes < 0) {
-            fifo_buffer_consume(flarm->in, (size_t)-nbytes);
-            return ECONNRESET; /* XXX */
-        }
+    do {
+        ret = flarm_unescape(dest, src,
+                             in_length > max_length ? max_length : in_length,
+                             &dest_pos, &src_pos);
 
-        fifo_buffer_consume(flarm->in, in_length);
-        dest_pos += (size_t)nbytes;
-    }
+        fifo_buffer_consume(flarm->in, src_pos);
+        src += src_pos;
+        in_length -= src_pos;
 
-    return 0;
+        fifo_buffer_append(flarm->frame, dest_pos);
+        dest += dest_pos;
+        max_length -= dest_pos;
+    } while (in_length > 0 && ret == 0);
+
+    return ret;
 }
 
 int flarm_recv_frame(flarm_t flarm,
@@ -116,7 +119,8 @@ int flarm_recv_frame(flarm_t flarm,
                      uint16_t *seq_no_r,
                      const void **payload_r, size_t *length_r) {
     int ret;
-    struct flarm_frame_header header;
+    const struct flarm_frame_header *header;
+    size_t length;
 
     assert(flarm != NULL);
     assert(flarm->fd >= 0);
@@ -124,34 +128,40 @@ int flarm_recv_frame(flarm_t flarm,
     assert(payload_r != NULL);
     assert(length_r != NULL);
 
-    ret = flarm_wait_startframe(flarm);
-    if (ret != 0)
-        return ret;
+    if (!flarm->frame_started) {
+        fifo_buffer_clear(flarm->frame);
+
+        ret = flarm_wait_startframe(flarm);
+        if (ret != 0)
+            return ret;
+
+        flarm->frame_started = 1;
+    }
 
     fifo_buffer_consume(flarm->in, 1);
 
-    ret = flarm_recv_unescape(flarm, &header, sizeof(header));
-    if (ret != 0)
+    ret = flarm_recv_unescape(flarm);
+    if (ret != 0 && ret != ECONNRESET)
         return ret;
 
-    ret = flarm_need_buffer(flarm, header.length);
-    if (ret != 0)
-        return ret;
-
-    ret = flarm_recv_unescape(flarm, flarm->buffer, header.length);
-    if (ret != 0)
-        return ret;
+    header = (const struct flarm_frame_header*)fifo_buffer_read(flarm->frame, &length);
+    if (header == NULL || length < sizeof(*header) ||
+        length < sizeof(*header) + header->length) {
+        if (ret == ECONNRESET)
+            flarm->frame_started = 0;
+        return EAGAIN;
+    }
 
     if (version_r != NULL)
-        *version_r = header.version;
+        *version_r = header->version;
 
-    *type_r = header.type;
+    *type_r = header->type;
 
     if (seq_no_r != NULL)
-        *seq_no_r = header.seq_no;
+        *seq_no_r = header->seq_no;
 
-    *payload_r = flarm->buffer;
-    *length_r = header.length;
+    *payload_r = header + 1;
+    *length_r = header->length;
 
     return 0;
 }

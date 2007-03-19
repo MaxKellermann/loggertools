@@ -38,7 +38,8 @@ struct flarm {
     unsigned last_seq_no;
     uint8_t *buffer;
     size_t buffer_size;
-    fifo_buffer_t in;
+    int frame_started;
+    fifo_buffer_t in, frame;
 };
 
 struct flarm_frame_header {
@@ -64,6 +65,8 @@ uint16_t flarm_crc_update_block(uint16_t crc, const void *src,
 
 size_t flarm_escape(uint8_t *dest, const void *src, size_t length);
 
-ssize_t flarm_unescape(void *dest, const uint8_t *src, size_t length);
+int flarm_unescape(void *dest0,
+                   const uint8_t *src, size_t src_length,
+                   size_t *dest_pos_r, size_t *src_pos_r);
 
 #endif

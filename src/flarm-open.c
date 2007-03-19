@@ -50,6 +50,12 @@ int flarm_fdopen(int fd, flarm_t *flarm_r) {
         return ret;
     }
 
+    ret = fifo_buffer_new(4096, &flarm->frame);
+    if (ret != 0) {
+        flarm_close(&flarm);
+        return ret;
+    }
+
     *flarm_r = flarm;
     return 0;
 }
@@ -111,6 +117,12 @@ void flarm_close(flarm_t *flarm_r) {
 
     if (flarm->fd >= 0)
         close(flarm->fd);
+
+    if (flarm->in != NULL)
+        fifo_buffer_delete(&flarm->in);
+
+    if (flarm->frame != NULL)
+        fifo_buffer_delete(&flarm->frame);
 
     free(flarm);
 }

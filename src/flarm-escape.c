@@ -22,6 +22,7 @@
 #include "flarm-internal.h"
 
 #include <assert.h>
+#include <errno.h>
 
 size_t flarm_escape(uint8_t *dest, const void *src0, size_t length) {
     const uint8_t *src = (const uint8_t*)src0;
@@ -47,7 +48,9 @@ size_t flarm_escape(uint8_t *dest, const void *src0, size_t length) {
     return dest_pos;
 }
 
-ssize_t flarm_unescape(void *dest0, const uint8_t *src, size_t length) {
+int flarm_unescape(void *dest0,
+                   const uint8_t *src, size_t length,
+                   size_t *dest_pos_r, size_t *src_pos_r) {
     uint8_t *dest = (uint8_t*)dest0;
     size_t dest_pos = 0, src_pos = 0;
 
@@ -58,8 +61,11 @@ ssize_t flarm_unescape(void *dest0, const uint8_t *src, size_t length) {
         switch (src[src_pos]) {
         case FLARM_ESCAPE:
             ++src_pos;
-            if (src_pos >= length)
-                return 0; /* XXX */
+            if (src_pos >= length) {
+                *dest_pos_r = dest_pos;
+                *src_pos_r = src_pos - 1;
+                return EAGAIN;
+            }
 
             switch (src[src_pos]) {
             case FLARM_ESC_START:
@@ -71,13 +77,17 @@ ssize_t flarm_unescape(void *dest0, const uint8_t *src, size_t length) {
                 break;
 
             default:
-                return 0; /* XXX */
+                *dest_pos_r = dest_pos;
+                *src_pos_r = src_pos;
+                return EINVAL;
             }
 
             break;
 
         case FLARM_STARTFRAME:
-            return - (ssize_t)src_pos;
+            *dest_pos_r = dest_pos;
+            *src_pos_r = src_pos;
+            return ECONNRESET;
 
         default:
             dest[dest_pos++] = src[src_pos++];
@@ -85,5 +95,5 @@ ssize_t flarm_unescape(void *dest0, const uint8_t *src, size_t length) {
         }
     }
 
-    return (ssize_t)dest_pos;
+    return 0;
 }
