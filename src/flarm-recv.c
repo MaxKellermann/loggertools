@@ -44,6 +44,24 @@ static int flarm_fill_in(flarm_t flarm) {
     return 0;
 }
 
+static int flarm_read(flarm_t flarm, const uint8_t **p_r, size_t *length_r) {
+    int ret;
+
+    *p_r = (const uint8_t*)fifo_buffer_read(flarm->in, length_r);
+    if (*p_r != NULL)
+        return 0;
+
+    ret = flarm_fill_in(flarm);
+    if (ret != 0)
+        return ret;
+
+    *p_r = (const uint8_t*)fifo_buffer_read(flarm->in, length_r);
+    if (*p_r == NULL)
+        return EAGAIN;
+
+    return 0;
+}
+
 static int flarm_recv_unescape(flarm_t flarm, void *dest0, size_t length) {
     uint8_t *dest = (uint8_t*)dest0;
     int ret;
@@ -52,16 +70,9 @@ static int flarm_recv_unescape(flarm_t flarm, void *dest0, size_t length) {
     ssize_t nbytes;
 
     while (dest_pos < length) {
-        src = (const uint8_t*)fifo_buffer_read(flarm->in, &in_length);
-        if (src == NULL) {
-            ret = flarm_fill_in(flarm);
-            if (ret != 0)
-                return ret;
-
-            src = (const uint8_t*)fifo_buffer_read(flarm->in, &in_length);
-            if (src == NULL)
-                return EAGAIN;
-        }
+        ret = flarm_read(flarm, &src, &in_length);
+        if (ret != 0)
+            return ret;
 
         if (in_length > length - dest_pos)
             in_length = length - dest_pos;
