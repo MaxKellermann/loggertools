@@ -33,6 +33,7 @@
 
 int flarm_fdopen(int fd, flarm_t *flarm_r) {
     flarm_t flarm;
+    int ret;
 
     assert(flarm_r != NULL);
     assert(fd >= 0);
@@ -42,6 +43,12 @@ int flarm_fdopen(int fd, flarm_t *flarm_r) {
         return -1;
 
     flarm->fd = fd;
+
+    ret = fifo_buffer_new(4096, &flarm->in);
+    if (ret != 0) {
+        flarm_close(&flarm);
+        return ret;
+    }
 
     *flarm_r = flarm;
     return 0;
