@@ -67,7 +67,7 @@ void fifo_buffer_clear(fifo_buffer_t buffer) {
     buffer->end = 0;
 }
 
-const void *fifo_buffer_read(fifo_buffer_t buffer, size_t *length_r) {
+const void *fifo_buffer_read(const fifo_buffer_t buffer, size_t *length_r) {
     assert(buffer != NULL);
     assert(buffer->end >= buffer->start);
     assert(length_r != NULL);
