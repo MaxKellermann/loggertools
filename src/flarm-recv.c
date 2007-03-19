@@ -77,7 +77,7 @@ static int flarm_wait_startframe(flarm_t flarm) {
         if (startframe == NULL) {
             fifo_buffer_consume(flarm->in, length);
         } else {
-            fifo_buffer_consume(flarm->in, startframe - src);
+            fifo_buffer_consume(flarm->in, startframe - src + 1);
             return 0;
         }
     }
@@ -137,8 +137,6 @@ int flarm_recv_frame(flarm_t flarm,
 
         flarm->frame_started = 1;
     }
-
-    fifo_buffer_consume(flarm->in, 1);
 
     ret = flarm_recv_unescape(flarm);
     if (ret != 0 && ret != ECONNRESET)
