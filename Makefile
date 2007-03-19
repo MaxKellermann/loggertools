@@ -39,7 +39,7 @@ CFLAGS += -Wmissing-prototypes -Wcast-qual -Wfloat-equal -Wshadow -Wpointer-arit
 CXXFLAGS += $(COMMON_CFLAGS)
 CXXFLAGS += -Wwrite-strings -Wcast-qual -Wfloat-equal -Wpointer-arith -Wsign-compare -Wmissing-format-attribute -Wredundant-decls -Winline -Wdisabled-optimization -Wno-long-long -Wundef
 
-all: bin/tpconv bin/asconv bin/cenfistool bin/hexfile bin/lxn2igc bin/filsertool bin/lxn-logger bin/fakefilser bin/fwd
+all: bin/tpconv bin/asconv bin/cenfistool bin/hexfile bin/lxn2igc bin/filsertool bin/lxn-logger bin/fakefilser bin/flarmtool bin/fwd
 
 clean:
 	rm -rf bin
@@ -72,6 +72,9 @@ lxn_logger_OBJECTS = $(patsubst src/%.c,bin/%.o,$(lxn_logger_SOURCES))
 
 fakefilser_SOURCES = src/fakefilser.c src/filser-crc.c src/filser-open.c src/filser-io.c src/datadir.c src/lxn-reader.c src/dump.c
 fakefilser_OBJECTS = $(patsubst src/%.c,bin/%.o,$(fakefilser_SOURCES))
+
+flarmtool_SOURCES = src/flarm-tool.c src/flarm-crc.c src/flarm-open.c src/flarm-escape.c src/flarm-buffer.c src/flarm-send.c src/flarm-recv.c
+flarmtool_OBJECTS = $(patsubst src/%.c,bin/%.o,$(flarmtool_SOURCES))
 
 version_SOURCES = src/version.c
 version_OBJECTS = $(patsubst src/%.c,bin/%.o,$(version_SOURCES))
@@ -110,6 +113,9 @@ bin/lxn-logger: $(lxn_logger_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
 
 bin/fakefilser: $(fakefilser_OBJECTS)
+	$(CC) $(CFLAGS) -o $@ $^
+
+bin/flarmtool: $(flarmtool_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
 
 bin/fwd: src/fwd.c bin/filser-open.o bin/filser-proto.o
