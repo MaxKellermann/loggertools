@@ -97,7 +97,7 @@ void CenfisTurnPointWriter::write(const TurnPoint &tp) {
         formatAngle(latitude, sizeof(latitude),
                     tp.getPosition().getLatitude(), "SN");
         formatAngle(longitude, sizeof(longitude),
-                    tp.getPosition().getLongitude(), "EW");
+                    tp.getPosition().getLongitude(), "WE");
 
         *stream << "   K " << latitude << " " << longitude;
 
