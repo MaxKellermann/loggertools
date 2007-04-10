@@ -39,7 +39,7 @@ CFLAGS += -Wmissing-prototypes -Wcast-qual -Wfloat-equal -Wshadow -Wpointer-arit
 CXXFLAGS += $(COMMON_CFLAGS)
 CXXFLAGS += -Wwrite-strings -Wcast-qual -Wfloat-equal -Wpointer-arith -Wsign-compare -Wmissing-format-attribute -Wredundant-decls -Winline -Wdisabled-optimization -Wno-long-long -Wundef
 
-all: bin/tpconv bin/asconv bin/cenfistool bin/hexfile bin/lxn2igc bin/filsertool bin/lxn-logger bin/fakefilser bin/flarmtool bin/fwd
+all: bin/tpconv bin/asconv bin/cenfistool bin/hexfile bin/lxn2igc bin/filsertool bin/lxn-logger bin/fakefilser bin/flarmtool bin/zander bin/fwd
 
 clean:
 	rm -rf bin
@@ -75,6 +75,9 @@ fakefilser_OBJECTS = $(patsubst src/%.c,bin/%.o,$(fakefilser_SOURCES))
 
 flarmtool_SOURCES = src/flarm-tool.c src/flarm-crc.c src/flarm-open.c src/flarm-escape.c src/fifo-buffer.c src/flarm-buffer.c src/flarm-send.c src/flarm-recv.c
 flarmtool_OBJECTS = $(patsubst src/%.c,bin/%.o,$(flarmtool_SOURCES))
+
+zander_SOURCES = src/zander-tool.c src/zander-open.c src/zander-io.c src/zander-protocol.c
+zander_OBJECTS = $(patsubst src/%.c,bin/%.o,$(zander_SOURCES))
 
 version_SOURCES = src/version.c
 version_OBJECTS = $(patsubst src/%.c,bin/%.o,$(version_SOURCES))
@@ -116,6 +119,9 @@ bin/fakefilser: $(fakefilser_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
 
 bin/flarmtool: $(flarmtool_OBJECTS)
+	$(CC) $(CFLAGS) -o $@ $^
+
+bin/zander: $(zander_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
 
 bin/fwd: src/fwd.c bin/filser-open.o bin/filser-proto.o
