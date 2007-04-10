@@ -161,7 +161,7 @@ static void parse_cmdline(struct config *config,
     if (strcmp(config->input_path, "-") == 0)
         config->input_path = NULL;
 
-    if (strcmp(config->output_path, "-") == 0)
+    if (config->output_path != NULL && strcmp(config->output_path, "-") == 0)
         config->output_path = NULL;
 
     if (config->decode && config->output_path == NULL)

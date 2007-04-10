@@ -1,4 +1,5 @@
 Version 0.0.2 - not yet released
+  * fixed NULL derefence in hexfile-tool.c when no -o option was specified
 
 Version 0.0.1 - 2007/03/05
   * initial release
