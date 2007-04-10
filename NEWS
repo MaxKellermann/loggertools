@@ -3,6 +3,7 @@ Version 0.0.2 - not yet released
   * tp-cenfis: set description instead of title
   * tp-cenfis: special description "Waypoint"
   * tp-cenfis-writer: fix sign error in longitude
+  * tp-cenfis-writer: print longitude with 3 digits
 
 Version 0.0.1 - 2007/03/05
   * initial release

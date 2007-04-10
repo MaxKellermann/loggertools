@@ -56,13 +56,26 @@ static const char *formatType(TurnPoint::type_t type) {
     }
 }
 
-static char *formatAngle(char *buffer, size_t buffer_max_len,
-                         const Angle &angle, const char *letters) {
+static char *formatLatitude(char *buffer, size_t buffer_max_len,
+                            const Angle &angle) {
     int value = angle.getValue();
     int a = abs(value);
 
     snprintf(buffer, buffer_max_len, "%c %02u %02u %03u",
-             value < 0 ? letters[0] : letters[1],
+             value < 0 ? 'S' : 'N',
+             a / 60 / 1000, (a / 1000) % 60,
+             a % 1000);
+
+    return buffer;
+}
+
+static char *formatLongitude(char *buffer, size_t buffer_max_len,
+                             const Angle &angle) {
+    int value = angle.getValue();
+    int a = abs(value);
+
+    snprintf(buffer, buffer_max_len, "%c %03u %02u %03u",
+             value < 0 ? 'W' : 'E',
              a / 60 / 1000, (a / 1000) % 60,
              a % 1000);
 
@@ -94,10 +107,10 @@ void CenfisTurnPointWriter::write(const TurnPoint &tp) {
     if (tp.getPosition().defined()) {
         char latitude[16], longitude[16];
 
-        formatAngle(latitude, sizeof(latitude),
-                    tp.getPosition().getLatitude(), "SN");
-        formatAngle(longitude, sizeof(longitude),
-                    tp.getPosition().getLongitude(), "WE");
+        formatLatitude(latitude, sizeof(latitude),
+                       tp.getPosition().getLatitude());
+        formatLongitude(longitude, sizeof(longitude),
+                        tp.getPosition().getLongitude());
 
         *stream << "   K " << latitude << " " << longitude;
 
