@@ -129,6 +129,14 @@ public:
         return code;
     }
     void setCode(const std::string &_code);
+    const std::string &getTitleOrCode() const {
+        return title.length() == 0
+            ? code : title;
+    }
+    const std::string &getCodeOrTitle() const {
+        return code.length() == 0
+            ? title : code;
+    }
     const std::string &getCountry() const {
         return country;
     }
