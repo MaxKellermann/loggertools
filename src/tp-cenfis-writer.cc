@@ -126,7 +126,7 @@ void CenfisTurnPointWriter::write(const TurnPoint &tp) {
             default:
                 letter = 'U';
             }
-            *stream << " " << letter << tp.getPosition().getAltitude().getValue();
+            *stream << " " << letter << " " << tp.getPosition().getAltitude().getValue();
         } else {
             *stream << " U     0";
         }

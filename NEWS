@@ -4,6 +4,7 @@ Version 0.0.2 - not yet released
   * tp-cenfis: special description "Waypoint"
   * tp-cenfis-writer: fix sign error in longitude
   * tp-cenfis-writer: print longitude with 3 digits
+  * tp-cenfis-writer: space after altitude unit
 
 Version 0.0.1 - 2007/03/05
   * initial release
