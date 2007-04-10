@@ -285,7 +285,7 @@ TurnPoint *CenfisTurnPointReader::handleLine(char *line) {
 
         line += 4;
 
-        if (*line != 0)
+        if (*line != 0 && strcmp(line, "Waypoint") != 0)
             tp->setDescription(line);
 
         break;

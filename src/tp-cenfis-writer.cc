@@ -86,6 +86,8 @@ void CenfisTurnPointWriter::write(const TurnPoint &tp) {
 
     if (tp.getDescription().length() > 0)
         *stream << " " << tp.getDescription();
+    else if (tp.getType() == TurnPoint::TYPE_UNKNOWN)
+        *stream << " Waypoint";
 
     *stream << "\n";
 

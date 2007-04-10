@@ -1,6 +1,7 @@
 Version 0.0.2 - not yet released
   * fixed the -o option in hexfile-tool.c
   * tp-cenfis: set description instead of title
+  * tp-cenfis: special description "Waypoint"
 
 Version 0.0.1 - 2007/03/05
   * initial release
