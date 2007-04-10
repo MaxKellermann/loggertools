@@ -286,7 +286,7 @@ TurnPoint *CenfisTurnPointReader::handleLine(char *line) {
         line += 4;
 
         if (*line != 0)
-            tp->setTitle(line);
+            tp->setDescription(line);
 
         break;
 

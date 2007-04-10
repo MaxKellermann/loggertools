@@ -86,8 +86,8 @@ void CenfisTurnPointWriter::write(const TurnPoint &tp) {
             << std::setw(3) << std::setfill(' ')
             << formatType(tp.getType());
 
-    if (tp.getTitle().length() > 0)
-        *stream << " " << tp.getTitle();
+    if (tp.getDescription().length() > 0)
+        *stream << " " << tp.getDescription();
 
     *stream << "\n";
 
