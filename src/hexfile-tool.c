@@ -465,10 +465,10 @@ int main(int argc, char **argv) {
     if (config.output_path == NULL) {
         out = stdout;
     } else {
-        out = fopen(optarg, "w");
+        out = fopen(config.output_path, "w");
         if (out == NULL) {
             fprintf(stderr, "failed to create '%s': %s\n",
-                    optarg, strerror(errno));
+                    config.output_path, strerror(errno));
             _exit(1);
         }
     }
