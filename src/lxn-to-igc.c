@@ -49,6 +49,7 @@ struct lxn_to_igc {
     int is_event;
     struct lxn_event event;
     char fix_stat;
+    char vendor[3];
     const char *error;
 };
 
@@ -62,6 +63,8 @@ int lxn_to_igc_open(FILE *igc, lxn_to_igc_t *fti_r) {
         return errno;
 
     fti->igc = igc;
+
+    memcpy(fti->vendor, "LXN", 3);
 
     *fti_r = fti;
     return 0;
@@ -340,7 +343,8 @@ int lxn_to_igc_process(lxn_to_igc_t fti,
             fti->origin_latitude = (int32_t)ntohl(p.origin->latitude);
             fti->origin_longitude = (int32_t)ntohl(p.origin->longitude);
 
-            fprintf(fti->igc, "LLXNORIGIN%02d%02d%02d" "%02d%05d%c" "%03d%05d%c\r\n",
+            fprintf(fti->igc, "L%.*sORIGIN%02d%02d%02d" "%02d%05d%c" "%03d%05d%c\r\n",
+                    3, fti->vendor,
                     fti->origin_time / 3600, fti->origin_time % 3600 / 60, fti->origin_time % 60,
                     abs(fti->origin_latitude) / 60000, abs(fti->origin_latitude) % 60000,
                     fti->origin_latitude >= 0 ? 'N' : 'S',
@@ -527,6 +531,10 @@ int lxn_to_igc_process(lxn_to_igc_t fti,
             if (*p.cmd < 0x40) {
                 fprintf(fti->igc, "%.*s\r\n",
                         p.string->length, p.string->value);
+
+                if (p.string->length >= 15 &&
+                    memcmp(p.string->value, "HFFTYFRTYPE:", 12) == 0)
+                    memcpy(fti->vendor, p.string->value + 12, 3);
             } else {
                 return set_error(fti, "Unknown packet");
             }
