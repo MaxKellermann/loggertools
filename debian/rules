@@ -10,7 +10,7 @@ build: debian/stamp-build
 debian/stamp-build:
 	dh_testdir
 
-	$(MAKE)
+	$(MAKE) all documentation
 
 	touch debian/stamp-build
 
