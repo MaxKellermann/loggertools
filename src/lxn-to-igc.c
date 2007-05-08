@@ -344,7 +344,7 @@ int lxn_to_igc_process(lxn_to_igc_t fti,
             fti->origin_longitude = (int32_t)ntohl(p.origin->longitude);
 
             fprintf(fti->igc, "L%.*sORIGIN%02d%02d%02d" "%02d%05d%c" "%03d%05d%c\r\n",
-                    3, fti->vendor,
+                    (int)sizeof(fti->vendor), fti->vendor,
                     fti->origin_time / 3600, fti->origin_time % 3600 / 60, fti->origin_time % 60,
                     abs(fti->origin_latitude) / 60000, abs(fti->origin_latitude) % 60000,
                     fti->origin_latitude >= 0 ? 'N' : 'S',
@@ -532,9 +532,9 @@ int lxn_to_igc_process(lxn_to_igc_t fti,
                 fprintf(fti->igc, "%.*s\r\n",
                         p.string->length, p.string->value);
 
-                if (p.string->length >= 15 &&
+                if (p.string->length >= 12 + sizeof(fti->vendor) &&
                     memcmp(p.string->value, "HFFTYFRTYPE:", 12) == 0)
-                    memcpy(fti->vendor, p.string->value + 12, 3);
+                    memcpy(fti->vendor, p.string->value + 12, sizeof(fti->vendor));
             } else {
                 return set_error(fti, "Unknown packet");
             }
