@@ -42,6 +42,17 @@ static void usage() {
         " -h           help (this text)\n";
 }
 
+static void arg_error(const char *argv0, const char *msg)
+    __attribute__((noreturn));
+static void
+arg_error(const char *argv0, const char *msg)
+{
+    if (msg != NULL)
+        cerr << argv0 << ": " << msg << endl;
+    cerr << "Try '" << argv0 << "%s --help' for more information." << endl;
+    exit(1);
+}
+
 const TurnPointFormat *getFormatFromFilename(const char *filename) {
     const char *dot;
     const TurnPointFormat *format;
@@ -95,21 +106,19 @@ int main(int argc, char **argv) {
             filters.push_back(optarg);
             break;
 
+        case '?':
+            arg_error(argv[0], NULL);
+
         default:
-            cerr << "Invalid getopt code" << endl;
             exit(1);
         }
     }
 
-    if (out_filename == NULL && stdout_format == NULL) {
-        cerr << "No output filename specified" << endl;
-        exit(1);
-    }
+    if (out_filename == NULL && stdout_format == NULL)
+        arg_error(argv[0], "No output filename specified");
 
-    if (optind >= argc) {
-        cerr << "No input filename specified" << endl;
-        exit(1);
-    }
+    if (optind >= argc)
+        arg_error(argv[0], "No input filename specified");
 
     /* open output file */
 

@@ -75,6 +75,18 @@ static void usage(void) {
          );
 }
 
+static void arg_error(const char *argv0, const char *msg)
+    __attribute__((noreturn));
+static void
+arg_error(const char *argv0, const char *msg)
+{
+    if (msg != NULL)
+        fprintf(stderr, "%s: %s\n", argv0, msg);
+    fprintf(stderr, "Try '%s -h' for more information.\n",
+            argv0);
+    exit(1);
+}
+
 /** read configuration options from the command line */
 static void parse_cmdline(struct config *config,
                           int argc, char **argv) {
@@ -128,17 +140,13 @@ static void parse_cmdline(struct config *config,
             config->tty = optarg;
             break;
 
+        case '?':
+            arg_error(argv[0], NULL);
+
         default:
             exit(1);
         }
     }
-}
-
-static void arg_error(const char *msg) __attribute__ ((noreturn));
-static void arg_error(const char *msg) {
-    fprintf(stderr, "filsertool: %s\n", msg);
-    fprintf(stderr, "Try 'lxn-logger -h' for more information.\n");
-    exit(1);
 }
 
 static void alarm_handler(int dummy) {
@@ -526,7 +534,7 @@ int main(int argc, char **argv) {
     parse_cmdline(&config, argc, argv);
 
     if (optind < argc)
-        arg_error("too many arguments");
+        arg_error(argv[0], "too many arguments");
 
     fputs("loggertools v" VERSION " (C) 2004-2007 Max Kellermann <max@duempel.org>\n"
           "http://max.kellermann.name/projects/loggertools/\n\n", stderr);
