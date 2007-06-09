@@ -32,8 +32,8 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
-static void usage() {
-    cout << "usage: asconv [options] FILE1 ...\n"
+static void usage(const char *argv0) {
+    cout << "usage: " << argv0 << " [options] FILE1 ...\n"
         "options:\n"
         " -o outfile   write output to this file\n"
         " -f outformat write output to stdout with this format\n"
@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
 
         switch (c) {
         case 'h':
-            usage();
+            usage(argv[0]);
             return 0;
 
         case 'o':
