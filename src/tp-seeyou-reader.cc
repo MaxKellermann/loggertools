@@ -202,7 +202,8 @@ const TurnPoint *SeeYouTurnPointReader::read() {
     Longitude longitude;
     Altitude altitude;
     Runway::type_t rwy_type = Runway::TYPE_UNKNOWN;
-    unsigned rwy_direction = UINT_MAX, rwy_length = 0;
+    unsigned rwy_direction = Runway::DIRECTION_UNDEFINED;
+    unsigned rwy_length = Runway::LENGTH_UNDEFINED;
 
     if (is_eof || stream->eof())
         return NULL;

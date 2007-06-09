@@ -21,16 +21,20 @@
 
 #include "tp.hh"
 
+#include <assert.h>
+
 Runway::Runway()
-    :type(TYPE_UNKNOWN), direction(UINT_MAX), length(0) {
+    :type(TYPE_UNKNOWN), direction(DIRECTION_UNDEFINED),
+     length(LENGTH_UNDEFINED) {
 }
 
 Runway::Runway(type_t _type, unsigned _direction, unsigned _length)
     :type(_type), direction(_direction), length(_length) {
+    assert(direction <= 18);
 }
 
 bool Runway::defined() const {
-    return direction != UINT_MAX;
+    return direction >= 1 && direction <= 18;
 }
 
 TurnPoint::TurnPoint(void)

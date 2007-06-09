@@ -172,7 +172,8 @@ const TurnPoint *ZanderTurnPointReader::read() {
             tp.setType(TurnPoint::TYPE_OUTLANDING);
         }
     }
-    tp.setRunway(Runway(rwy_type, UINT_MAX, 0));
+    tp.setRunway(Runway(rwy_type, Runway::DIRECTION_UNDEFINED,
+                        Runway::LENGTH_UNDEFINED));
 
     tp.setCountry(get_next_column(&p, 2));
 

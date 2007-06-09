@@ -34,6 +34,10 @@ public:
         TYPE_GRASS,
         TYPE_ASPHALT
     };
+    enum {
+        DIRECTION_UNDEFINED = 0,
+        LENGTH_UNDEFINED = 0
+    };
 private:
     type_t type;
     unsigned direction, length;

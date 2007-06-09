@@ -195,7 +195,8 @@ static char *nextWord(char **p) {
 static Runway *parseRunway(char *p) {
     unsigned long u;
     Runway::type_t type = Runway::TYPE_UNKNOWN;
-    unsigned direction = UINT_MAX, length = 0;
+    unsigned direction = Runway::DIRECTION_UNDEFINED;
+    unsigned length = Runway::LENGTH_UNDEFINED;
     char *word, *endptr;
 
     while ((word = nextWord(&p)) != NULL) {
@@ -208,7 +209,7 @@ static Runway *parseRunway(char *p) {
                 type = Runway::TYPE_ASPHALT;
         } else {
             if (u < 100) {
-                if (direction == UINT_MAX)
+                if (direction == Runway::DIRECTION_UNDEFINED)
                     direction = (unsigned)u * 10;
             } else {
                 length = (unsigned)u;
