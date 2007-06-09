@@ -1,6 +1,7 @@
 loggertools (0.0.2~svn) unstable; urgency=low
 
   * reimplemented HexfileOutputFilter without boost::iostreams
+  * tp-conv: added filter "name"
   * build documentation
 
  --
