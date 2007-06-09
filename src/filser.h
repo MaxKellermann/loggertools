@@ -22,14 +22,14 @@
 #ifndef __FILSER_H
 #define __FILSER_H
 
-#include <sys/types.h>
+#include <stdint.h>
 
 struct filser_turn_point {
     char valid;
     char code[8];
     char zero1[1];
-    unsigned char latitude[4];
-    unsigned char longitude[4];
+    uint32_t latitude;
+    uint32_t longitude;
     uint16_t altitude_ft;
     char reserved3[4];
     char zero2[3];
