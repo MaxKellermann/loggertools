@@ -55,8 +55,7 @@ static uint32_t float_to_le32(float input) {
     return u.output;
 }
 
-template<class T>
-static uint32_t convertAngle(const T &input) {
+static uint32_t convertAngle(const Angle &input) {
     return float_to_le32(input.getValue() / 60. / 1000.);
 }
 
