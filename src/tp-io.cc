@@ -48,10 +48,13 @@ const TurnPointFormat *getTurnPointFormat(const char *ext) {
 }
 
 static const DistanceTurnPointFilter distanceFilter;
+static const NameTurnPointFilter nameFilter;
 
 const TurnPointFilter *getTurnPointFilter(const char *name) {
     if (strcmp(name, "distance") == 0)
         return &distanceFilter;
+    else if (strcmp(name, "name") == 0)
+        return &nameFilter;
     else
         return NULL;
 }

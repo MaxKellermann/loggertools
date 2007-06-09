@@ -78,6 +78,12 @@ public:
                                           const char *args) const;
 };
 
+class NameTurnPointFilter : public TurnPointFilter {
+public:
+    virtual TurnPointReader *createFilter(TurnPointReader *reader,
+                                          const char *args) const;
+};
+
 const TurnPointFilter *getTurnPointFilter(const char *name);
 
 #endif

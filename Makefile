@@ -60,6 +60,7 @@ tpconv_SOURCES = $(addprefix src/,tp-conv.cc \
 	tp-seeyou-reader.cc tp-seeyou-writer.cc \
 	tp-filser-reader.cc tp-filser-writer.cc \
 	tp-zander-reader.cc tp-zander-writer.cc \
+	tp-name.cc \
 	tp-distance.cc \
 	hexfile-writer.cc)
 tpconv_OBJECTS = $(patsubst src/%.cc,bin/%.o,$(tpconv_SOURCES))
