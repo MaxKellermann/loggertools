@@ -110,6 +110,16 @@ public:
     ref_t getRef() const {
         return ref;
     }
+public:
+    const Altitude toUnit(unit_t new_unit) const {
+        if (new_unit == unit || unit == UNIT_UNKNOWN)
+            return *this;
+        if (unit == UNIT_METERS && new_unit == UNIT_FEET)
+            return Altitude((long)(value * 3.28), new_unit, ref);
+        if (unit == UNIT_FEET && new_unit == UNIT_METERS)
+            return Altitude((long)(value / 3.28), new_unit, ref);
+        return Altitude();
+    }
 };
 
 /** abstract class: angle which describes the position of an object on
