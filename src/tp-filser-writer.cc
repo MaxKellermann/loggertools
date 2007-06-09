@@ -43,15 +43,26 @@ FilserTurnPointWriter::FilserTurnPointWriter(std::ostream *_stream)
     :stream(_stream), count(0) {
 }
 
-template<class T>
-static uint32_t convertAngle(const T &input) {
+static uint32_t float_to_le32(float input) {
     union {
         float input;
         uint32_t output;
-    } float_to_int;
+    } u;
 
-    float_to_int.input = input.getValue() / 60. / 1000.;
-    return float_to_int.output;
+    /* XXX what to do on big-endian machines? */
+
+    u.input = input;
+    return u.output;
+}
+
+template<class T>
+static uint32_t convertAngle(const T &input) {
+    return float_to_le32(input.getValue() / 60. / 1000.);
+}
+
+template<class T>
+static uint32_t convertFrequency(const Frequency &input) {
+    return float_to_le32(input.getHertz() / 1.e6);
 }
 
 void FilserTurnPointWriter::write(const TurnPoint &tp) {

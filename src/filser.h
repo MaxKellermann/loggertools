@@ -31,7 +31,7 @@ struct filser_turn_point {
     uint32_t latitude;
     uint32_t longitude;
     uint16_t altitude_ft;
-    char reserved3[4];
+    uint32_t frequency;
     char zero2[2];
     unsigned char runway_direction;
     char runway_type;

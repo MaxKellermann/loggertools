@@ -41,16 +41,25 @@ FilserTurnPointReader::FilserTurnPointReader(std::istream *_stream)
     :stream(_stream), count(0) {
 }
 
-template<class T>
-static const T convertAngle(uint32_t input) {
+static float le32_to_float(uint32_t input) {
     union {
         uint32_t input;
         float output;
-    } int_to_float;
+    } u;
 
-    int_to_float.input = input;
+    /* XXX what to do on big-endian machines? */
 
-    return T((int)(int_to_float.output * 60 * 1000));
+    u.input = input;
+    return u.output;
+}
+
+template<class T>
+static const T convertAngle(uint32_t input) {
+    return T((int)(le32_to_float(input) * 60 * 1000));
+}
+
+static const Frequency convertFrequency(uint32_t input) {
+    return Frequency((unsigned)(le32_to_float(input) * 1000.) * 1000);
 }
 
 static Runway::type_t convertRunwayType(char ch) {
@@ -95,6 +104,8 @@ const TurnPoint *FilserTurnPointReader::read() {
     tp->setPosition(Position(convertAngle<Latitude>(data.latitude),
                              convertAngle<Longitude>(data.longitude),
                              Altitude(ntohs(data.altitude_ft), Altitude::UNIT_FEET, Altitude::REF_MSL)));
+
+    tp->setFrequency(convertFrequency(data.frequency));
 
     tp->setRunway(Runway(convertRunwayType(data.runway_type),
                          data.runway_direction,
