@@ -311,8 +311,13 @@ const TurnPoint *SeeYouTurnPointReader::read() {
             tp.setType(type);
         } else if (strcasecmp(columns[z], "direction") == 0 ||
                    strcasecmp(columns[z], "rwdir") == 0) {
-            if (*column != 0)
+            if (*column != 0) {
                 rwy_direction = (unsigned)atoi(column);
+                if (rwy_direction < 1 || rwy_direction > 36)
+                    rwy_direction = Runway::DIRECTION_UNDEFINED;
+                else if (rwy_direction > 18)
+                    rwy_direction -= 18;
+            }
         } else if (strcasecmp(columns[z], "length") == 0 ||
                    strcasecmp(columns[z], "rwlen") == 0) {
             if (*column != 0)
