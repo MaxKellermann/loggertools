@@ -37,9 +37,7 @@ public:
 };
 
 FancyTurnPointWriter::FancyTurnPointWriter(std::ostream *_stream)
-    :stream(_stream) {
-    *stream << "Title,Code,Country,Latitude,Longitude,Elevation,Style,Direction,Length,Frequency,Description\r\n";
-}
+    :stream(_stream) {}
 
 static char *formatAngle(char *buffer, size_t buffer_max_len,
                          const Angle &angle, const char *letters) {
