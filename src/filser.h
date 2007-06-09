@@ -28,23 +28,24 @@ struct filser_turn_point {
     char valid;
     char code[8];
     char zero1[1];
-    char reserved1[3];
-    char fortytwo;
-    char reserved2[10];
+    unsigned char latitude[4];
+    unsigned char longitude[4];
+    uint16_t altitude_ft;
+    char reserved3[4];
     char zero2[3];
     char n_47_49[2];
-    char zero3[2];
-};
+    uint16_t runway_length_ft;
+} __attribute__((packed));
 
 struct filser_task {
     char valid;
     unsigned char dummy0[31];
-};
+} __attribute__((packed));
 
 struct filser_tp_tsk {
     struct filser_turn_point tp[600];
     struct filser_task tasks[100];
-};
+} __attribute__((packed));
 
 struct filser_flight_info {
     unsigned char dummy0[3];
