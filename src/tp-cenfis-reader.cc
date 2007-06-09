@@ -82,7 +82,7 @@ static const T parseAngle(char **pp) {
 
     *pp = endptr + 1;
 
-    return T(sign * (((n1 * 60) + n2) * 1000 + n3));
+    return T((int)(sign * (((n1 * 60) + n2) * 1000 + n3)));
 }
 
 template<class T, char minusLetter, char plusLetter>

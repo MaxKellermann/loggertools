@@ -170,7 +170,7 @@ static const T parseAngle(const char *p) {
     if (degrees > 180 || n1 >= 60)
         return T();
 
-    return T(sign * (((degrees * 60) + n1) * 1000 + n2));
+    return T((int)(sign * (((degrees * 60) + n1) * 1000 + n2)));
 }
 
 static const Frequency parseFrequency(const char *p) {
