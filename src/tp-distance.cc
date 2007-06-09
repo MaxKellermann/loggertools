@@ -23,8 +23,6 @@
 #include "tp.hh"
 #include "tp-io.hh"
 
-#include <stdlib.h>
-
 class DistanceTurnPointReader : public TurnPointReader {
 private:
     TurnPointReader *reader;
