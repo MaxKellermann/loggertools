@@ -52,7 +52,7 @@ bin/stamp:
 C_HEADERS := $(wildcard src/*.h)
 CC_HEADERS := $(wildcard src/*.hh)
 
-tpconv_SOURCES = $(addprefix src/,tp-conv.cc earth.cc tp.cc tp-io.cc tp-cenfis-reader.cc tp-cenfis-writer.cc tp-cenfis-db-reader.cc tp-cenfis-db-writer.cc tp-cenfis-hex-reader.cc tp-cenfis-hex-writer.cc tp-seeyou-reader.cc tp-seeyou-writer.cc tp-filser-reader.cc tp-filser-writer.cc tp-zander-reader.cc tp-zander-writer.cc tp-distance.cc)
+tpconv_SOURCES = $(addprefix src/,tp-conv.cc earth.cc tp.cc tp-io.cc tp-cenfis-reader.cc tp-cenfis-writer.cc tp-cenfis-db-reader.cc tp-cenfis-db-writer.cc tp-cenfis-hex-reader.cc tp-cenfis-hex-writer.cc tp-seeyou-reader.cc tp-seeyou-writer.cc tp-filser-reader.cc tp-filser-writer.cc tp-zander-reader.cc tp-zander-writer.cc tp-distance.cc hexfile-writer.cc)
 tpconv_OBJECTS = $(patsubst src/%.cc,bin/%.o,$(tpconv_SOURCES))
 
 asconv_SOURCES = $(addprefix src/,airspace-conv.cc earth.cc airspace.cc airspace-io.cc airspace-openair-reader.cc airspace-openair-writer.cc)

@@ -23,11 +23,11 @@
 #include "tp-io.hh"
 #include "hexfile-writer.hh"
 
-#include <boost/iostreams/filtering_stream.hpp>
+#include <stdexcept>
 
 class CenfisHexWriter : public TurnPointWriter {
 private:
-    io::filtering_ostream out;
+    HexfileOutputFilter out;
     TurnPointWriter *tpw;
 public:
     CenfisHexWriter(std::ostream *stream);
@@ -36,10 +36,8 @@ public:
     virtual void flush();
 };
 
-CenfisHexWriter::CenfisHexWriter(std::ostream *stream) {
-    out.push(HexfileOutputFilter());
-    out.push(*stream);
-
+CenfisHexWriter::CenfisHexWriter(std::ostream *stream)
+    :out(*stream) {
     const TurnPointFormat *format = getTurnPointFormat("dab");
     if (format == NULL)
         throw std::runtime_error("no such format: dab");
