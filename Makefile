@@ -55,6 +55,7 @@ CC_HEADERS := $(wildcard src/*.hh)
 tpconv_SOURCES = $(addprefix src/,tp-conv.cc \
 	earth.cc tp.cc tp-io.cc \
 	tp-fancy.cc \
+	tp-milomei.cc \
 	tp-cenfis-reader.cc tp-cenfis-writer.cc \
 	tp-cenfis-db-reader.cc tp-cenfis-db-writer.cc \
 	tp-cenfis-hex-reader.cc tp-cenfis-hex-writer.cc \

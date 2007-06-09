@@ -39,6 +39,12 @@ public:
     virtual TurnPointWriter *createWriter(std::ostream *stream) const;
 };
 
+class MilomeiTurnPointFormat : public TurnPointFormat {
+public:
+    virtual TurnPointReader *createReader(std::istream *stream) const;
+    virtual TurnPointWriter *createWriter(std::ostream *stream) const;
+};
+
 class SeeYouTurnPointFormat : public TurnPointFormat {
 public:
     virtual TurnPointReader *createReader(std::istream *stream) const;

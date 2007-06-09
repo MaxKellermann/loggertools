@@ -23,6 +23,7 @@
 #include "tp-io.hh"
 
 static const FancyTurnPointFormat fancyFormat;
+static const MilomeiTurnPointFormat milomeiFormat;
 static const SeeYouTurnPointFormat seeYouFormat;
 static const CenfisTurnPointFormat cenfisFormat;
 static const CenfisDatabaseFormat cenfisDatabaseFormat;
@@ -33,6 +34,8 @@ static const ZanderTurnPointFormat zanderFormat;
 const TurnPointFormat *getTurnPointFormat(const char *ext) {
     if (strcasecmp(ext, "fancy") == 0)
         return &fancyFormat;
+    else if (strcasecmp(ext, "milomei") == 0)
+        return &milomeiFormat;
     else if (strcasecmp(ext, "cup") == 0)
         return &seeYouFormat;
     else if (strcasecmp(ext, "cdb") == 0 ||
