@@ -131,8 +131,9 @@ void SeeYouTurnPointWriter::write(const TurnPoint &tp) {
     *stream << ',';
     write_column(stream, tp.getCountry());
     *stream << ',' << latitude << ',' << longitude << ',';
-    if (tp.getPosition().getAltitude().defined())
-        *stream << tp.getPosition().getAltitude().getValue() << 'M';
+    Altitude altitude = tp.getPosition().getAltitude().toUnit(Altitude::UNIT_METERS);
+    if (altitude.defined() && altitude.getRef() == Altitude::REF_MSL)
+        *stream << altitude.getValue() << 'M';
     *stream << ',' << makeSeeYouStyle(tp) << ',';
     if (tp.getRunway().defined())
         *stream << tp.getRunway().getDirection();
