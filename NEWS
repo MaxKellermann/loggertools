@@ -7,7 +7,7 @@ Version 0.0.2 - not yet released
   * tp-cenfis-writer: fix sign error in longitude
   * tp-cenfis-writer: print longitude with 3 digits
   * tp-cenfis-writer: space after altitude unit
-  * tp-filser: use the fields latitude, longitude, altitude
+  * tp-filser: use the fields latitude, longitude, altitude, runway
   * tp-seeyou: convert altitude to meters
   * lxn-to-igc: print the correct vendor code in ORIGIN records (bug
     report by Calle Koppen)

@@ -88,6 +88,25 @@ void FilserTurnPointWriter::write(const TurnPoint &tp) {
     if (altitude.defined() && altitude.getRef() == Altitude::REF_MSL)
         data.altitude_ft = htons(altitude.getValue());
 
+    if (tp.getRunway().defined()) {
+        data.runway_direction = tp.getRunway().getDirection();
+
+        switch (tp.getRunway().getType()) {
+        case Runway::TYPE_GRASS:
+            data.runway_type = 'G';
+            break;
+        case Runway::TYPE_ASPHALT:
+            data.runway_type = 'C';
+            break;
+        default:
+            data.runway_type = ' ';
+        }
+
+        data.runway_length_ft = htons((int)(tp.getRunway().getLength() * 3.28));
+    } else {
+        data.runway_type = ' ';
+    }
+
     /* write entry */
     stream->write((char*)&data, sizeof(data));
 

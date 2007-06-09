@@ -53,6 +53,15 @@ static const T convertAngle(uint32_t input) {
     return T((int)(int_to_float.output * 60 * 1000));
 }
 
+static Runway::type_t convertRunwayType(char ch) {
+    if (ch == 'G')
+        return Runway::TYPE_GRASS;
+    else if (ch == 'C')
+        return Runway::TYPE_ASPHALT;
+    else
+        return Runway::TYPE_UNKNOWN;
+}
+
 const TurnPoint *FilserTurnPointReader::read() {
     struct filser_turn_point data;
     TurnPoint *tp;
@@ -86,6 +95,10 @@ const TurnPoint *FilserTurnPointReader::read() {
     tp->setPosition(Position(convertAngle<Latitude>(data.latitude),
                              convertAngle<Longitude>(data.longitude),
                              Altitude(ntohs(data.altitude_ft), Altitude::UNIT_FEET, Altitude::REF_MSL)));
+
+    tp->setRunway(Runway(convertRunwayType(data.runway_type),
+                         data.runway_direction,
+                         (unsigned)(ntohs(data.runway_length_ft) / 3.28)));
 
     return tp;
 }
