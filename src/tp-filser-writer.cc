@@ -43,6 +43,17 @@ FilserTurnPointWriter::FilserTurnPointWriter(std::ostream *_stream)
     :stream(_stream), count(0) {
 }
 
+template<class T>
+static uint32_t convertAngle(const T &input) {
+    union {
+        float input;
+        uint32_t output;
+    } float_to_int;
+
+    float_to_int.input = input.getValue() / 60. / 1000.;
+    return float_to_int.output;
+}
+
 void FilserTurnPointWriter::write(const TurnPoint &tp) {
     struct filser_turn_point data;
     size_t length;
@@ -66,6 +77,16 @@ void FilserTurnPointWriter::write(const TurnPoint &tp) {
     }
 
     memset(data.code + length, ' ', sizeof(data.code) - length);
+
+    if (tp.getPosition().getLatitude().defined())
+        data.latitude = convertAngle(tp.getPosition().getLatitude());
+
+    if (tp.getPosition().getLongitude().defined())
+        data.longitude = convertAngle(tp.getPosition().getLongitude());
+
+    Altitude altitude = tp.getPosition().getAltitude().toUnit(Altitude::UNIT_FEET);
+    if (altitude.defined() && altitude.getRef() == Altitude::REF_MSL)
+        data.altitude_ft = htons(altitude.getValue());
 
     /* write entry */
     stream->write((char*)&data, sizeof(data));

@@ -41,6 +41,18 @@ FilserTurnPointReader::FilserTurnPointReader(std::istream *_stream)
     :stream(_stream), count(0) {
 }
 
+template<class T>
+static const T convertAngle(uint32_t input) {
+    union {
+        uint32_t input;
+        float output;
+    } int_to_float;
+
+    int_to_float.input = input;
+
+    return T((int)(int_to_float.output * 60 * 1000));
+}
+
 const TurnPoint *FilserTurnPointReader::read() {
     struct filser_turn_point data;
     TurnPoint *tp;
@@ -70,6 +82,10 @@ const TurnPoint *FilserTurnPointReader::read() {
         tp->setTitle(code);
         tp->setCode(code);
     }
+
+    tp->setPosition(Position(convertAngle<Latitude>(data.latitude),
+                             convertAngle<Longitude>(data.longitude),
+                             Altitude(ntohs(data.altitude_ft), Altitude::UNIT_FEET, Altitude::REF_MSL)));
 
     return tp;
 }
