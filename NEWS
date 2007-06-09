@@ -10,6 +10,7 @@ Version 0.0.2 - not yet released
   * tp-filser: use the fields latitude, longitude, altitude, runway,
     frequency
   * tp-seeyou: convert altitude to meters
+  * tp-fancy: new format which aims to be human-readable
   * lxn-to-igc: print the correct vendor code in ORIGIN records (bug
     report by Calle Koppen)
 
