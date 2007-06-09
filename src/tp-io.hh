@@ -33,6 +33,12 @@ typedef Writer<TurnPoint> TurnPointWriter;
 typedef Format<TurnPoint> TurnPointFormat;
 typedef Filter<TurnPoint> TurnPointFilter;
 
+class FancyTurnPointFormat : public TurnPointFormat {
+public:
+    virtual TurnPointReader *createReader(std::istream *stream) const;
+    virtual TurnPointWriter *createWriter(std::ostream *stream) const;
+};
+
 class SeeYouTurnPointFormat : public TurnPointFormat {
 public:
     virtual TurnPointReader *createReader(std::istream *stream) const;

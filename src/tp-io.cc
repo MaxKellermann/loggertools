@@ -1,6 +1,6 @@
 /*
  * loggertools
- * Copyright (C) 2004-2006 Max Kellermann <max@duempel.org>
+ * Copyright (C) 2004-2007 Max Kellermann <max@duempel.org>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -22,6 +22,7 @@
 #include "tp.hh"
 #include "tp-io.hh"
 
+static const FancyTurnPointFormat fancyFormat;
 static const SeeYouTurnPointFormat seeYouFormat;
 static const CenfisTurnPointFormat cenfisFormat;
 static const CenfisDatabaseFormat cenfisDatabaseFormat;
@@ -30,7 +31,9 @@ static const FilserTurnPointFormat filserFormat;
 static const ZanderTurnPointFormat zanderFormat;
 
 const TurnPointFormat *getTurnPointFormat(const char *ext) {
-    if (strcasecmp(ext, "cup") == 0)
+    if (strcasecmp(ext, "fancy") == 0)
+        return &fancyFormat;
+    else if (strcasecmp(ext, "cup") == 0)
         return &seeYouFormat;
     else if (strcasecmp(ext, "cdb") == 0 ||
              strcasecmp(ext, "idb") == 0)
