@@ -28,18 +28,18 @@ Altitude::Altitude()
     :value(0), unit(UNIT_UNKNOWN), ref(REF_UNKNOWN) {
 }
 
-Altitude::Altitude(long _value, unit_t _unit, ref_t _ref)
+Altitude::Altitude(value_t _value, unit_t _unit, ref_t _ref)
     :value(_value), unit(_unit), ref(_ref) {
 }
 
-static int refactor(int v, int old_factor, int new_factor) {
+static int refactor(Angle::value_t v, int old_factor, int new_factor) {
     int sign = v < 0 ? -1 : 1;
-    int a = v * sign;
+    Angle::value_t a = v * sign;
 
     return sign * ((a * new_factor + (old_factor + 1) / 2 - 1) / old_factor);
 }
 
-Angle::Angle(int _value, int factor)
+Angle::Angle(value_t _value, int factor)
     :value(::refactor(_value, factor, 1000)) {}
 
 Angle::Angle(int sign, unsigned degrees, unsigned minutes, unsigned seconds)
@@ -51,7 +51,9 @@ Angle::Angle(int sign, unsigned degrees, unsigned minutes, unsigned seconds)
     assert(seconds < 60);
 }
 
-int Angle::refactor(int factor) const {
+Angle::value_t
+Angle::refactor(int factor) const
+{
     if (!defined())
         return 0;
 

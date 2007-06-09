@@ -78,6 +78,7 @@ public:
 /** vertical altitude of an object */
 class Altitude {
 public:
+    typedef long value_t;
     enum unit_t {
         UNIT_UNKNOWN = 0,
         UNIT_METERS = 1,
@@ -91,17 +92,17 @@ public:
         REF_AIRFIELD = 4
     };
 private:
-    long value;
+    value_t value;
     unit_t unit;
     ref_t ref;
 public:
     Altitude();
-    Altitude(long _value, unit_t _unit, ref_t _ref);
+    Altitude(value_t _value, unit_t _unit, ref_t _ref);
 public:
     bool defined() const {
         return unit != UNIT_UNKNOWN && ref != REF_UNKNOWN;
     }
-    long getValue() const {
+    value_t getValue() const {
         return value;
     }
     unit_t getUnit() const {
@@ -125,19 +126,21 @@ public:
 /** abstract class: angle which describes the position of an object on
     the earth */
 class Angle {
+public:
+    typedef int value_t;
 private:
     static const int undef = 0x80000000;
-    int value;
+    value_t value;
 protected:
     Angle():value(undef) {}
-    Angle(int _value):value(_value) {}
-    Angle(int _value, int factor);
+    Angle(value_t _value):value(_value) {}
+    Angle(value_t _value, int factor);
     Angle(int sign, unsigned degrees, unsigned minutes, unsigned seconds);
 public:
     bool defined() const {
         return value != undef;
     }
-    int getValue() const {
+    value_t getValue() const {
         return value;
     }
     int refactor(int factor) const;
