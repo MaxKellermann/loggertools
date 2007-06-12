@@ -127,7 +127,7 @@ MilomeiTurnPointReader::read()
         }
     } while (line[0] == '$' || strlen(line) < 64);
 
-    std::string code = stripped_substring(line, 6);
+    std::string shortName = stripped_substring(line, 6);
 
     if (line[5] == '2')
         tp.setType(TurnPoint::TYPE_OUTLANDING);
@@ -137,7 +137,7 @@ MilomeiTurnPointReader::read()
     else if (line[23] == '#')
         tp.setType(TurnPoint::TYPE_AIRFIELD);
 
-    tp.setCode(code);
+    tp.setShortName(shortName);
     tp.setFullName(stripped_substring(line + 7, 34));
 
     Altitude altitude = parse_altitude(std::string(line + 41, 4));
