@@ -140,6 +140,9 @@ MilomeiTurnPointReader::read()
     tp.setShortName(shortName);
     tp.setFullName(stripped_substring(line + 7, 34));
 
+    if (line[23] == '#' && line[24] != ' ')
+        tp.setCode(stripped_substring(line + 24, 4));
+
     Altitude altitude = parse_altitude(std::string(line + 41, 4));
     Latitude latitude = parseAngle<Latitude,'S','N'>(std::string(line + 45, 7));
     Longitude longitude = parseAngle<Longitude,'W','E'>(std::string(line + 52, 8));
