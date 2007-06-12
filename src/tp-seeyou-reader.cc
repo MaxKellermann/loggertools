@@ -303,7 +303,7 @@ const TurnPoint *SeeYouTurnPointReader::read() {
                 type = TurnPoint::TYPE_CASTLE;
                 break;
             case 17:
-                type = TurnPoint::TYPE_INTERSECTION;
+                type = TurnPoint::TYPE_HIGHWAY_INTERSECTION;
                 break;
             default:
                 type = TurnPoint::TYPE_UNKNOWN;

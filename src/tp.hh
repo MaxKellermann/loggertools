@@ -104,8 +104,10 @@ public:
         TYPE_POWER_PLANT,
         TYPE_CASTLE,
         TYPE_CHURCH,
-        TYPE_INTERSECTION,
+        TYPE_HIGHWAY_INTERSECTION,
         TYPE_HIGHWAY_EXIT,
+        TYPE_RAILWAY_INTERSECTION,
+        TYPE_RAILWAY_STATION,
         TYPE_THERMALS
     };
 private:

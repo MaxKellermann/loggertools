@@ -180,12 +180,20 @@ static std::ostream &operator <<(std::ostream &os,
         os << "church";
         break;
 
-    case TurnPoint::TYPE_INTERSECTION:
-        os << "intersection";
+    case TurnPoint::TYPE_HIGHWAY_INTERSECTION:
+        os << "highway intersection";
         break;
 
     case TurnPoint::TYPE_HIGHWAY_EXIT:
         os << "highway exit";
+        break;
+
+    case TurnPoint::TYPE_RAILWAY_INTERSECTION:
+        os << "railway intersection";
+        break;
+
+    case TurnPoint::TYPE_RAILWAY_STATION:
+        os << "railway station";
         break;
 
     case TurnPoint::TYPE_THERMALS:

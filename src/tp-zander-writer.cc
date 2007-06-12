@@ -134,7 +134,8 @@ unsigned makeZanderStyle(const TurnPoint &tp) {
         return 15;
     case TurnPoint::TYPE_CASTLE:
         return 16;
-    case TurnPoint::TYPE_INTERSECTION:
+    case TurnPoint::TYPE_HIGHWAY_INTERSECTION:
+    case TurnPoint::TYPE_RAILWAY_INTERSECTION:
         return 17;
     default:
         return 1;
