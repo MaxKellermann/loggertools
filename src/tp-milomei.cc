@@ -117,6 +117,18 @@ check_2(const char *, size_t length)
 }
 
 static int
+check_6(const char *, size_t length)
+{
+    return length == 6;
+}
+
+static int
+check_7(const char *, size_t length)
+{
+    return length == 7;
+}
+
+static int
 check_highway_exit(const char *p, size_t length)
 {
     return length > 0 && p[0] >= '0' && p[0] <= '9';
@@ -217,6 +229,10 @@ MilomeiTurnPointReader::read()
         else if (word_match(tp.getFullName(), "BF", check_2) ||
                  word_match(tp.getFullName(), "RS", check_2))
             tp.setType(TurnPoint::TYPE_RAILWAY_STATION);
+        else if (word_match(tp.getFullName(), "KIRCHE", check_6))
+            tp.setType(TurnPoint::TYPE_CHURCH);
+        else if (word_match(tp.getFullName(), "SCHLOSS", check_7))
+            tp.setType(TurnPoint::TYPE_CASTLE);
         else if (word_match(tp.getFullName(), "BAB", check_highway_exit)) {
             if (word_match(tp.getFullName(), "A", check_highway_intersection))
                 tp.setType(TurnPoint::TYPE_HIGHWAY_INTERSECTION);
