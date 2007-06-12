@@ -51,6 +51,8 @@ static const char *formatType(TurnPoint::type_t type) {
         return " #S";
     case TurnPoint::TYPE_OUTLANDING:
         return "LW ";
+    case TurnPoint::TYPE_THERMALS:
+        return "TQ ";
     default:
         return "   ";
     }
