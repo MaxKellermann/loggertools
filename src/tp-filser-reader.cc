@@ -96,10 +96,8 @@ const TurnPoint *FilserTurnPointReader::read() {
         length--;
     code[length] = 0;
 
-    if (code[0] != 0) {
-        tp->setFullName(code);
-        tp->setCode(code);
-    }
+    if (code[0] != 0)
+        tp->setShortName(code);
 
     tp->setPosition(Position(convertAngle<Latitude>(data.latitude),
                              convertAngle<Longitude>(data.longitude),

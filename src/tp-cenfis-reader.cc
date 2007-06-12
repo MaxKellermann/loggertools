@@ -265,7 +265,7 @@ TurnPoint *CenfisTurnPointReader::handleLine(char *line) {
         line += 2;
 
         if (*line != 0)
-            tp->setCode(line);
+            tp->setFullName(line);
         break;
 
     case 'T': /* type and description */

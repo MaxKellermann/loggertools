@@ -125,7 +125,7 @@ void SeeYouTurnPointWriter::write(const TurnPoint &tp) {
         longitude[0] = 0;
     }
 
-    write_column(stream, tp.getFullName());
+    write_column(stream, tp.getAnyName());
     *stream << ',';
     write_column(stream, tp.getCode());
     *stream << ',';

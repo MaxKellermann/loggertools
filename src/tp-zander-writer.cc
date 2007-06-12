@@ -166,7 +166,7 @@ void ZanderTurnPointWriter::write(const TurnPoint &tp) {
     if (stream == NULL)
         throw already_flushed();
 
-    write_column(stream, tp.getFullName(), 12);
+    write_column(stream, tp.getAbbreviatedName(12), 12);
     *stream << ' ';
     write_column(stream, format(tp.getPosition().getLatitude()), 7);
     *stream << ' ';

@@ -64,9 +64,20 @@ static uint32_t convertFrequency(const Frequency &input) {
     return float_to_le32(input.getHertz() / 1.e6);
 }
 
+static void copyString(char *dest, size_t dest_size,
+                       const std::string &src) {
+    size_t length = src.length();
+
+    if (length > dest_size)
+        length = dest_size;
+
+    memcpy(dest, src.data(), length);
+    memset(dest + length, ' ', dest_size - length);
+}
+
 void FilserTurnPointWriter::write(const TurnPoint &tp) {
     struct filser_turn_point data;
-    size_t length;
+    std::string name;
 
     if (stream == NULL)
         throw already_flushed();
@@ -76,17 +87,8 @@ void FilserTurnPointWriter::write(const TurnPoint &tp) {
 
     memset(&data, 0, sizeof(data));
 
-    if (tp.getCode().length() > 0) {
-        length = tp.getCode().length();
-        if (length > sizeof(data.code))
-            length = sizeof(data.code);
-
-        memcpy(data.code, tp.getCode().c_str(), length);
-    } else {
-        length = 0;
-    }
-
-    memset(data.code + length, ' ', sizeof(data.code) - length);
+    copyString(data.code, sizeof(data.code),
+               tp.getAbbreviatedName(sizeof(data.code)));
 
     if (tp.getPosition().getLatitude().defined())
         data.latitude = convertAngle(tp.getPosition().getLatitude());
