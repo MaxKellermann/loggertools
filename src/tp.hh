@@ -137,10 +137,6 @@ public:
         return code;
     }
     void setCode(const std::string &_code);
-    const std::string &getCodeOrFullName() const {
-        return code.length() == 0
-            ? fullName : code;
-    }
     const std::string &getAnyName() const;
     const std::string getAbbreviatedName(std::string::size_type max_length) const;
     const std::string &getCountry() const {
