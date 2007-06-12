@@ -69,7 +69,7 @@ void TurnPoint::setCode(const std::string &_code) {
     code = _code;
 }
 
-const std::string TurnPoint::getAbbreviatedName(std::string::size_type max_length) {
+const std::string TurnPoint::getAbbreviatedName(std::string::size_type max_length) const {
     /* return fullName if it fits */
     if (fullName.length() > 0 && fullName.length() <= max_length)
         return fullName;

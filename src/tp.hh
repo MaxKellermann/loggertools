@@ -141,7 +141,7 @@ public:
         return code.length() == 0
             ? fullName : code;
     }
-    const std::string getAbbreviatedName(std::string::size_type max_length);
+    const std::string getAbbreviatedName(std::string::size_type max_length) const;
     const std::string &getCountry() const {
         return country;
     }
