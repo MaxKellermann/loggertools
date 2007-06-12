@@ -110,6 +110,89 @@ static std::ostream &operator <<(std::ostream &os,
 }
 
 static std::ostream &operator <<(std::ostream &os,
+                                 TurnPoint::type_t type) {
+    switch (type) {
+    case TurnPoint::TYPE_UNKNOWN:
+        os << "unknown";
+        break;
+
+    case TurnPoint::TYPE_AIRFIELD:
+        os << "airfield";
+        break;
+
+    case TurnPoint::TYPE_MILITARY_AIRFIELD:
+        os << "military airfield";
+        break;
+
+    case TurnPoint::TYPE_GLIDER_SITE:
+        os << "glider site";
+        break;
+
+    case TurnPoint::TYPE_OUTLANDING:
+        os << "outlanding site";
+        break;
+
+    case TurnPoint::TYPE_MOUNTAIN_PASS:
+        os << "mountain pass";
+        break;
+
+    case TurnPoint::TYPE_MOUNTAIN_TOP:
+        os << "mountain top";
+        break;
+
+    case TurnPoint::TYPE_SENDER:
+        os << "sender";
+        break;
+
+    case TurnPoint::TYPE_VOR:
+        os << "vor";
+        break;
+
+    case TurnPoint::TYPE_NDB:
+        os << "ndb";
+        break;
+
+    case TurnPoint::TYPE_COOL_TOWER:
+        os << "cooling tower";
+        break;
+
+    case TurnPoint::TYPE_DAM:
+        os << "dam";
+        break;
+
+    case TurnPoint::TYPE_TUNNEL:
+        os << "tunnel";
+        break;
+
+    case TurnPoint::TYPE_BRIDGE:
+        os << "bridge";
+        break;
+
+    case TurnPoint::TYPE_POWER_PLANT:
+        os << "power plant";
+        break;
+
+    case TurnPoint::TYPE_CASTLE:
+        os << "castle";
+        break;
+
+    case TurnPoint::TYPE_CHURCH:
+        os << "church";
+        break;
+
+    case TurnPoint::TYPE_INTERSECTION:
+        os << "intersection";
+        break;
+
+    case TurnPoint::TYPE_THERMIK:
+        os << "thermals";
+        break;
+    }
+
+    return os;
+}
+
+static std::ostream &operator <<(std::ostream &os,
                                  const Runway &runway) {
     os << std::setfill('0') << std::setw(2) << runway.getDirection();
     if (runway.getLength() > 0)
@@ -163,6 +246,8 @@ void FancyTurnPointWriter::write(const TurnPoint &tp) {
 
     if (tp.getPosition().defined())
         *stream << "Position: " << tp.getPosition() << "\n";
+
+    *stream << "Type: " << tp.getType() << "\n";
 
     if (tp.getRunway().defined())
         *stream << "Runway: " << tp.getRunway() << "\n";
