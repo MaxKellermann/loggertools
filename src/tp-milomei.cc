@@ -110,6 +110,60 @@ parse_frequency(const std::string &s)
     return Frequency(value * 1000);
 }
 
+static int
+check_2(const char *, size_t length)
+{
+    return length == 2;
+}
+
+static int
+check_highway_exit(const char *p, size_t length)
+{
+    return length > 0 && p[0] >= '0' && p[0] <= '9';
+}
+
+static int
+check_highway_intersection(const char *p, size_t length)
+{
+    if (length < 4 || p[0] < '0' || p[0] > '9')
+        return 0;
+
+    const char *x = (const char*)memchr(p + 1, 'X', length);
+    if (x == NULL)
+        x = (const char*)memchr(p + 1, 'Y', length);
+    if (x == NULL || x > p + length - 3 ||
+        x[1] != 'A' || x[2] < '0' || x[2] > '9')
+        return 0;
+
+    return 1;
+}
+
+static int
+word_match(const std::string &s, const char *begin,
+           int (*callback)(const char *p, size_t length))
+{
+    std::string::size_type pos = 0, space = 0;
+    size_t begin_length = begin == NULL ? 0 : strlen(begin);
+
+    while (pos < s.length()) {
+        space = s.find(' ', pos);
+        if (space == (std::string::size_type)-1)
+            space = s.length();
+
+        if (space > pos &&
+            (begin == NULL || (space - pos >= begin_length &&
+                               memcmp(s.data() + pos, begin, begin_length) == 0))) {
+            int ret = callback(s.data() + pos + begin_length, space - pos);
+            if (ret)
+                return ret;
+        }
+
+        pos = space + 1;
+    }
+
+    return 0;
+}
+
 const TurnPoint *
 MilomeiTurnPointReader::read()
 {
@@ -151,6 +205,25 @@ MilomeiTurnPointReader::read()
 
     if (line[23] == '#')
         tp.setFrequency(parse_frequency(std::string(line + 36, 5)));
+
+    if (tp.getType() == TurnPoint::TYPE_UNKNOWN) {
+        if (word_match(tp.getFullName(), "TV", check_2))
+            tp.setType(TurnPoint::TYPE_SENDER);
+        else if (word_match(tp.getFullName(), "BR", check_2))
+            tp.setType(TurnPoint::TYPE_BRIDGE);
+        else if (word_match(tp.getFullName(), "EX", check_2) ||
+                 word_match(tp.getFullName(), "EY", check_2))
+            tp.setType(TurnPoint::TYPE_RAILWAY_INTERSECTION);
+        else if (word_match(tp.getFullName(), "BF", check_2) ||
+                 word_match(tp.getFullName(), "RS", check_2))
+            tp.setType(TurnPoint::TYPE_RAILWAY_STATION);
+        else if (word_match(tp.getFullName(), "BAB", check_highway_exit)) {
+            if (word_match(tp.getFullName(), "A", check_highway_intersection))
+                tp.setType(TurnPoint::TYPE_HIGHWAY_INTERSECTION);
+            else
+                tp.setType(TurnPoint::TYPE_HIGHWAY_EXIT);
+        }
+    }
 
     return new TurnPoint(tp);
 }
