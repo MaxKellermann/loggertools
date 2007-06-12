@@ -142,7 +142,7 @@ void CenfisDatabaseWriter::write(const TurnPoint &tp) {
     }
 
     copyString(data.title, sizeof(data.title),
-               tp.getTitle());
+               tp.getFullName());
     copyString(data.description, sizeof(data.description),
                tp.getDescription());
 

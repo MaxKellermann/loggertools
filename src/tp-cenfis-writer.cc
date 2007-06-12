@@ -88,7 +88,7 @@ void CenfisTurnPointWriter::write(const TurnPoint &tp) {
     if (stream == NULL)
         throw already_flushed();
 
-    p = tp.getCodeOrTitle();
+    p = tp.getCodeOrFullName();
     if (p.length() == 0)
         p = "unknown";
     *stream << "11 N " << p << "\n";

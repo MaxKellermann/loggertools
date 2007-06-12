@@ -108,7 +108,7 @@ public:
         TYPE_THERMIK
     };
 private:
-    std::string title, code, country;
+    std::string fullName, code, country;
     Position position;
     type_t type;
     Runway runway;
@@ -116,7 +116,7 @@ private:
     std::string description;
 public:
     TurnPoint();
-    TurnPoint(const std::string &_title,
+    TurnPoint(const std::string &_fullName,
               const std::string &_code,
               const std::string &_country,
               const Position &_position,
@@ -125,21 +125,17 @@ public:
               const Frequency &_frequency,
               const std::string &_description);
 public:
-    const std::string &getTitle() const {
-        return title;
+    const std::string &getFullName() const {
+        return fullName;
     }
-    void setTitle(const std::string &_title);
+    void setFullName(const std::string &_fullName);
     const std::string &getCode() const {
         return code;
     }
     void setCode(const std::string &_code);
-    const std::string &getTitleOrCode() const {
-        return title.length() == 0
-            ? code : title;
-    }
-    const std::string &getCodeOrTitle() const {
+    const std::string &getCodeOrFullName() const {
         return code.length() == 0
-            ? title : code;
+            ? fullName : code;
     }
     const std::string &getCountry() const {
         return country;

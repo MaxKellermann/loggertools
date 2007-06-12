@@ -143,7 +143,7 @@ const TurnPoint *ZanderTurnPointReader::read() {
         return NULL;
     }
 
-    tp.setTitle(get_next_column(&p, 13));
+    tp.setFullName(get_next_column(&p, 13));
 
     latitude = parseAngle<Latitude,'S','N'>(get_next_column(&p, 8));
     longitude = parseAngle<Longitude,'W','E'>(get_next_column(&p, 9));

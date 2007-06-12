@@ -97,7 +97,7 @@ const TurnPoint *FilserTurnPointReader::read() {
     code[length] = 0;
 
     if (code[0] != 0) {
-        tp->setTitle(code);
+        tp->setFullName(code);
         tp->setCode(code);
     }
 

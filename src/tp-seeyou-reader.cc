@@ -232,7 +232,7 @@ const TurnPoint *SeeYouTurnPointReader::read() {
 
         if (strcasecmp(columns[z], "title") == 0 ||
             strcasecmp(columns[z], "name") == 0) {
-            tp.setTitle(column);
+            tp.setFullName(column);
         } else if (strcasecmp(columns[z], "code") == 0) {
             tp.setCode(column);
         } else if (strcasecmp(columns[z], "country") == 0) {

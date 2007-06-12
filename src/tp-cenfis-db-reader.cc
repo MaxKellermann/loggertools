@@ -124,7 +124,7 @@ const TurnPoint *CenfisDatabaseReader::read() {
     title[length] = 0;
 
     if (title[0] != 0)
-        tp->setTitle(title);
+        tp->setFullName(title);
 
     /* extract description */
     length = sizeof(data.description);

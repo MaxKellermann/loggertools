@@ -57,7 +57,7 @@ const TurnPoint *NameTurnPointReader::read() {
         return NULL;
 
     while ((tp = reader->read()) != NULL) {
-        if (tp->getCode() == name || tp->getTitle() == name)
+        if (tp->getCode() == name || tp->getFullName() == name)
             return tp;
         else
             delete tp;

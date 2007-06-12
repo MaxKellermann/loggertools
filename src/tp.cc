@@ -41,7 +41,7 @@ TurnPoint::TurnPoint(void)
     :type(TYPE_UNKNOWN) {
 }
 
-TurnPoint::TurnPoint(const std::string &_title,
+TurnPoint::TurnPoint(const std::string &_fullName,
                      const std::string &_code,
                      const std::string &_country,
                      const Position &_position,
@@ -49,7 +49,7 @@ TurnPoint::TurnPoint(const std::string &_title,
                      const Runway &_runway,
                      const Frequency &_frequency,
                      const std::string &_description)
-    :title(_title), code(_code), country(_country),
+    :fullName(_fullName), code(_code), country(_country),
      position(_position),
      type(_type),
      runway(_runway),
@@ -57,8 +57,8 @@ TurnPoint::TurnPoint(const std::string &_title,
      description(_description) {
 }
 
-void TurnPoint::setTitle(const std::string &_title) {
-    title = _title;
+void TurnPoint::setFullName(const std::string &_fullName) {
+    fullName = _fullName;
 }
 
 void TurnPoint::setCode(const std::string &_code) {

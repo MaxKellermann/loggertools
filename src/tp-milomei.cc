@@ -138,7 +138,7 @@ MilomeiTurnPointReader::read()
         tp.setType(TurnPoint::TYPE_AIRFIELD);
 
     tp.setCode(code);
-    tp.setTitle(stripped_substring(line + 7, 34));
+    tp.setFullName(stripped_substring(line + 7, 34));
 
     Altitude altitude = parse_altitude(std::string(line + 41, 4));
     Latitude latitude = parseAngle<Latitude,'S','N'>(std::string(line + 45, 7));
