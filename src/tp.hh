@@ -105,6 +105,7 @@ public:
         TYPE_CASTLE,
         TYPE_CHURCH,
         TYPE_INTERSECTION,
+        TYPE_HIGHWAY_EXIT,
         TYPE_THERMALS
     };
 private:
