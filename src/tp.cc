@@ -69,6 +69,27 @@ void TurnPoint::setCode(const std::string &_code) {
     code = _code;
 }
 
+const std::string TurnPoint::getAbbreviatedName(std::string::size_type max_length) {
+    /* return fullName if it fits */
+    if (fullName.length() > 0 && fullName.length() <= max_length)
+        return fullName;
+
+    /* make shortName fit if it is specified */
+    if (shortName.length() > 0) {
+        if (shortName.length() <= max_length)
+            return shortName;
+
+        return std::string(shortName, 0, max_length);
+    }
+
+    /* abbreviate fullName if it is specified */
+    if (fullName.length() > 0)
+        return std::string(fullName, 0, max_length);
+
+    /* last resort: fall back to code a*/
+    return code;
+}
+
 void TurnPoint::setCountry(const std::string &_country) {
     country = _country;
 }
