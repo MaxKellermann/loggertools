@@ -74,7 +74,6 @@ static Runway::type_t convertRunwayType(char ch) {
 const TurnPoint *FilserTurnPointReader::read() {
     struct filser_turn_point data;
     TurnPoint *tp;
-    char code[sizeof(data.code) + 1];
     size_t length;
 
     if (count >= 600 || stream->eof())
@@ -90,14 +89,12 @@ const TurnPoint *FilserTurnPointReader::read() {
 
     /* extract code */
     length = sizeof(data.code);
-    memcpy(code, data.code, length);
-    while (length > 0 && code[length - 1] >= 0 &&
-           code[length - 1] <= ' ')
+    while (length > 0 && data.code[length - 1] >= 0 &&
+           data.code[length - 1] <= ' ')
         length--;
-    code[length] = 0;
 
-    if (code[0] != 0)
-        tp->setShortName(code);
+    if (length > 0)
+        tp->setShortName(std::string(data.code, 0, length));
 
     tp->setPosition(Position(convertAngle<Latitude>(data.latitude),
                              convertAngle<Longitude>(data.longitude),
