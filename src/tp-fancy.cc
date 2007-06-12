@@ -143,9 +143,15 @@ void FancyTurnPointWriter::write(const TurnPoint &tp) {
 
     if (tp.getFullName().length() > 0) {
         *stream << "\"" << tp.getFullName() << "\"";
+        if (tp.getShortName().length() > 0)
+            *stream << " (" << tp.getShortName() << ")";
         if (tp.getCode().length() > 0)
-            *stream << " (" << tp.getCode() << ")";
+            *stream << " [" << tp.getCode() << "]";
         *stream << "\n";
+    } else if (tp.getShortName().length() > 0) {
+        *stream << tp.getShortName() << "\n";
+        if (tp.getCode().length() > 0)
+            *stream << " [" << tp.getCode() << "]";
     } else if (tp.getCode().length() > 0) {
         *stream << tp.getCode() << "\n";
     } else {
