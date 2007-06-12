@@ -99,7 +99,7 @@ static int angleToCenfis(const Angle &angle) {
 }
 
 static void copyString(char *dest, size_t dest_size,
-                       std::string src) {
+                       const std::string &src) {
     size_t length = src.length();
 
     if (length > dest_size)
