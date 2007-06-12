@@ -86,7 +86,7 @@ static char toCenfisType(TurnPoint::type_t type) {
     case TurnPoint::TYPE_OUTLANDING:
         return 4;
 
-    case TurnPoint::TYPE_THERMIK:
+    case TurnPoint::TYPE_THERMALS:
         return 5;
 
     default:

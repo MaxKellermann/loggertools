@@ -280,7 +280,7 @@ TurnPoint *CenfisTurnPointReader::handleLine(char *line) {
         else if (strncmp(line, "LW ", 3) == 0)
             tp->setType(TurnPoint::TYPE_OUTLANDING);
         else if (strncmp(line, "TQ ", 3) == 0)
-            tp->setType(TurnPoint::TYPE_THERMIK);
+            tp->setType(TurnPoint::TYPE_THERMALS);
         else
             tp->setType(TurnPoint::TYPE_UNKNOWN);
 

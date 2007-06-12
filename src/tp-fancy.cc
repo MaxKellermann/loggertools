@@ -184,7 +184,7 @@ static std::ostream &operator <<(std::ostream &os,
         os << "intersection";
         break;
 
-    case TurnPoint::TYPE_THERMIK:
+    case TurnPoint::TYPE_THERMALS:
         os << "thermals";
         break;
     }

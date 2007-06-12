@@ -105,7 +105,7 @@ public:
         TYPE_CASTLE,
         TYPE_CHURCH,
         TYPE_INTERSECTION,
-        TYPE_THERMIK
+        TYPE_THERMALS
     };
 private:
     std::string fullName, shortName, code, country;
