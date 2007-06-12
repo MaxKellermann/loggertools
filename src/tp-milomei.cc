@@ -132,7 +132,7 @@ check_highway_intersection(const char *p, size_t length)
     if (x == NULL)
         x = (const char*)memchr(p + 1, 'Y', length);
     if (x == NULL || x > p + length - 3 ||
-        x[1] != 'A' || x[2] < '0' || x[2] > '9')
+        (x[1] != 'A' && x[1] != 'B') || x[2] < '0' || x[2] > '9')
         return 0;
 
     return 1;
@@ -207,20 +207,45 @@ MilomeiTurnPointReader::read()
         tp.setFrequency(parse_frequency(std::string(line + 36, 5)));
 
     if (tp.getType() == TurnPoint::TYPE_UNKNOWN) {
-        if (word_match(tp.getFullName(), "TV", check_exact))
+        if (word_match(tp.getFullName(), "TV", check_exact) ||
+            word_match(tp.getFullName(), "SENDER", check_exact))
             tp.setType(TurnPoint::TYPE_SENDER);
         else if (word_match(tp.getFullName(), "BR", check_exact))
             tp.setType(TurnPoint::TYPE_BRIDGE);
         else if (word_match(tp.getFullName(), "EX", check_exact) ||
                  word_match(tp.getFullName(), "EY", check_exact))
             tp.setType(TurnPoint::TYPE_RAILWAY_INTERSECTION);
-        else if (word_match(tp.getFullName(), "BF", check_exact) ||
-                 word_match(tp.getFullName(), "RS", check_exact))
+        else if (word_match(tp.getFullName(), "SX", check_exact) ||
+                 word_match(tp.getFullName(), "SY", check_exact))
             tp.setType(TurnPoint::TYPE_RAILWAY_STATION);
-        else if (word_match(tp.getFullName(), "KIRCHE", check_exact))
+        else if (word_match(tp.getFullName(), "KIRCHE", check_exact) ||
+                 word_match(tp.getFullName(), "STIFTSKIRCHE", check_exact) ||
+                 word_match(tp.getFullName(), "KAPELLE", check_exact) ||
+                 word_match(tp.getFullName(), "KLOSTER", check_exact) ||
+                 word_match(tp.getFullName(), "KLOSTERKIRCHE", check_exact))
             tp.setType(TurnPoint::TYPE_CHURCH);
-        else if (word_match(tp.getFullName(), "SCHLOSS", check_exact))
+        else if (word_match(tp.getFullName(), "SCHLOSS", check_exact) ||
+                 word_match(tp.getFullName(), "WASSERSCHLOSS", check_exact))
             tp.setType(TurnPoint::TYPE_CASTLE);
+        else if (word_match(tp.getFullName(), "RUINE", check_exact))
+            tp.setType(TurnPoint::TYPE_RUIN);
+        else if (word_match(tp.getFullName(), "GIPFEL", check_exact))
+            tp.setType(TurnPoint::TYPE_MOUNTAIN_TOP);
+        else if (word_match(tp.getFullName(), "TUNNEL", check_exact))
+            tp.setType(TurnPoint::TYPE_TUNNEL);
+        else if (word_match(tp.getFullName(), "STAUMAUER", check_exact))
+            tp.setType(TurnPoint::TYPE_DAM);
+        else if (word_match(tp.getFullName(), "SCHORNSTEIN", check_exact) ||
+                 word_match(tp.getFullName(), "SCHORNST", check_exact))
+            tp.setType(TurnPoint::TYPE_CHIMNEY);
+        else if (word_match(tp.getFullName(), "KUEHLTURM", check_exact))
+            tp.setType(TurnPoint::TYPE_COOL_TOWER);
+        else if (word_match(tp.getFullName(), "BF", check_exact) ||
+                 word_match(tp.getFullName(), "RS", check_exact) ||
+                 word_match(tp.getFullName(), "B", check_highway_intersection))
+            tp.setType(TurnPoint::TYPE_HIGHWAY_INTERSECTION);
+        else if (word_match(tp.getFullName(), "TR", check_exact))
+            tp.setType(TurnPoint::TYPE_GARAGE);
         else if (word_match(tp.getFullName(), "BAB", check_highway_exit)) {
             if (word_match(tp.getFullName(), "A", check_highway_intersection))
                 tp.setType(TurnPoint::TYPE_HIGHWAY_INTERSECTION);
