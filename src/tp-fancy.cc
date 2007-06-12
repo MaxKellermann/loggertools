@@ -156,6 +156,10 @@ static std::ostream &operator <<(std::ostream &os,
         os << "cooling tower";
         break;
 
+    case TurnPoint::TYPE_CHIMNEY:
+        os << "chimney";
+        break;
+
     case TurnPoint::TYPE_DAM:
         os << "dam";
         break;
@@ -180,12 +184,20 @@ static std::ostream &operator <<(std::ostream &os,
         os << "church";
         break;
 
+    case TurnPoint::TYPE_RUIN:
+        os << "ruin";
+        break;
+
     case TurnPoint::TYPE_HIGHWAY_INTERSECTION:
         os << "highway intersection";
         break;
 
     case TurnPoint::TYPE_HIGHWAY_EXIT:
         os << "highway exit";
+        break;
+
+    case TurnPoint::TYPE_GARAGE:
+        os << "garage";
         break;
 
     case TurnPoint::TYPE_RAILWAY_INTERSECTION:
