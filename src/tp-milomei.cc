@@ -225,7 +225,8 @@ MilomeiTurnPointReader::read()
                  word_match(tp.getFullName(), "KLOSTERKIRCHE", check_exact))
             tp.setType(TurnPoint::TYPE_CHURCH);
         else if (word_match(tp.getFullName(), "SCHLOSS", check_exact) ||
-                 word_match(tp.getFullName(), "WASSERSCHLOSS", check_exact))
+                 word_match(tp.getFullName(), "WASSERSCHLOSS", check_exact) ||
+                 word_match(tp.getFullName(), "FESTUNG", check_exact))
             tp.setType(TurnPoint::TYPE_CASTLE);
         else if (word_match(tp.getFullName(), "RUINE", check_exact))
             tp.setType(TurnPoint::TYPE_RUIN);
