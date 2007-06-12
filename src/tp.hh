@@ -108,7 +108,7 @@ public:
         TYPE_THERMIK
     };
 private:
-    std::string fullName, code, country;
+    std::string fullName, shortName, code, country;
     Position position;
     type_t type;
     Runway runway;
@@ -129,6 +129,10 @@ public:
         return fullName;
     }
     void setFullName(const std::string &_fullName);
+    const std::string &getShortName() const {
+        return shortName;
+    }
+    void setShortName(const std::string &_shortName);
     const std::string &getCode() const {
         return code;
     }

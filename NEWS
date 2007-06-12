@@ -1,6 +1,8 @@
 Version 0.0.2 - not yet released
   * refactorization of class TurnPoint
     - renamed property "Title" to "FullName"
+    - added property "ShortName" which should be used instead of "Code" in
+      most cases
   * reimplemented HexfileOutputFilter without boost::iostreams
   * fixed the -o option in hexfile-tool.c
   * tp-conv: added filter "name"

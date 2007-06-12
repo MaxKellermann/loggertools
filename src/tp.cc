@@ -61,6 +61,10 @@ void TurnPoint::setFullName(const std::string &_fullName) {
     fullName = _fullName;
 }
 
+void TurnPoint::setShortName(const std::string &_shortName) {
+    shortName = _shortName;
+}
+
 void TurnPoint::setCode(const std::string &_code) {
     code = _code;
 }
