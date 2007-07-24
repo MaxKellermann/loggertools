@@ -128,6 +128,10 @@ static std::ostream &operator <<(std::ostream &os,
         os << "glider site";
         break;
 
+    case TurnPoint::TYPE_ULTRALIGHT_FIELD:
+        os << "ultralight field";
+        break;
+
     case TurnPoint::TYPE_OUTLANDING:
         os << "outlanding site";
         break;

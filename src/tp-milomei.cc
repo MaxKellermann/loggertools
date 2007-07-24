@@ -190,6 +190,8 @@ MilomeiTurnPointReader::read()
         tp.setType(TurnPoint::TYPE_GLIDER_SITE);
     else if (line[23] == '#')
         tp.setType(TurnPoint::TYPE_AIRFIELD);
+    else if (memcmp(line + 23, "*ULM", 4) == 0)
+        tp.setType(TurnPoint::TYPE_ULTRALIGHT_FIELD);
     else if (line[23] == '*')
         tp.setType(TurnPoint::TYPE_OUTLANDING);
 
@@ -209,7 +211,7 @@ MilomeiTurnPointReader::read()
 
     tp.setPosition(Position(latitude, longitude, altitude));
 
-    if (line[23] == '#')
+    if (line[23] == '#' || memcmp(line + 23, "*ULM", 4) == 0)
         tp.setFrequency(parse_frequency(std::string(line + 36, 5)));
 
     if (tp.getType() == TurnPoint::TYPE_UNKNOWN) {
