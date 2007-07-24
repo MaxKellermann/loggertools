@@ -146,8 +146,6 @@ const TurnPoint *CenfisDatabaseReader::read() {
         unsigned direction = data.rwy1;
         if (direction < 1 || direction > 36)
             direction = Runway::DIRECTION_UNDEFINED;
-        else if (direction > 18)
-            direction -= 18;
 
         tp->setRunway(Runway(Runway::TYPE_UNKNOWN, direction,
                              Runway::LENGTH_UNDEFINED));

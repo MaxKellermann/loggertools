@@ -30,7 +30,7 @@ Runway::Runway()
 
 Runway::Runway(type_t _type, unsigned _direction, unsigned _length)
     :type(_type), direction(_direction), length(_length) {
-    assert(direction <= 18);
+    assert(direction <= 36);
 }
 
 bool Runway::defined() const {
