@@ -183,9 +183,7 @@ MilomeiTurnPointReader::read()
 
     std::string shortName = stripped_substring(line, 6);
 
-    if (line[5] == '2')
-        tp.setType(TurnPoint::TYPE_OUTLANDING);
-    else if (memcmp(line + 23, "# S", 3) == 0 ||
+    if (memcmp(line + 23, "# S", 3) == 0 ||
              memcmp(line + 20, "GLD#", 4) == 0)
         tp.setType(TurnPoint::TYPE_GLIDER_SITE);
     else if (line[23] == '#')
