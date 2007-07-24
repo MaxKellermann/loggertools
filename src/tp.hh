@@ -94,6 +94,7 @@ public:
         TYPE_OUTLANDING,
         TYPE_MOUNTAIN_PASS,
         TYPE_MOUNTAIN_TOP,
+        TYPE_ROPEWAY,
         TYPE_SENDER,
         TYPE_VOR,
         TYPE_NDB,

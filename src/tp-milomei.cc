@@ -237,6 +237,9 @@ MilomeiTurnPointReader::read()
         else if (word_match(tp.getFullName(), "GIPFEL", check_exact) ||
                  word_match(tp.getFullName(), "GIPFELKREUZ", check_exact))
             tp.setType(TurnPoint::TYPE_MOUNTAIN_TOP);
+        else if (word_match(tp.getFullName(), "SEILBAHN", check_exact) ||
+                 word_match(tp.getFullName(), "SKILIFT", check_exact))
+            tp.setType(TurnPoint::TYPE_ROPEWAY);
         else if (word_match(tp.getFullName(), "PASS", check_exact) ||
                  word_match(tp.getFullName(), "PASSHOEHE", check_exact))
             tp.setType(TurnPoint::TYPE_MOUNTAIN_PASS);

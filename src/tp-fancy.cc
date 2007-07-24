@@ -140,6 +140,10 @@ static std::ostream &operator <<(std::ostream &os,
         os << "mountain top";
         break;
 
+    case TurnPoint::TYPE_ROPEWAY:
+        os << "ropeway";
+        break;
+
     case TurnPoint::TYPE_SENDER:
         os << "sender";
         break;
