@@ -259,7 +259,8 @@ MilomeiTurnPointReader::read()
                 tp.setType(TurnPoint::TYPE_HIGHWAY_INTERSECTION);
             else
                 tp.setType(TurnPoint::TYPE_HIGHWAY_EXIT);
-        }
+        } else if (word_match(tp.getFullName(), "FOEHNWELLE", check_exact))
+            tp.setType(TurnPoint::TYPE_MOUNTAIN_WAVE);
     }
 
     return new TurnPoint(tp);

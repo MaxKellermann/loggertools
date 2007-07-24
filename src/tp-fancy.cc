@@ -215,6 +215,10 @@ static std::ostream &operator <<(std::ostream &os,
     case TurnPoint::TYPE_THERMALS:
         os << "thermals";
         break;
+
+    case TurnPoint::TYPE_MOUNTAIN_WAVE:
+        os << "mountain wave";
+        break;
     }
 
     return os;

@@ -112,6 +112,7 @@ public:
         TYPE_GARAGE,
         TYPE_RAILWAY_INTERSECTION,
         TYPE_RAILWAY_STATION,
+        TYPE_MOUNTAIN_WAVE,
         TYPE_THERMALS
     };
 private:
