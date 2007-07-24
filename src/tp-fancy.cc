@@ -192,6 +192,10 @@ static std::ostream &operator <<(std::ostream &os,
         os << "ruin";
         break;
 
+    case TurnPoint::TYPE_BUILDING:
+        os << "building";
+        break;
+
     case TurnPoint::TYPE_HIGHWAY_INTERSECTION:
         os << "highway intersection";
         break;

@@ -107,6 +107,7 @@ public:
         TYPE_CASTLE,
         TYPE_CHURCH,
         TYPE_RUIN,
+        TYPE_BUILDING,
         TYPE_HIGHWAY_INTERSECTION,
         TYPE_HIGHWAY_EXIT,
         TYPE_GARAGE,
