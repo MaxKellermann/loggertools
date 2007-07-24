@@ -241,7 +241,8 @@ MilomeiTurnPointReader::read()
             tp.setType(TurnPoint::TYPE_TUNNEL);
         else if (word_match(tp.getFullName(), "STAUSEE", check_exact))
             tp.setType(TurnPoint::TYPE_LAKE);
-        else if (word_match(tp.getFullName(), "STAUMAUER", check_exact))
+        else if (word_match(tp.getFullName(), "STAUMAUER", check_exact) ||
+                 word_match(tp.getFullName(), "STAUDAMM", check_exact))
             tp.setType(TurnPoint::TYPE_DAM);
         else if (word_match(tp.getFullName(), "SCHORNSTEIN", check_exact) ||
                  word_match(tp.getFullName(), "SCHORNST", check_exact))
