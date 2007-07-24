@@ -103,7 +103,7 @@ const TurnPoint *FilserTurnPointReader::read() {
     tp->setFrequency(convertFrequency(data.frequency));
 
     tp->setRunway(Runway(convertRunwayType(data.runway_type),
-                         data.runway_direction >= 1 && data.runway_direction <= 18 ? data.runway_direction : (unsigned)Runway::DIRECTION_UNDEFINED,
+                         data.runway_direction >= 1 && data.runway_direction <= 36 ? data.runway_direction : (unsigned)Runway::DIRECTION_UNDEFINED,
                          (unsigned)(ntohs(data.runway_length_ft) / 3.28)));
 
     return tp;
