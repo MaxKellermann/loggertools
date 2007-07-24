@@ -219,6 +219,7 @@ MilomeiTurnPointReader::read()
                  word_match(tp.getFullName(), "RS", check_exact))
             tp.setType(TurnPoint::TYPE_RAILWAY_STATION);
         else if (word_match(tp.getFullName(), "KIRCHE", check_exact) ||
+                 word_match(tp.getFullName(), "EGLISE", check_exact) ||
                  word_match(tp.getFullName(), "STIFTSKIRCHE", check_exact) ||
                  word_match(tp.getFullName(), "KAPELLE", check_exact) ||
                  word_match(tp.getFullName(), "KLOSTER", check_exact) ||
