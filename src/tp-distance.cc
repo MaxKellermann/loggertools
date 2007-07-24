@@ -22,6 +22,7 @@
 #include "exception.hh"
 #include "tp.hh"
 #include "tp-io.hh"
+#include "earth-parser.hh"
 
 class DistanceTurnPointReader : public TurnPointReader {
 private:
@@ -38,34 +39,6 @@ public:
 public:
     virtual const TurnPoint *read();
 };
-
-const Distance parseDistance(const char *p) {
-    char *q;
-    double value;
-    Distance::unit_t unit;
-
-    value = strtod(p, &q);
-    if (q == p)
-        throw malformed_input("failed to parse distance value");
-
-    if (*q == 0)
-        throw malformed_input("no distance unit was provided");
-
-    if (strcmp(q, "km") == 0) {
-        value *= 1000.;
-        unit = Distance::UNIT_METERS;
-    } else if (strcmp(q, "m") == 0) {
-        unit = Distance::UNIT_METERS;
-    } else if (strcmp(q, "ft") == 0) {
-        unit = Distance::UNIT_FEET;
-    } else if (strcmp(q, "NM") == 0) {
-        unit = Distance::UNIT_NAUTICAL_MILES;
-    } else {
-        throw malformed_input("unknown distance unit");
-    }
-
-    return Distance(unit, value);
-}
 
 TurnPointReader *
 DistanceTurnPointFilter::createFilter(TurnPointReader *reader,
