@@ -147,7 +147,7 @@ void CenfisDatabaseWriter::write(const TurnPoint &tp) {
                tp.getDescription());
 
     if (tp.getRunway().defined())
-        data.rwy1 = tp.getRunway().getDirection() / 10;
+        data.rwy1 = tp.getRunway().getDirection();
 
     /* write entry */
 

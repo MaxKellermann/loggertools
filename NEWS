@@ -17,6 +17,7 @@ Version 0.0.2 - not yet released
   * tp-cenfis-writer: fix sign error in longitude
   * tp-cenfis-writer: print longitude with 3 digits
   * tp-cenfis-writer: space after altitude unit
+  * tp-cenfis-db: don't multiply runway direction with 10
   * tp-filser: use the fields latitude, longitude, altitude, runway,
     frequency
   * tp-seeyou: convert altitude to meters
