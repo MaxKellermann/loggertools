@@ -20,7 +20,9 @@
 #include "exception.hh"
 #include "earth-parser.hh"
 
-const Distance parseDistance(const char *p) {
+const Distance
+parseDistance(const char *p)
+{
     char *q;
     double value;
     Distance::unit_t unit;
