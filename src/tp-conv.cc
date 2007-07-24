@@ -186,7 +186,16 @@ int main(int argc, char **argv) {
                 : NULL;
             const TurnPointFilter *filter
                 = getTurnPointFilter(filter_name.c_str());
-            reader = filter->createFilter(reader, args);
+            try {
+                reader = filter->createFilter(reader, args);
+            } catch (const std::exception &e) {
+                delete writer;
+                delete reader;
+                unlink(out_filename);
+                cerr << "Failed to initialize filter '" << filter_name
+                     << "': " << e.what() << endl;
+                exit(2);
+            }
         }
 
         /* transfer data */
