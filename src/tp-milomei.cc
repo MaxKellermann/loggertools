@@ -192,7 +192,11 @@ MilomeiTurnPointReader::read()
         tp.setType(TurnPoint::TYPE_AIRFIELD);
 
     tp.setShortName(shortName);
-    tp.setFullName(stripped_substring(line + 7, 34));
+
+    if (line[23] == '#' || line[23] == '*')
+        tp.setFullName(stripped_substring(line + 7, 16));
+    else
+        tp.setFullName(stripped_substring(line + 7, 34));
 
     if (line[23] == '#' && line[24] != ' ')
         tp.setCode(stripped_substring(line + 24, 4));
