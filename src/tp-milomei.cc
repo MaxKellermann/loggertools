@@ -200,7 +200,8 @@ MilomeiTurnPointReader::read()
     else
         tp.setFullName(stripped_substring(line + 7, 34));
 
-    if (line[23] == '#' && line[24] != ' ')
+    if ((line[23] == '#' || (line[23] == '*' && line[24] != 'U')) &&
+        line[24] != ' ')
         tp.setCode(stripped_substring(line + 24, 4));
 
     Altitude altitude = parse_altitude(std::string(line + 41, 4));
