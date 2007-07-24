@@ -208,12 +208,11 @@ static Runway *parseRunway(char *p) {
                      strncasecmp(word, "SO", 2) == 0)
                 type = Runway::TYPE_ASPHALT;
         } else {
-            if (u < 100) {
-                if (direction == Runway::DIRECTION_UNDEFINED)
-                    direction = (unsigned)u * 10;
-            } else {
+            if (u >= 100)
                 length = (unsigned)u;
-            }
+            else if (u > 0 && u <= 36 &&
+                     direction == Runway::DIRECTION_UNDEFINED)
+                direction = (unsigned)u;
         }
     }
 

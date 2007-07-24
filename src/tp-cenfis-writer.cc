@@ -145,7 +145,7 @@ void CenfisTurnPointWriter::write(const TurnPoint &tp) {
     if (tp.getRunway().defined()) {
         *stream << "   R "
                 << std::setfill('0') << std::setw(2)
-                << (tp.getRunway().getDirection() / 10);
+                << tp.getRunway().getDirection();
 
         if (tp.getRunway().getLength() > 0)
             *stream << " "
