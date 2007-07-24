@@ -8,6 +8,8 @@ Version 0.0.2 - not yet released
   * reimplemented HexfileOutputFilter without boost::iostreams
   * fixed the -o option in hexfile-tool.c
   * tp-conv: added filter "name"
+  * tp-conv: show filter errors
+  * tp-distance: parse center from filter arguments
   * tp-cenfis: set description instead of title
   * tp-cenfis: special description "Waypoint"
   * tp-cenfis-writer: fix sign error in longitude
