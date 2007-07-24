@@ -46,11 +46,15 @@ DistanceTurnPointFilter::createFilter(TurnPointReader *reader,
     if (args == NULL || *args == 0)
         throw malformed_input("No maximum distance provided");
 
-    return new DistanceTurnPointReader(reader,
-                                       Position(Latitude(1, 46, 28, 49),
-                                                Longitude(1, 8, 15, 48),
-                                                Altitude()),
-                                       parseDistance(args));
+    Position center = parsePosition(args);
+    Distance radius = parseDistance(args);
+
+    /*
+    if (*p != 0)
+        throw malformed_input("malformed trailing input");
+    */
+
+    return new DistanceTurnPointReader(reader, center, radius);
 }
 
 DistanceTurnPointReader::~DistanceTurnPointReader() {

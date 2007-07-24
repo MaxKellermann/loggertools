@@ -20,6 +20,13 @@
 #include "exception.hh"
 #include "earth-parser.hh"
 
+static inline void
+skipWhitespace(const char *&p)
+{
+    while (*p > 0 && *p <= 0x20)
+        ++p;
+}
+
 const Distance
 parseDistance(const char *p)
 {
@@ -48,4 +55,109 @@ parseDistance(const char *p)
     }
 
     return Distance(unit, value);
+}
+
+template<char minusLetter, char plusLetter>
+static inline void
+parseSignLetter(const char *&p, int &sign)
+{
+    switch (*p) {
+    case minusLetter:
+        sign = -1;
+        ++p;
+        break;
+
+    case plusLetter:
+        sign = 1;
+        ++p;
+        break;
+    }
+}
+
+template<class T, char minusLetter, char plusLetter, unsigned long maxValue>
+static const T
+parseAngle(const char **pp)
+{
+    const char *p = *pp;
+    char *endptr;
+    unsigned long n1, n2, n3;
+    int sign = 0;
+
+    /* sign letter */
+
+    parseSignLetter<minusLetter, plusLetter>(p, sign);
+    skipWhitespace(p);
+
+    /* degrees */
+
+    n1 = strtoul(p, &endptr, 10);
+    if (n1 > maxValue)
+        throw malformed_input("degrees out of range");
+
+    if (endptr == p)
+        throw malformed_input("numeric degree value expected");
+
+    if (*endptr != ' ' && *endptr != '.')
+        throw malformed_input("separator expected after degree value");
+    p = endptr + 1;
+
+    skipWhitespace(p);
+
+    /* minutes */
+
+    n2 = strtoul(p, &endptr, 10);
+    if (n2 > 60)
+        throw malformed_input("minutes out of range");
+
+    if (endptr == p)
+        throw malformed_input("numeric minute value expected");
+
+    if (*endptr != ' ' && *endptr != '.' && *endptr != '\'')
+        throw malformed_input("separator expected after minute value");
+    p = endptr + 1;
+
+    skipWhitespace(p);
+
+    /* seconds */
+
+    n3 = strtoul(p, &endptr, 10);
+    if (n3 > 60)
+        throw malformed_input("seconds out of range");
+
+    if (endptr == p)
+        throw malformed_input("numeric seconds value expected");
+
+    if (*endptr == '"')
+        ++endptr;
+    p = endptr;
+
+    skipWhitespace(p);
+
+    /* trailing sign letter */
+
+    if (sign == 0) {
+        parseSignLetter<minusLetter, plusLetter>(p, sign);
+        skipWhitespace(p);
+    }
+
+    /* calculate */
+
+    if (sign == 0)
+        throw malformed_input("sign letter is missing");
+
+    *pp = p;
+
+    return T(sign, (unsigned)n1, (unsigned)n2, (unsigned)n3);
+}
+
+const Position
+parsePosition(const char *&p)
+{
+    Latitude latitude;
+    Longitude longitude;
+
+    latitude = parseAngle<Latitude,'S','N',90>(&p);
+    longitude = parseAngle<Longitude,'W','E',180>(&p);
+
+    return Position(latitude, longitude, Altitude());
 }

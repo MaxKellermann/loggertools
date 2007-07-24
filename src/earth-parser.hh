@@ -25,4 +25,7 @@
 const Distance
 parseDistance(const char *p);
 
+const Position
+parsePosition(const char *&p);
+
 #endif
