@@ -234,7 +234,8 @@ MilomeiTurnPointReader::read()
             tp.setType(TurnPoint::TYPE_RUIN);
         else if (word_match(tp.getFullName(), "RESTAURANT", check_exact))
             tp.setType(TurnPoint::TYPE_BUILDING);
-        else if (word_match(tp.getFullName(), "GIPFEL", check_exact))
+        else if (word_match(tp.getFullName(), "GIPFEL", check_exact) ||
+                 word_match(tp.getFullName(), "GIPFELKREUZ", check_exact))
             tp.setType(TurnPoint::TYPE_MOUNTAIN_TOP);
         else if (word_match(tp.getFullName(), "PASS", check_exact) ||
                  word_match(tp.getFullName(), "PASSHOEHE", check_exact))
