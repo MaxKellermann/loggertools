@@ -190,6 +190,8 @@ MilomeiTurnPointReader::read()
         tp.setType(TurnPoint::TYPE_GLIDER_SITE);
     else if (line[23] == '#')
         tp.setType(TurnPoint::TYPE_AIRFIELD);
+    else if (line[23] == '*')
+        tp.setType(TurnPoint::TYPE_OUTLANDING);
 
     tp.setShortName(shortName);
 
