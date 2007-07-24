@@ -216,7 +216,8 @@ MilomeiTurnPointReader::read()
                  word_match(tp.getFullName(), "EY", check_exact))
             tp.setType(TurnPoint::TYPE_RAILWAY_INTERSECTION);
         else if (word_match(tp.getFullName(), "BF", check_exact) ||
-                 word_match(tp.getFullName(), "RS", check_exact))
+                 word_match(tp.getFullName(), "RS", check_exact) ||
+                 word_match(tp.getFullName(), "GARE", check_exact))
             tp.setType(TurnPoint::TYPE_RAILWAY_STATION);
         else if (word_match(tp.getFullName(), "KIRCHE", check_exact) ||
                  word_match(tp.getFullName(), "EGLISE", check_exact) ||
@@ -233,6 +234,9 @@ MilomeiTurnPointReader::read()
             tp.setType(TurnPoint::TYPE_RUIN);
         else if (word_match(tp.getFullName(), "GIPFEL", check_exact))
             tp.setType(TurnPoint::TYPE_MOUNTAIN_TOP);
+        else if (word_match(tp.getFullName(), "PASS", check_exact) ||
+                 word_match(tp.getFullName(), "PASSHOEHE", check_exact))
+            tp.setType(TurnPoint::TYPE_MOUNTAIN_PASS);
         else if (word_match(tp.getFullName(), "TUNNEL", check_exact))
             tp.setType(TurnPoint::TYPE_TUNNEL);
         else if (word_match(tp.getFullName(), "STAUSEE", check_exact))
