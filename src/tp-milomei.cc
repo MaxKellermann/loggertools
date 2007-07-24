@@ -91,6 +91,63 @@ parseAngle(const std::string &s)
     return T(sign, degrees, minutes, seconds);
 }
 
+static inline bool
+is_digit(char ch)
+{
+    return ch >= '0' && ch <= '9';
+}
+
+static unsigned
+parse_unsigned(const char *p, size_t length, unsigned on_error)
+{
+    size_t pos = 0;
+    unsigned value = 0;
+
+    while (pos < length && p[pos] == ' ')
+        ++pos;
+
+    if (pos == length)
+        return on_error;
+
+    for (; pos < length; ++pos) {
+        if (!is_digit(p[pos]))
+            return on_error;
+
+        value = value * 10 + p[pos] - '0';
+    }
+
+    return value;
+}
+
+static const Runway
+parse_runway(const char *p)
+{
+    Runway::type_t type;
+    switch (p[0]) {
+    case 'A':
+    case 'C':
+        type = Runway::TYPE_ASPHALT;
+        break;
+
+    case 'G':
+        type = Runway::TYPE_GRASS;
+        break;
+
+    default:
+        type = Runway::TYPE_UNKNOWN;
+    }
+
+    unsigned length = parse_unsigned(p + 1, 3, Runway::LENGTH_UNDEFINED);
+    if (length != Runway::LENGTH_UNDEFINED)
+        length *= 10;
+
+    unsigned direction = parse_unsigned(p + 4, 2, Runway::DIRECTION_UNDEFINED);
+    if (direction > 36)
+        direction = Runway::DIRECTION_UNDEFINED;
+
+    return Runway(type, direction, length);
+}
+
 static const Frequency
 parse_frequency(const std::string &s)
 {
@@ -209,8 +266,10 @@ MilomeiTurnPointReader::read()
 
     tp.setPosition(Position(latitude, longitude, altitude));
 
-    if (line[23] == '#' || memcmp(line + 23, "*ULM", 4) == 0)
+    if (line[23] == '#' || memcmp(line + 23, "*ULM", 4) == 0) {
+        tp.setRunway(parse_runway(line + 28));
         tp.setFrequency(parse_frequency(std::string(line + 36, 5)));
+    }
 
     if (tp.getType() == TurnPoint::TYPE_UNKNOWN) {
         if (word_match(tp.getFullName(), "TV", check_exact) ||
