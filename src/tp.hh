@@ -99,6 +99,7 @@ public:
         TYPE_NDB,
         TYPE_COOL_TOWER,
         TYPE_CHIMNEY,
+        TYPE_LAKE,
         TYPE_DAM,
         TYPE_TUNNEL,
         TYPE_BRIDGE,

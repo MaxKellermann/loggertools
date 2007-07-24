@@ -160,6 +160,10 @@ static std::ostream &operator <<(std::ostream &os,
         os << "chimney";
         break;
 
+    case TurnPoint::TYPE_LAKE:
+        os << "lake";
+        break;
+
     case TurnPoint::TYPE_DAM:
         os << "dam";
         break;
