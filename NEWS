@@ -9,6 +9,7 @@ Version 0.0.2 - not yet released
   * fixed the -o option in hexfile-tool.c
   * tp-conv: added filter "name"
   * tp-conv: show filter errors
+  * tp-conv: allow runway directions 19 up to 36
   * tp-distance: parse center from filter arguments
   * tp-cenfis: set description instead of title
   * tp-cenfis: special description "Waypoint"
