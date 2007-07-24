@@ -168,7 +168,6 @@ const TurnPoint *
 MilomeiTurnPointReader::read()
 {
     char line[1024];
-    TurnPoint tp;
 
     do {
         try {
@@ -181,7 +180,9 @@ MilomeiTurnPointReader::read()
         }
     } while (line[0] == '$' || strlen(line) < 64);
 
-    std::string shortName = stripped_substring(line, 6);
+    TurnPoint tp;
+
+    tp.setShortName(stripped_substring(line, 6));
 
     if (memcmp(line + 23, "# S", 3) == 0 ||
              memcmp(line + 20, "GLD#", 4) == 0)
@@ -192,8 +193,6 @@ MilomeiTurnPointReader::read()
         tp.setType(TurnPoint::TYPE_ULTRALIGHT_FIELD);
     else if (line[23] == '*')
         tp.setType(TurnPoint::TYPE_OUTLANDING);
-
-    tp.setShortName(shortName);
 
     if (line[23] == '#' || line[23] == '*')
         tp.setFullName(stripped_substring(line + 7, 16));
