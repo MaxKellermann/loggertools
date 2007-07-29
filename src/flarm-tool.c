@@ -129,6 +129,38 @@ static void alarm_handler(int dummy) {
     (void)dummy;
 }
 
+static int
+flarm_wait_recv_frame(flarm_t flarm,
+                      uint8_t *version_r, uint8_t *type_r,
+                      uint16_t *seq_no_r,
+                      const void **payload_r, size_t *length_r)
+{
+    int ret, n = 0;
+    struct timespec ts = {
+        .tv_sec = 0,
+        .tv_nsec = 100000,
+    };
+
+    for (n = 0; n < 15; ++n) {
+        ret = flarm_recv_frame(flarm, version_r, type_r, seq_no_r,
+                               payload_r, length_r);
+        if (ret != EAGAIN)
+            return ret;
+
+        if (n == 5)
+            ts.tv_sec = 1;
+        else if (n > 5)
+            fprintf(stderr, "waiting for flarm\n");
+
+        nanosleep(&ts, NULL);
+    }
+
+    if (n > 6)
+        fprintf(stderr, "giving up\n");
+
+    return EAGAIN;
+}
+
 static void
 cmd_ping(const struct config *config, flarm_t flarm,
          int argc, char **argv)
@@ -152,8 +184,8 @@ cmd_ping(const struct config *config, flarm_t flarm,
         exit(2);
     }
 
-    ret = flarm_recv_frame(flarm, &version, &type, &seq_no,
-                           &payload, &length);
+    ret = flarm_wait_recv_frame(flarm, &version, &type, &seq_no,
+                                &payload, &length);
     if (ret != 0) {
         fprintf(stderr, "failed to receive ack: %s\n",
                 strerror(ret));
