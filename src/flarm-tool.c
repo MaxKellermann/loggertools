@@ -57,18 +57,6 @@ static void usage(void) {
 #endif
          " -t DEVICE      open this tty device (default /dev/ttyS0)\n"
          "valid commands:\n"
-         "  list\n"
-         "        print a list of flights\n"
-         "  read_tp_tsk <out_filename.da4>\n"
-         "        read the TP and TSK database from the device\n"
-         "  write_tp_tsk <in_filename.da4>\n"
-         "        write the TP and TSK database to the device\n"
-         "  write_apt <data_dir>\n"
-         "        write the APT database to the device\n"
-         "  mem_section <start_adddress> <end_address>\n"
-         "        print memory section info\n"
-         "  raw_mem <start_adddress> <end_address>\n"
-         "        download raw memory\n"
          );
 }
 
