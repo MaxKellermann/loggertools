@@ -161,13 +161,42 @@ flarm_wait_recv_frame(flarm_t flarm,
     return EAGAIN;
 }
 
+static int
+flarm_expect_ack(flarm_t flarm,
+                 uint16_t expected_seq_no,
+                 const void **payload_r, size_t *length_r)
+{
+    int ret;
+    uint8_t version, type;
+    uint16_t seq_no;
+
+    while (1) {
+        ret = flarm_wait_recv_frame(flarm, &version, &type, &seq_no,
+                                    payload_r, length_r);
+        if (ret != 0)
+            return ret;
+
+        if (seq_no != expected_seq_no) {
+            fprintf(stderr, "expected seqno %u, got %u\n",
+                    expected_seq_no, seq_no);
+            continue;
+        }
+
+        if (type != FLARM_MESSAGE_ACK) {
+            fprintf(stderr, "expected ACK, flarm response was %d\n",
+                    type);
+            return -1;
+        }
+
+        return 0;
+    }
+}
+
 static void
 cmd_ping(const struct config *config, flarm_t flarm,
          int argc, char **argv)
 {
     int ret;
-    uint8_t version, type;
-    uint16_t seq_no;
     const void *payload;
     size_t length;
 
@@ -184,17 +213,12 @@ cmd_ping(const struct config *config, flarm_t flarm,
         exit(2);
     }
 
-    ret = flarm_wait_recv_frame(flarm, &version, &type, &seq_no,
-                                &payload, &length);
+    ret = flarm_expect_ack(flarm, flarm_last_seq_no(flarm),
+                           &payload, &length);
     if (ret != 0) {
-        fprintf(stderr, "failed to receive ack: %s\n",
-                strerror(ret));
-        exit(2);
-    }
-
-    if (type != FLARM_MESSAGE_ACK) {
-        fprintf(stderr, "expected ACK, flarm response was %d\n",
-                type);
+        if (ret > 0)
+            fprintf(stderr, "failed to receive ack: %s\n",
+                    strerror(ret));
         exit(2);
     }
 }
