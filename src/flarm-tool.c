@@ -229,6 +229,67 @@ cmd_ping(const struct config *config, flarm_t flarm,
     flarm_ping_wait(flarm);
 }
 
+static void
+cmd_list(const struct config *config, flarm_t flarm,
+         int argc, char **argv)
+{
+    unsigned i;
+    int ret;
+    const char *payload;
+    size_t length;
+
+    (void)config;
+    (void)argv;
+
+    if (optind < argc)
+        arg_error("Too many arguments");
+
+    flarm_ping_wait(flarm);
+
+    for (i = 0;; ++i) {
+        ret = flarm_send_select_record(flarm, i);
+        if (ret != 0) {
+            fprintf(stderr, "failed to send select record: %s\n",
+                    strerror(ret));
+            exit(2);
+        }
+
+        ret = flarm_expect_ack(flarm, flarm_last_seq_no(flarm),
+                               (const void**)&payload, &length);
+        if (ret < 0)
+            break;
+
+        if (ret != 0) {
+            fprintf(stderr, "failed to receive ack: %s\n",
+                    strerror(ret));
+            exit(2);
+        }
+
+        ret = flarm_send_get_record_info(flarm);
+        if (ret != 0) {
+            fprintf(stderr, "failed to send get record info: %s\n",
+                    strerror(ret));
+            exit(2);
+        }
+
+        ret = flarm_expect_ack(flarm, flarm_last_seq_no(flarm),
+                               (const void**)&payload, &length);
+        if (ret != 0) {
+            if (ret > 0)
+                fprintf(stderr, "failed to receive ack: %s\n",
+                        strerror(ret));
+            exit(2);
+        }
+
+        if (length < 4 || payload[length - 1] != 0) {
+            fprintf(stderr, "invalid record info\n");
+            exit(2);
+        }
+
+        fprintf(stderr, "%u. %s\n", i, payload + 2);
+    }
+}
+
 int main(int argc, char **argv) {
     struct config config;
     const char *cmd;
@@ -252,6 +313,8 @@ int main(int argc, char **argv) {
 
     if (strcmp(cmd, "ping") == 0) {
         cmd_ping(&config, flarm, argc, argv);
+    } else if (strcmp(cmd, "list") == 0) {
+        cmd_list(&config, flarm, argc, argv);
     } else {
         arg_error("unknown command");
     }
