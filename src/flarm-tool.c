@@ -193,18 +193,11 @@ flarm_expect_ack(flarm_t flarm,
 }
 
 static void
-cmd_ping(const struct config *config, flarm_t flarm,
-         int argc, char **argv)
+flarm_ping_wait(flarm_t flarm)
 {
     int ret;
     const void *payload;
     size_t length;
-
-    (void)config;
-    (void)argv;
-
-    if (optind < argc)
-        arg_error("Too many arguments");
 
     ret = flarm_send_frame(flarm, FLARM_MESSAGE_PING, NULL, 0);
     if (ret != 0) {
@@ -221,6 +214,19 @@ cmd_ping(const struct config *config, flarm_t flarm,
                     strerror(ret));
         exit(2);
     }
+}
+
+static void
+cmd_ping(const struct config *config, flarm_t flarm,
+         int argc, char **argv)
+{
+    (void)config;
+    (void)argv;
+
+    if (optind < argc)
+        arg_error("Too many arguments");
+
+    flarm_ping_wait(flarm);
 }
 
 int main(int argc, char **argv) {
