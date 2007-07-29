@@ -55,6 +55,8 @@ static void usage(void) {
 #endif
          " -t DEVICE      open this tty device (default /dev/ttyS0)\n"
          "valid commands:\n"
+         "  ping\n"
+         "        perform a connection test\n"
          );
 }
 
@@ -127,8 +129,47 @@ static void alarm_handler(int dummy) {
     (void)dummy;
 }
 
+static void
+cmd_ping(const struct config *config, flarm_t flarm,
+         int argc, char **argv)
+{
+    int ret;
+    uint8_t version, type;
+    uint16_t seq_no;
+    const void *payload;
+    size_t length;
+
+    (void)config;
+    (void)argv;
+
+    if (optind < argc)
+        arg_error("Too many arguments");
+
+    ret = flarm_send_frame(flarm, FLARM_MESSAGE_PING, NULL, 0);
+    if (ret != 0) {
+        fprintf(stderr, "failed to send ping: %s\n",
+                strerror(ret));
+        exit(2);
+    }
+
+    ret = flarm_recv_frame(flarm, &version, &type, &seq_no,
+                           &payload, &length);
+    if (ret != 0) {
+        fprintf(stderr, "failed to receive ack: %s\n",
+                strerror(ret));
+        exit(2);
+    }
+
+    if (type != FLARM_MESSAGE_ACK) {
+        fprintf(stderr, "expected ACK, flarm response was %d\n",
+                type);
+        exit(2);
+    }
+}
+
 int main(int argc, char **argv) {
     struct config config;
+    const char *cmd;
     int ret;
     flarm_t flarm;
 
@@ -139,10 +180,18 @@ int main(int argc, char **argv) {
     if (optind >= argc)
         arg_error("no command specified");
 
+    cmd = argv[optind++];
+
     ret = flarm_open(config.tty, &flarm);
     if (ret < 0) {
         perror("failed to open flarm");
         exit(2);
+    }
+
+    if (strcmp(cmd, "ping") == 0) {
+        cmd_ping(&config, flarm, argc, argv);
+    } else {
+        arg_error("unknown command");
     }
 
     flarm_close(&flarm);
