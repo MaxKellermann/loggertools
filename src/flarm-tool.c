@@ -290,6 +290,78 @@ cmd_list(const struct config *config, flarm_t flarm,
     }
 }
 
+static void
+cmd_download(const struct config *config, flarm_t flarm,
+         int argc, char **argv)
+{
+    unsigned record_no;
+    int ret;
+    const char *payload;
+    size_t length;
+    int is_eof = 0;
+
+    (void)config;
+    (void)argv;
+
+    if (optind == argc)
+        arg_error("Record number missing");
+
+    record_no = (unsigned)atoi(argv[optind++]);
+
+    if (optind < argc)
+        arg_error("Too many arguments");
+
+    flarm_ping_wait(flarm);
+
+    ret = flarm_send_select_record(flarm, record_no);
+    if (ret != 0) {
+        fprintf(stderr, "failed to send select record: %s\n",
+                strerror(ret));
+        exit(2);
+    }
+
+    ret = flarm_expect_ack(flarm, flarm_last_seq_no(flarm),
+                           (const void**)&payload, &length);
+    if (ret != 0) {
+        if (ret > 0)
+            fprintf(stderr, "failed to receive ack: %s\n",
+                    strerror(ret));
+        exit(2);
+    }
+
+    while (!is_eof) {
+        ret = flarm_send_get_igc_data(flarm);
+        if (ret != 0) {
+            fprintf(stderr, "failed to send get record info: %s\n",
+                    strerror(ret));
+            exit(2);
+        }
+
+        ret = flarm_expect_ack(flarm, flarm_last_seq_no(flarm),
+                               (const void**)&payload, &length);
+        if (ret != 0) {
+            if (ret > 0)
+                fprintf(stderr, "failed to receive ack: %s\n",
+                        strerror(ret));
+            exit(2);
+        }
+
+        if (length < 3) {
+            fprintf(stderr, "invalid igc chunk\n");
+            exit(2);
+        }
+
+        /* XXX: check seqno, print progress */
+
+        if (length > 3 && payload[length - 1] == 0x1a) {
+            is_eof = 1;
+            --length;
+        }
+
+        fwrite(payload + 3, length - 3, 1, stdout);
+    }
+}
+
 int main(int argc, char **argv) {
     struct config config;
     const char *cmd;
@@ -315,6 +387,8 @@ int main(int argc, char **argv) {
         cmd_ping(&config, flarm, argc, argv);
     } else if (strcmp(cmd, "list") == 0) {
         cmd_list(&config, flarm, argc, argv);
+    } else if (strcmp(cmd, "download") == 0) {
+        cmd_download(&config, flarm, argc, argv);
     } else {
         arg_error("unknown command");
     }
