@@ -27,6 +27,7 @@ int flarm_send_frame(flarm_t flarm, uint8_t type,
                      const void *src, size_t length) {
     int ret;
     struct flarm_frame_header header;
+    size_t buffer_length;
     ssize_t nbytes;
 
     assert(flarm != NULL);
@@ -48,13 +49,15 @@ int flarm_send_frame(flarm_t flarm, uint8_t type,
     header.crc = flarm_crc_update_block(0, &header, sizeof(header) - sizeof(header.crc));
     header.crc = flarm_crc_update_block(header.crc, src, length);
 
-    length = flarm_escape(flarm->buffer, src, sizeof(header) + length);
+    buffer_length = flarm_escape(flarm->buffer, &header, sizeof(header));
+    if (length > 0)
+        buffer_length += flarm_escape(flarm->buffer + buffer_length, src, length);
 
-    nbytes = write(flarm->fd, flarm->buffer, length);
+    nbytes = write(flarm->fd, flarm->buffer, buffer_length);
     if (nbytes < 0)
         return errno;
 
-    if ((size_t)nbytes < length)
+    if ((size_t)nbytes < buffer_length)
         return ENOSPC;
 
     return 0;
