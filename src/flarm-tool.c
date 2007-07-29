@@ -199,7 +199,7 @@ flarm_ping_wait(flarm_t flarm)
     const void *payload;
     size_t length;
 
-    ret = flarm_send_frame(flarm, FLARM_MESSAGE_PING, NULL, 0);
+    ret = flarm_send_ping(flarm);
     if (ret != 0) {
         fprintf(stderr, "failed to send ping: %s\n",
                 strerror(ret));

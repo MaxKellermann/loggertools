@@ -60,6 +60,16 @@ int flarm_send_frame(flarm_t flarm, uint8_t type,
 unsigned
 flarm_last_seq_no(flarm_t flarm);
 
+
+/* flarm-message.c */
+
+int
+flarm_send_ping(flarm_t flarm);
+
+int
+flarm_send_set_baud_rate(flarm_t flarm, int speed);
+
+
 /* flarm-recv.c */
 
 int flarm_recv_frame(flarm_t flarm,
