@@ -49,7 +49,9 @@ int flarm_send_frame(flarm_t flarm, uint8_t type,
     header.crc = flarm_crc_update_block(0, &header, sizeof(header) - sizeof(header.crc));
     header.crc = flarm_crc_update_block(header.crc, src, length);
 
-    buffer_length = flarm_escape(flarm->buffer, &header, sizeof(header));
+    flarm->buffer[0] = FLARM_STARTFRAME;
+
+    buffer_length = 1 + flarm_escape(flarm->buffer + 1, &header, sizeof(header));
     if (length > 0)
         buffer_length += flarm_escape(flarm->buffer + buffer_length, src, length);
 
