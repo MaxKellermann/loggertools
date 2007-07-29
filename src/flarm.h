@@ -35,6 +35,14 @@ enum {
     FLARM_MESSAGE_GETIGCDATA = 0x22,
 };
 
+enum {
+    FLARM_BAUD_4800 = 0,
+    FLARM_BAUD_9600 = 1,
+    FLARM_BAUD_19200 = 2,
+    FLARM_BAUD_38400 = 3,
+    FLARM_BAUD_57600 = 4,
+};
+
 typedef struct flarm *flarm_t;
 
 
