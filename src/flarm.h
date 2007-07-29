@@ -69,6 +69,18 @@ flarm_send_ping(flarm_t flarm);
 int
 flarm_send_set_baud_rate(flarm_t flarm, int speed);
 
+int
+flarm_send_exit(flarm_t flarm);
+
+int
+flarm_send_select_record(flarm_t flarm, unsigned record_no);
+
+int
+flarm_send_get_record_info(flarm_t flarm);
+
+int
+flarm_send_get_igc_data(flarm_t flarm);
+
 
 /* flarm-recv.c */
 
