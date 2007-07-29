@@ -57,6 +57,9 @@ void flarm_close(flarm_t *flarm_r);
 int flarm_send_frame(flarm_t flarm, uint8_t type,
                      const void *src, size_t length);
 
+unsigned
+flarm_last_seq_no(flarm_t flarm);
+
 /* flarm-recv.c */
 
 int flarm_recv_frame(flarm_t flarm,

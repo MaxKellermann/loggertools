@@ -64,3 +64,10 @@ int flarm_send_frame(flarm_t flarm, uint8_t type,
 
     return 0;
 }
+
+unsigned
+flarm_last_seq_no(flarm_t flarm)
+{
+    return flarm->last_seq_no;
+}
+
