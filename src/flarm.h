@@ -23,6 +23,18 @@
 #include <stdint.h>
 #include <stddef.h>
 
+enum {
+    FLARM_MESSAGE_ACK = 0xa0,
+    FLARM_MESSAGE_NACK = 0xb7,
+    FLARM_MESSAGE_PING = 0x01,
+    FLARM_MESSAGE_SETBAUDRATE = 0x02,
+    FLARM_MESSAGE_FLASHUPLOAD = 0x10,
+    FLARM_MESSAGE_EXIT = 0x12,
+    FLARM_MESSAGE_SELECTRECORD = 0x20,
+    FLARM_MESSAGE_GETRECORDINFO = 0x21,
+    FLARM_MESSAGE_GETIGCDATA = 0x22,
+};
+
 typedef struct flarm *flarm_t;
 
 
