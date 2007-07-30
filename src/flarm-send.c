@@ -24,17 +24,42 @@
 #include <errno.h>
 
 flarm_result_t
+flarm_send(flarm_t flarm,
+           const void *src, size_t length)
+{
+    ssize_t nbytes;
+
+    assert(flarm != NULL);
+    assert(flarm->fd >= 0);
+    assert(src != NULL || length == 0);
+
+    if (length == 0)
+        return FLARM_RESULT_SUCCESS;
+
+    nbytes = write(flarm->fd, src, length);
+    if (nbytes < 0)
+        return errno;
+
+    if ((size_t)nbytes != length)
+        return ENOSPC;
+
+    return FLARM_RESULT_SUCCESS;
+}
+
+flarm_result_t
 flarm_send_frame(flarm_t flarm, uint8_t type,
                  const void *src, size_t length)
 {
     flarm_result_t ret;
     struct flarm_frame_header header;
     size_t buffer_length;
-    ssize_t nbytes;
 
     assert(flarm != NULL);
     assert(flarm->fd >= 0);
     assert(src != NULL || length == 0);
+
+    if (!flarm->binary_mode)
+        return FLARM_RESULT_NOT_BINARY;
 
     if (length >= 32768)
         /* make sure the length fits into 16 bit header.length */
@@ -57,14 +82,7 @@ flarm_send_frame(flarm_t flarm, uint8_t type,
     if (length > 0)
         buffer_length += flarm_escape(flarm->buffer + buffer_length, src, length);
 
-    nbytes = write(flarm->fd, flarm->buffer, buffer_length);
-    if (nbytes < 0)
-        return errno;
-
-    if ((size_t)nbytes < buffer_length)
-        return ENOSPC;
-
-    return 0;
+    return flarm_send(flarm, flarm->buffer, buffer_length);
 }
 
 unsigned

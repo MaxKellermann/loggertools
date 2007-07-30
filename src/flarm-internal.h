@@ -33,6 +33,7 @@
 
 struct flarm {
     int fd;
+    int binary_mode;
     unsigned last_seq_no;
     uint8_t *buffer;
     size_t buffer_size;

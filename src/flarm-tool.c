@@ -216,6 +216,22 @@ flarm_ping_wait(flarm_t flarm)
 }
 
 static void
+flarm_tool_binary_mode(flarm_t flarm)
+{
+    flarm_result_t result;
+
+    result = flarm_enter_binary_mode(flarm);
+    if (result != FLARM_RESULT_SUCCESS &&
+        result != FLARM_RESULT_NOT_TEXT) {
+        fprintf(stderr, "failed to enter binary mode: %s\n",
+                flarm_strerror(result));
+        exit(2);
+    }
+
+    flarm_ping_wait(flarm);
+}
+
+static void
 cmd_ping(const struct config *config, flarm_t flarm,
          int argc, char **argv)
 {
@@ -225,7 +241,7 @@ cmd_ping(const struct config *config, flarm_t flarm,
     if (optind < argc)
         arg_error("Too many arguments");
 
-    flarm_ping_wait(flarm);
+    flarm_tool_binary_mode(flarm);
 }
 
 static void
@@ -243,7 +259,7 @@ cmd_list(const struct config *config, flarm_t flarm,
     if (optind < argc)
         arg_error("Too many arguments");
 
-    flarm_ping_wait(flarm);
+    flarm_tool_binary_mode(flarm);
 
     for (i = 0;; ++i) {
         ret = flarm_send_select_record(flarm, i);
@@ -309,7 +325,7 @@ cmd_download(const struct config *config, flarm_t flarm,
     if (optind < argc)
         arg_error("Too many arguments");
 
-    flarm_ping_wait(flarm);
+    flarm_tool_binary_mode(flarm);
 
     ret = flarm_send_select_record(flarm, record_no);
     if (ret != FLARM_RESULT_SUCCESS) {

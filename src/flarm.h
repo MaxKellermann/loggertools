@@ -73,6 +73,10 @@ void flarm_close(flarm_t *flarm_r);
 /* flarm-send.c */
 
 flarm_result_t
+flarm_send(flarm_t flarm,
+           const void *src, size_t length);
+
+flarm_result_t
 flarm_send_frame(flarm_t flarm, uint8_t type,
                  const void *src, size_t length);
 
@@ -108,6 +112,12 @@ flarm_recv_frame(flarm_t flarm,
                  uint8_t *version_r, uint8_t *type_r,
                  uint16_t *seq_no_r,
                  const void **payload_r, size_t *length_r);
+
+
+/* flarm-mode.c */
+
+flarm_result_t
+flarm_enter_binary_mode(flarm_t flarm);
 
 
 /* flarm-error.c */

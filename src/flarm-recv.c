@@ -133,6 +133,9 @@ flarm_recv_frame(flarm_t flarm,
     assert(payload_r != NULL);
     assert(length_r != NULL);
 
+    if (!flarm->binary_mode)
+        return FLARM_RESULT_NOT_BINARY;
+
     if (!flarm->frame_started) {
         fifo_buffer_clear(flarm->frame);
 
