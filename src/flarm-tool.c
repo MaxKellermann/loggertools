@@ -56,6 +56,10 @@ static void usage(void) {
          "valid commands:\n"
          "  ping\n"
          "        perform a connection test\n"
+         "  list\n"
+         "        list all available flights\n"
+         "  download NO\n"
+         "        downloads the flight number NO\n"
          );
 }
 
