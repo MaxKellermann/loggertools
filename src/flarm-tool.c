@@ -26,7 +26,6 @@
 #include <string.h>
 #include <errno.h>
 #include <termios.h>
-#include <signal.h>
 #include <time.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
@@ -123,10 +122,6 @@ static void arg_error(const char *msg) {
     fprintf(stderr, "flarmtool: %s\n", msg);
     fprintf(stderr, "Try 'flarmtool -h' for more information.\n");
     _exit(1);
-}
-
-static void alarm_handler(int dummy) {
-    (void)dummy;
 }
 
 static flarm_result_t
@@ -379,8 +374,6 @@ int main(int argc, char **argv) {
     const char *cmd;
     flarm_result_t ret;
     flarm_t flarm;
-
-    signal(SIGALRM, alarm_handler);
 
     parse_cmdline(&config, argc, argv);
 
