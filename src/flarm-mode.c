@@ -37,3 +37,14 @@ flarm_enter_binary_mode(flarm_t flarm)
     return result;
 }
 
+flarm_result_t
+flarm_exit_binary_mode(flarm_t flarm)
+{
+    flarm_result_t result;
+
+    result = flarm_send_exit(flarm);
+    if (result == FLARM_RESULT_SUCCESS)
+        flarm->binary_mode = 0;
+
+    return result;
+}

@@ -406,5 +406,6 @@ int main(int argc, char **argv) {
         arg_error("unknown command");
     }
 
+    flarm_exit_binary_mode(flarm);
     flarm_close(&flarm);
 }

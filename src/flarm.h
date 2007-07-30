@@ -119,6 +119,9 @@ flarm_recv_frame(flarm_t flarm,
 flarm_result_t
 flarm_enter_binary_mode(flarm_t flarm);
 
+flarm_result_t
+flarm_exit_binary_mode(flarm_t flarm);
+
 
 /* flarm-error.c */
 
