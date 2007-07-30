@@ -23,6 +23,14 @@
 #include <stdint.h>
 #include <stddef.h>
 
+typedef enum {
+    FLARM_RESULT_SUCCESS = 0,
+    FLARM_RESULT_NOT_BINARY = -1,
+    FLARM_RESULT_NOT_TEXT = -2,
+    FLARM_RESULT_NACK = -3,
+    FLARM_RESULT_NOT_ACK = -4,
+} flarm_result_t;
+
 enum {
     FLARM_MESSAGE_ACK = 0xa0,
     FLARM_MESSAGE_NACK = 0xb7,
@@ -52,9 +60,11 @@ extern "C" {
 
 /* flarm-open.c */
 
-int flarm_fdopen(int fd, flarm_t *flarm_r);
+flarm_result_t
+flarm_fdopen(int fd, flarm_t *flarm_r);
 
-int flarm_open(const char *device_path, flarm_t *flarm_r);
+flarm_result_t
+flarm_open(const char *device_path, flarm_t *flarm_r);
 
 int flarm_fileno(flarm_t flarm);
 
@@ -62,8 +72,9 @@ void flarm_close(flarm_t *flarm_r);
 
 /* flarm-send.c */
 
-int flarm_send_frame(flarm_t flarm, uint8_t type,
-                     const void *src, size_t length);
+flarm_result_t
+flarm_send_frame(flarm_t flarm, uint8_t type,
+                 const void *src, size_t length);
 
 unsigned
 flarm_last_seq_no(flarm_t flarm);
@@ -71,31 +82,39 @@ flarm_last_seq_no(flarm_t flarm);
 
 /* flarm-message.c */
 
-int
+flarm_result_t
 flarm_send_ping(flarm_t flarm);
 
-int
+flarm_result_t
 flarm_send_set_baud_rate(flarm_t flarm, int speed);
 
-int
+flarm_result_t
 flarm_send_exit(flarm_t flarm);
 
-int
+flarm_result_t
 flarm_send_select_record(flarm_t flarm, unsigned record_no);
 
-int
+flarm_result_t
 flarm_send_get_record_info(flarm_t flarm);
 
-int
+flarm_result_t
 flarm_send_get_igc_data(flarm_t flarm);
 
 
 /* flarm-recv.c */
 
-int flarm_recv_frame(flarm_t flarm,
-                     uint8_t *version_r, uint8_t *type_r,
-                     uint16_t *seq_no_r,
-                     const void **payload_r, size_t *length_r);
+flarm_result_t
+flarm_recv_frame(flarm_t flarm,
+                 uint8_t *version_r, uint8_t *type_r,
+                 uint16_t *seq_no_r,
+                 const void **payload_r, size_t *length_r);
+
+
+/* flarm-error.c */
+
+const char *
+flarm_strerror(flarm_result_t result);
+
 
 #ifdef __cplusplus
 }

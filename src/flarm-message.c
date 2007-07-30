@@ -23,13 +23,13 @@
 #include <unistd.h>
 #include <errno.h>
 
-int
+flarm_result_t
 flarm_send_ping(flarm_t flarm)
 {
     return flarm_send_frame(flarm, FLARM_MESSAGE_PING, NULL, 0);
 }
 
-int
+flarm_result_t
 flarm_send_set_baud_rate(flarm_t flarm, int speed)
 {
     uint8_t payload = (uint8_t)speed;
@@ -38,13 +38,13 @@ flarm_send_set_baud_rate(flarm_t flarm, int speed)
                             &payload, sizeof(payload));
 }
 
-int
+flarm_result_t
 flarm_send_exit(flarm_t flarm)
 {
     return flarm_send_frame(flarm, FLARM_MESSAGE_EXIT, NULL, 0);
 }
 
-int
+flarm_result_t
 flarm_send_select_record(flarm_t flarm, unsigned record_no)
 {
     uint8_t payload = (uint8_t)record_no;
@@ -53,13 +53,13 @@ flarm_send_select_record(flarm_t flarm, unsigned record_no)
                             &payload, sizeof(payload));
 }
 
-int
+flarm_result_t
 flarm_send_get_record_info(flarm_t flarm)
 {
     return flarm_send_frame(flarm, FLARM_MESSAGE_GETRECORDINFO, NULL, 0);
 }
 
-int
+flarm_result_t
 flarm_send_get_igc_data(flarm_t flarm)
 {
     return flarm_send_frame(flarm, FLARM_MESSAGE_GETIGCDATA, NULL, 0);

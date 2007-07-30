@@ -17,32 +17,32 @@
  * 02111-1307, USA.
  */
 
-#include "flarm-internal.h"
+#include "flarm.h"
 
-#include <assert.h>
-#include <stdlib.h>
-#include <errno.h>
+#include <string.h>
 
-flarm_result_t
-flarm_need_buffer(flarm_t flarm, size_t min_size)
+const char *
+flarm_strerror(flarm_result_t result)
 {
-    if (flarm->buffer_size >= min_size) {
-        assert(flarm->buffer != NULL);
-        return FLARM_RESULT_SUCCESS;
+    if (result > 0)
+        return strerror(result);
+
+    switch (result) {
+    case FLARM_RESULT_SUCCESS:
+        return "Success";
+
+    case FLARM_RESULT_NOT_BINARY:
+        return "Not in binary mode";
+
+    case FLARM_RESULT_NOT_TEXT:
+        return "Not in text mode";
+
+    case FLARM_RESULT_NACK:
+        return "Received NACK";
+
+    case FLARM_RESULT_NOT_ACK:
+        return "ACK expected";
     }
 
-    if (flarm->buffer != NULL) {
-        assert(flarm->buffer_size > 0);
-        free(flarm->buffer);
-    }
-
-    min_size = ((min_size - 1) | 0xff) + 1;
-    flarm->buffer = (uint8_t*)malloc(min_size);
-    if (flarm->buffer == NULL) {
-        flarm->buffer_size = 0;
-        return errno;
-    }
-
-    flarm->buffer_size = min_size;
-    return FLARM_RESULT_SUCCESS;
+    return "Unknown FLARM library error";
 }

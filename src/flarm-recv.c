@@ -24,7 +24,9 @@
 #include <string.h>
 #include <errno.h>
 
-static int flarm_fill_in(flarm_t flarm) {
+static flarm_result_t
+flarm_fill_in(flarm_t flarm)
+{
     void *p;
     size_t max_length;
     ssize_t nbytes;
@@ -40,35 +42,38 @@ static int flarm_fill_in(flarm_t flarm) {
         return errno;
 
     fifo_buffer_append(flarm->in, (size_t)nbytes);
-    return 0;
+    return FLARM_RESULT_SUCCESS;
 }
 
-static int flarm_read(flarm_t flarm, const uint8_t **p_r, size_t *length_r) {
-    int ret;
+static flarm_result_t
+flarm_read(flarm_t flarm, const uint8_t **p_r, size_t *length_r)
+{
+    flarm_result_t ret;
 
     *p_r = (const uint8_t*)fifo_buffer_read(flarm->in, length_r);
     if (*p_r != NULL)
-        return 0;
+        return FLARM_RESULT_SUCCESS;
 
     ret = flarm_fill_in(flarm);
-    if (ret != 0)
+    if (ret != FLARM_RESULT_SUCCESS)
         return ret;
 
     *p_r = (const uint8_t*)fifo_buffer_read(flarm->in, length_r);
     if (*p_r == NULL)
         return EAGAIN;
 
-    return 0;
+    return FLARM_RESULT_SUCCESS;
 }
 
-static int flarm_wait_startframe(flarm_t flarm) {
-    int ret;
+static flarm_result_t
+flarm_wait_startframe(flarm_t flarm) {
+    flarm_result_t ret;
     const uint8_t *src, *startframe;
     size_t length;
 
     for (;;) {
         ret = flarm_read(flarm, &src, &length);
-        if (ret != 0)
+        if (ret != FLARM_RESULT_SUCCESS)
             return ret;
 
         startframe = memchr(src, FLARM_STARTFRAME, length);
@@ -76,19 +81,20 @@ static int flarm_wait_startframe(flarm_t flarm) {
             fifo_buffer_consume(flarm->in, length);
         } else {
             fifo_buffer_consume(flarm->in, startframe - src + 1);
-            return 0;
+            return FLARM_RESULT_SUCCESS;
         }
     }
 }
 
-static int flarm_recv_unescape(flarm_t flarm) {
+static flarm_result_t
+flarm_recv_unescape(flarm_t flarm) {
     const uint8_t *src;
     uint8_t *dest;
-    int ret;
+    flarm_result_t ret;
     size_t in_length, max_length, src_pos, dest_pos;
 
     ret = flarm_read(flarm, &src, &in_length);
-    if (ret != 0)
+    if (ret != FLARM_RESULT_SUCCESS)
         return ret;
 
     dest = (uint8_t*)fifo_buffer_write(flarm->frame, &max_length);
@@ -107,16 +113,17 @@ static int flarm_recv_unescape(flarm_t flarm) {
         fifo_buffer_append(flarm->frame, dest_pos);
         dest += dest_pos;
         max_length -= dest_pos;
-    } while (in_length > 0 && ret == 0);
+    } while (in_length > 0 && ret == FLARM_RESULT_SUCCESS);
 
     return ret;
 }
 
-int flarm_recv_frame(flarm_t flarm,
-                     uint8_t *version_r, uint8_t *type_r,
-                     uint16_t *seq_no_r,
-                     const void **payload_r, size_t *length_r) {
-    int ret;
+flarm_result_t
+flarm_recv_frame(flarm_t flarm,
+                 uint8_t *version_r, uint8_t *type_r,
+                 uint16_t *seq_no_r,
+                 const void **payload_r, size_t *length_r) {
+    flarm_result_t ret;
     const struct flarm_frame_header *header;
     size_t length;
 
@@ -130,7 +137,7 @@ int flarm_recv_frame(flarm_t flarm,
         fifo_buffer_clear(flarm->frame);
 
         ret = flarm_wait_startframe(flarm);
-        if (ret != 0)
+        if (ret != FLARM_RESULT_SUCCESS)
             return ret;
 
         flarm->frame_started = 1;
@@ -139,7 +146,7 @@ int flarm_recv_frame(flarm_t flarm,
     ret = flarm_recv_unescape(flarm);
     if (ret == ENOSPC)
         flarm->frame_started = 0;
-    if (ret != 0 && ret != ECONNRESET)
+    if (ret != FLARM_RESULT_SUCCESS && ret != ECONNRESET)
         return ret;
 
     header = (const struct flarm_frame_header*)fifo_buffer_read(flarm->frame, &length);
@@ -161,5 +168,5 @@ int flarm_recv_frame(flarm_t flarm,
     *payload_r = header + 1;
     *length_r = header->length;
 
-    return 0;
+    return FLARM_RESULT_SUCCESS;
 }

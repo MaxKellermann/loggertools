@@ -129,13 +129,14 @@ static void alarm_handler(int dummy) {
     (void)dummy;
 }
 
-static int
+static flarm_result_t
 flarm_wait_recv_frame(flarm_t flarm,
                       uint8_t *version_r, uint8_t *type_r,
                       uint16_t *seq_no_r,
                       const void **payload_r, size_t *length_r)
 {
-    int ret, n = 0;
+    flarm_result_t ret;
+    int n = 0;
     struct timespec ts = {
         .tv_sec = 0,
         .tv_nsec = 100000,
@@ -161,19 +162,19 @@ flarm_wait_recv_frame(flarm_t flarm,
     return EAGAIN;
 }
 
-static int
+static flarm_result_t
 flarm_expect_ack(flarm_t flarm,
                  uint16_t expected_seq_no,
                  const void **payload_r, size_t *length_r)
 {
-    int ret;
+    flarm_result_t ret;
     uint8_t version, type;
     uint16_t seq_no;
 
     while (1) {
         ret = flarm_wait_recv_frame(flarm, &version, &type, &seq_no,
                                     payload_r, length_r);
-        if (ret != 0)
+        if (ret != FLARM_RESULT_SUCCESS)
             return ret;
 
         if (seq_no != expected_seq_no) {
@@ -182,11 +183,10 @@ flarm_expect_ack(flarm_t flarm,
             continue;
         }
 
-        if (type != FLARM_MESSAGE_ACK) {
-            fprintf(stderr, "expected ACK, flarm response was %d\n",
-                    type);
-            return -1;
-        }
+        if (type != FLARM_MESSAGE_ACK)
+            return type == FLARM_MESSAGE_NACK
+                ? FLARM_RESULT_NACK
+                : FLARM_RESULT_NOT_ACK;
 
         return 0;
     }
@@ -195,23 +195,22 @@ flarm_expect_ack(flarm_t flarm,
 static void
 flarm_ping_wait(flarm_t flarm)
 {
-    int ret;
+    flarm_result_t ret;
     const void *payload;
     size_t length;
 
     ret = flarm_send_ping(flarm);
-    if (ret != 0) {
+    if (ret != FLARM_RESULT_SUCCESS) {
         fprintf(stderr, "failed to send ping: %s\n",
-                strerror(ret));
+                flarm_strerror(ret));
         exit(2);
     }
 
     ret = flarm_expect_ack(flarm, flarm_last_seq_no(flarm),
                            &payload, &length);
-    if (ret != 0) {
-        if (ret > 0)
-            fprintf(stderr, "failed to receive ack: %s\n",
-                    strerror(ret));
+    if (ret != FLARM_RESULT_SUCCESS) {
+        fprintf(stderr, "failed to receive ack: %s\n",
+                flarm_strerror(ret));
         exit(2);
     }
 }
@@ -234,7 +233,7 @@ cmd_list(const struct config *config, flarm_t flarm,
          int argc, char **argv)
 {
     unsigned i;
-    int ret;
+    flarm_result_t ret;
     const char *payload;
     size_t length;
 
@@ -248,36 +247,35 @@ cmd_list(const struct config *config, flarm_t flarm,
 
     for (i = 0;; ++i) {
         ret = flarm_send_select_record(flarm, i);
-        if (ret != 0) {
+        if (ret != FLARM_RESULT_SUCCESS) {
             fprintf(stderr, "failed to send select record: %s\n",
-                    strerror(ret));
+                    flarm_strerror(ret));
             exit(2);
         }
 
         ret = flarm_expect_ack(flarm, flarm_last_seq_no(flarm),
                                (const void**)&payload, &length);
-        if (ret < 0)
+        if (ret == FLARM_RESULT_NACK)
             break;
 
-        if (ret != 0) {
+        if (ret != FLARM_RESULT_SUCCESS) {
             fprintf(stderr, "failed to receive ack: %s\n",
-                    strerror(ret));
+                    flarm_strerror(ret));
             exit(2);
         }
 
         ret = flarm_send_get_record_info(flarm);
-        if (ret != 0) {
+        if (ret != FLARM_RESULT_SUCCESS) {
             fprintf(stderr, "failed to send get record info: %s\n",
-                    strerror(ret));
+                    flarm_strerror(ret));
             exit(2);
         }
 
         ret = flarm_expect_ack(flarm, flarm_last_seq_no(flarm),
                                (const void**)&payload, &length);
-        if (ret != 0) {
-            if (ret > 0)
-                fprintf(stderr, "failed to receive ack: %s\n",
-                        strerror(ret));
+        if (ret != FLARM_RESULT_SUCCESS) {
+            fprintf(stderr, "failed to receive ack: %s\n",
+                    flarm_strerror(ret));
             exit(2);
         }
 
@@ -292,10 +290,10 @@ cmd_list(const struct config *config, flarm_t flarm,
 
 static void
 cmd_download(const struct config *config, flarm_t flarm,
-         int argc, char **argv)
+             int argc, char **argv)
 {
     unsigned record_no;
-    int ret;
+    flarm_result_t ret;
     const char *payload;
     size_t length;
     int is_eof = 0;
@@ -314,35 +312,33 @@ cmd_download(const struct config *config, flarm_t flarm,
     flarm_ping_wait(flarm);
 
     ret = flarm_send_select_record(flarm, record_no);
-    if (ret != 0) {
+    if (ret != FLARM_RESULT_SUCCESS) {
         fprintf(stderr, "failed to send select record: %s\n",
-                strerror(ret));
+                flarm_strerror(ret));
         exit(2);
     }
 
     ret = flarm_expect_ack(flarm, flarm_last_seq_no(flarm),
                            (const void**)&payload, &length);
-    if (ret != 0) {
-        if (ret > 0)
-            fprintf(stderr, "failed to receive ack: %s\n",
-                    strerror(ret));
+    if (ret != FLARM_RESULT_SUCCESS) {
+        fprintf(stderr, "failed to receive ack: %s\n",
+                flarm_strerror(ret));
         exit(2);
     }
 
     while (!is_eof) {
         ret = flarm_send_get_igc_data(flarm);
-        if (ret != 0) {
+        if (ret != FLARM_RESULT_SUCCESS) {
             fprintf(stderr, "failed to send get record info: %s\n",
-                    strerror(ret));
+                    flarm_strerror(ret));
             exit(2);
         }
 
         ret = flarm_expect_ack(flarm, flarm_last_seq_no(flarm),
                                (const void**)&payload, &length);
-        if (ret != 0) {
-            if (ret > 0)
-                fprintf(stderr, "failed to receive ack: %s\n",
-                        strerror(ret));
+        if (ret != FLARM_RESULT_SUCCESS) {
+            fprintf(stderr, "failed to receive ack: %s\n",
+                    flarm_strerror(ret));
             exit(2);
         }
 
@@ -365,7 +361,7 @@ cmd_download(const struct config *config, flarm_t flarm,
 int main(int argc, char **argv) {
     struct config config;
     const char *cmd;
-    int ret;
+    flarm_result_t ret;
     flarm_t flarm;
 
     signal(SIGALRM, alarm_handler);
@@ -378,8 +374,9 @@ int main(int argc, char **argv) {
     cmd = argv[optind++];
 
     ret = flarm_open(config.tty, &flarm);
-    if (ret < 0) {
-        perror("failed to open flarm");
+    if (ret != FLARM_RESULT_SUCCESS) {
+        fprintf(stderr, "failed to open flarm: %s",
+                flarm_strerror(ret));
         exit(2);
     }
 

@@ -46,9 +46,10 @@ size_t flarm_escape(uint8_t *dest, const void *src0, size_t length) {
     return dest_pos;
 }
 
-int flarm_unescape(void *dest0,
-                   const uint8_t *src, size_t length,
-                   size_t *dest_pos_r, size_t *src_pos_r) {
+flarm_result_t
+flarm_unescape(void *dest0,
+               const uint8_t *src, size_t length,
+               size_t *dest_pos_r, size_t *src_pos_r) {
     uint8_t *dest = (uint8_t*)dest0;
     size_t dest_pos = 0, src_pos = 0;
 
@@ -93,5 +94,5 @@ int flarm_unescape(void *dest0,
         }
     }
 
-    return 0;
+    return FLARM_RESULT_SUCCESS;
 }

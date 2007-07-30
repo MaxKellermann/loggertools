@@ -29,7 +29,8 @@
 #include "flarm.h"
 #include "flarm-internal.h"
 
-int flarm_fdopen(int fd, flarm_t *flarm_r) {
+flarm_result_t
+flarm_fdopen(int fd, flarm_t *flarm_r) {
     flarm_t flarm;
     int ret;
 
@@ -38,7 +39,7 @@ int flarm_fdopen(int fd, flarm_t *flarm_r) {
 
     flarm = calloc(1, sizeof(*flarm));
     if (flarm == NULL)
-        return -1;
+        return errno;
 
     flarm->fd = fd;
 
@@ -91,7 +92,7 @@ int flarm_open(const char *device_path, flarm_t *flarm_r) {
     }
 
     ret = flarm_fdopen(fd, flarm_r);
-    if (ret != 0)
+    if (ret != FLARM_RESULT_SUCCESS)
         close(fd);
 
     return ret;

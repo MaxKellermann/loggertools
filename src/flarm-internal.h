@@ -50,7 +50,8 @@ struct flarm_frame_header {
 
 /* flarm-buffer.c */
 
-int flarm_need_buffer(flarm_t flarm, size_t min_size);
+flarm_result_t
+flarm_need_buffer(flarm_t flarm, size_t min_size);
 
 /* flarm-crc.c */
 
@@ -63,8 +64,9 @@ uint16_t flarm_crc_update_block(uint16_t crc, const void *src,
 
 size_t flarm_escape(uint8_t *dest, const void *src, size_t length);
 
-int flarm_unescape(void *dest0,
-                   const uint8_t *src, size_t src_length,
-                   size_t *dest_pos_r, size_t *src_pos_r);
+flarm_result_t
+flarm_unescape(void *dest0,
+               const uint8_t *src, size_t src_length,
+               size_t *dest_pos_r, size_t *src_pos_r);
 
 #endif

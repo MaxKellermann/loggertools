@@ -23,9 +23,11 @@
 #include <unistd.h>
 #include <errno.h>
 
-int flarm_send_frame(flarm_t flarm, uint8_t type,
-                     const void *src, size_t length) {
-    int ret;
+flarm_result_t
+flarm_send_frame(flarm_t flarm, uint8_t type,
+                 const void *src, size_t length)
+{
+    flarm_result_t ret;
     struct flarm_frame_header header;
     size_t buffer_length;
     ssize_t nbytes;
@@ -39,7 +41,7 @@ int flarm_send_frame(flarm_t flarm, uint8_t type,
         return EFBIG;
 
     ret = flarm_need_buffer(flarm, sizeof(header) + length * 2);
-    if (ret != 0)
+    if (ret != FLARM_RESULT_SUCCESS)
         return ret;
 
     header.length = (uint16_t)sizeof(header) + length;
