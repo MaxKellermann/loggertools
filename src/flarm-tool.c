@@ -173,7 +173,9 @@ flarm_expect_ack(flarm_t flarm,
     while (1) {
         ret = flarm_wait_recv_frame(flarm, &version, &type, &seq_no,
                                     payload_r, length_r);
-        if (ret != FLARM_RESULT_SUCCESS)
+        if (ret != FLARM_RESULT_SUCCESS &&
+            ret != FLARM_RESULT_NACK &&
+            ret != FLARM_RESULT_NOT_ACK)
             return ret;
 
         if (seq_no != expected_seq_no) {
@@ -182,12 +184,7 @@ flarm_expect_ack(flarm_t flarm,
             continue;
         }
 
-        if (type != FLARM_MESSAGE_ACK)
-            return type == FLARM_MESSAGE_NACK
-                ? FLARM_RESULT_NACK
-                : FLARM_RESULT_NOT_ACK;
-
-        return 0;
+        return ret;
     }
 }
 

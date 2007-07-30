@@ -171,5 +171,10 @@ flarm_recv_frame(flarm_t flarm,
     *payload_r = header + 1;
     *length_r = header->length;
 
-    return FLARM_RESULT_SUCCESS;
+    if (header->type == FLARM_MESSAGE_ACK)
+        return FLARM_RESULT_SUCCESS;
+    else if (header->type == FLARM_MESSAGE_NACK)
+        return FLARM_RESULT_NACK;
+    else
+        return FLARM_RESULT_NOT_ACK;
 }
