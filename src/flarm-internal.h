@@ -47,7 +47,7 @@ struct flarm_frame_header {
     uint16_t seq_no;
     uint8_t type;
     uint16_t crc;
-};
+} __attribute__((packed));
 
 /* flarm-buffer.c */
 
