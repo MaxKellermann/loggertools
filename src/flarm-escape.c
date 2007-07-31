@@ -94,5 +94,7 @@ flarm_unescape(void *dest0,
         }
     }
 
+    *dest_pos_r = dest_pos;
+    *src_pos_r = src_pos;
     return FLARM_RESULT_SUCCESS;
 }
