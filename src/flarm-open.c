@@ -81,8 +81,8 @@ int flarm_open(const char *device_path, flarm_t *flarm_r) {
     attr.c_cflag |= (CS8 | CLOCAL);
     attr.c_cc[VMIN] = 0;
     attr.c_cc[VTIME] = 1;
-    cfsetospeed(&attr, B19200);
-    cfsetispeed(&attr, B19200);
+    cfsetospeed(&attr, B4800);
+    cfsetispeed(&attr, B4800);
 
     ret = tcsetattr(fd, TCSANOW, &attr);
     if (ret < 0) {
