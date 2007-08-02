@@ -52,7 +52,7 @@ private:
 public:
     Airspace(const std::string &name, type_t type,
              const Altitude &bottom, const Altitude &top,
-             const VertexList vertices);
+             const VertexList &vertices);
 public:
     const std::string &getName() const {
         return name;
