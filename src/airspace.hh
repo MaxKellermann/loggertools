@@ -25,29 +25,6 @@
 
 #include "earth.hh"
 
-/** a 2D position earth's surface */
-class Vertex {
-private:
-    Latitude latitude;
-    Longitude longitude;
-public:
-    Vertex() {}
-    Vertex(const Latitude &_lat, const Longitude &_lon);
-    Vertex(const Vertex &position);
-    void operator =(const Vertex &pos);
-public:
-    bool defined() const {
-        return latitude.defined() &&
-            longitude.defined();
-    }
-    const Latitude &getLatitude() const {
-        return latitude;
-    }
-    const Longitude &getLongitude() const {
-        return longitude;
-    }
-};
-
 /** an airspace: polygon with a lower and an upper bound */
 class Airspace {
 public:
@@ -70,11 +47,11 @@ private:
     std::string name;
     type_t type;
     Altitude bottom, top;
-    std::vector<Vertex> vertices;
+    std::vector<SurfacePosition> vertices;
 public:
     Airspace(const std::string &name, type_t type,
              const Altitude &bottom, const Altitude &top,
-             const std::vector<Vertex> vertices);
+             const std::vector<SurfacePosition> vertices);
 public:
     const std::string &getName() const {
         return name;
@@ -88,7 +65,7 @@ public:
     const Altitude &getTop() const {
         return top;
     }
-    const std::vector<Vertex> &getVertices() const {
+    const std::vector<SurfacePosition> &getVertices() const {
         return vertices;
     }
 };

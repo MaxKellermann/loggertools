@@ -19,24 +19,9 @@
 
 #include "airspace.hh"
 
-Vertex::Vertex(const Latitude &_lat, const Longitude &_lon)
-    :latitude(_lat),
-     longitude(_lon) {
-}
-
-Vertex::Vertex(const Vertex &position)
-    :latitude(position.getLatitude()),
-     longitude(position.getLongitude()) {
-}
-
-void Vertex::operator =(const Vertex &pos) {
-    latitude = pos.getLatitude();
-    longitude = pos.getLongitude();
-}
-
 Airspace::Airspace(const std::string &_name, type_t _type,
                    const Altitude &_bottom, const Altitude &_top,
-                   const std::vector<Vertex> _vertices)
+                   const std::vector<SurfacePosition> _vertices)
     :name(_name), type(_type),
      bottom(_bottom), top(_top),
      vertices(_vertices) {
