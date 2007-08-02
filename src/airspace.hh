@@ -21,7 +21,7 @@
 #define __LOGGERTOOLS_AIRSPACE_HH
 
 #include <string>
-#include <vector>
+#include <list>
 
 #include "earth.hh"
 
@@ -43,7 +43,7 @@ public:
         TYPE_DANGER,
         TYPE_GLIDER
     };
-    typedef std::vector<SurfacePosition> VertexList;
+    typedef std::list<SurfacePosition> VertexList;
 private:
     std::string name;
     type_t type;
