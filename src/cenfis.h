@@ -35,26 +35,33 @@ typedef enum {
 
 #define cenfis_is_error(status) ((status) < 0)
 
-struct cenfis;
+typedef struct cenfis *cenfis_t;
 
 #define CENFIS_DIALOG_PROGRAM 'P'
 #define CENFIS_DIALOG_DATA 'D'
 
-cenfis_status_t cenfis_open(const char *device,
-                            struct cenfis **cenfisp);
+cenfis_status_t
+cenfis_open(const char *device,
+            cenfis_t *cenfisp);
 
-void cenfis_close(struct cenfis *cenfis);
+void
+cenfis_close(cenfis_t cenfis);
 
-void cenfis_dump(struct cenfis *cenfis, int fd);
+void
+cenfis_dump(cenfis_t cenfis, int fd);
 
-cenfis_status_t cenfis_select(struct cenfis *cenfis,
-                              struct timeval *timeout);
+cenfis_status_t
+cenfis_select(cenfis_t cenfis,
+              struct timeval *timeout);
 
-cenfis_status_t cenfis_confirm(struct cenfis *cenfis);
+cenfis_status_t
+cenfis_confirm(cenfis_t cenfis);
 
-cenfis_status_t cenfis_dialog_respond(struct cenfis *cenfis, char ch);
+cenfis_status_t
+cenfis_dialog_respond(cenfis_t cenfis, char ch);
 
-cenfis_status_t cenfis_write_data(struct cenfis *cenfis,
-                                  const void *buf, size_t count);
+cenfis_status_t
+cenfis_write_data(cenfis_t cenfis,
+                  const void *buf, size_t count);
 
 #endif

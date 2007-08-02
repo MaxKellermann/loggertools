@@ -50,7 +50,7 @@ static void command_send(int argc, char **argv, int pos) {
     char line[256];
     size_t length;
     cenfis_status_t status;
-    struct cenfis *cenfis;
+    cenfis_t cenfis;
     struct timeval tv;
 
     if (pos >= argc)
@@ -134,7 +134,7 @@ static void command_upload(int argc, char **argv, int pos) {
     char line[256];
     size_t length;
     cenfis_status_t status;
-    struct cenfis *cenfis;
+    cenfis_t cenfis;
     struct timeval tv;
 
     if (pos >= argc)

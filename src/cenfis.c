@@ -45,11 +45,13 @@ struct cenfis {
     char buffer[2048];
 };
 
-cenfis_status_t cenfis_open(const char *device,
-                            struct cenfis **cenfisp) {
+cenfis_status_t
+cenfis_open(const char *device,
+            cenfis_t *cenfisp)
+{
     int ret;
     struct serialio *serio;
-    struct cenfis *cenfis;
+    cenfis_t cenfis;
 
     ret = serialio_open(device, &serio);
     if (ret < 0)
@@ -71,7 +73,9 @@ cenfis_status_t cenfis_open(const char *device,
     return CENFIS_STATUS_SUCCESS;
 }
 
-void cenfis_close(struct cenfis *cenfis) {
+void
+cenfis_close(cenfis_t cenfis)
+{
     assert(cenfis != NULL);
 
     if (cenfis->serio != NULL)
@@ -80,11 +84,15 @@ void cenfis_close(struct cenfis *cenfis) {
     free(cenfis);
 }
 
-void cenfis_dump(struct cenfis *cenfis, int fd) {
+void
+cenfis_dump(cenfis_t cenfis, int fd)
+{
     cenfis->dump_fd = fd;
 }
 
-static void cenfis_invalidate(struct cenfis *cenfis) {
+static void
+cenfis_invalidate(cenfis_t cenfis)
+{
     int save_errno = errno;
 
     assert(cenfis != NULL);
@@ -99,7 +107,9 @@ static void cenfis_invalidate(struct cenfis *cenfis) {
     errno = save_errno;
 }
 
-static void cenfis_flush(struct cenfis *cenfis) {
+static void
+cenfis_flush(cenfis_t cenfis)
+{
     assert(cenfis != NULL);
     assert(cenfis->serio != NULL);
     assert(!cenfis_is_error(cenfis->status));
@@ -109,8 +119,10 @@ static void cenfis_flush(struct cenfis *cenfis) {
     cenfis->buffer_pos = 0;
 }
 
-cenfis_status_t cenfis_select(struct cenfis *cenfis,
-                              struct timeval *timeout) {
+cenfis_status_t
+cenfis_select(cenfis_t cenfis,
+              struct timeval *timeout)
+{
     int ret;
     size_t nbytes;
     char *p;
@@ -213,8 +225,10 @@ cenfis_status_t cenfis_select(struct cenfis *cenfis,
     return cenfis->status;
 }
 
-static cenfis_status_t cenfis_write(struct cenfis *cenfis,
-                                    const void *buf, size_t count) {
+static cenfis_status_t
+cenfis_write(cenfis_t cenfis,
+             const void *buf, size_t count)
+{
     int ret;
     size_t written;
 
@@ -236,7 +250,9 @@ static cenfis_status_t cenfis_write(struct cenfis *cenfis,
     return CENFIS_STATUS_SUCCESS;
 }
 
-cenfis_status_t cenfis_confirm(struct cenfis *cenfis) {
+cenfis_status_t
+cenfis_confirm(cenfis_t cenfis)
+{
     static const char yes = 'Y';
     cenfis_status_t status;
 
@@ -253,7 +269,9 @@ cenfis_status_t cenfis_confirm(struct cenfis *cenfis) {
     return status;
 }
 
-cenfis_status_t cenfis_dialog_respond(struct cenfis *cenfis, char ch) {
+cenfis_status_t
+cenfis_dialog_respond(cenfis_t cenfis, char ch)
+{
     cenfis_status_t status;
 
     if (cenfis_is_error(cenfis->status))
@@ -269,8 +287,10 @@ cenfis_status_t cenfis_dialog_respond(struct cenfis *cenfis, char ch) {
     return status;
 }
 
-cenfis_status_t cenfis_write_data(struct cenfis *cenfis,
-                                  const void *buf, size_t count) {
+cenfis_status_t
+cenfis_write_data(cenfis_t cenfis,
+                  const void *buf, size_t count)
+{
     cenfis_status_t status;
 
     if (cenfis_is_error(cenfis->status))

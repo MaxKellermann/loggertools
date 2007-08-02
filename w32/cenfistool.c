@@ -164,7 +164,7 @@ static DWORD WINAPI comm_thread_func(LPVOID ctx) {
     HWND hProgress = GetDlgItem(hDlg, IDC_PROGRESS);
     HWND hCancel = GetDlgItem(hDlg, IDCANCEL);
     cenfis_status_t status;
-    struct cenfis *cenfis;
+    cenfis_t cenfis;
     struct timeval tv;
     FILE *file;
     char line[1024];
