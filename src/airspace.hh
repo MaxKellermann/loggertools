@@ -43,15 +43,16 @@ public:
         TYPE_DANGER,
         TYPE_GLIDER
     };
+    typedef std::vector<SurfacePosition> VertexList;
 private:
     std::string name;
     type_t type;
     Altitude bottom, top;
-    std::vector<SurfacePosition> vertices;
+    VertexList vertices;
 public:
     Airspace(const std::string &name, type_t type,
              const Altitude &bottom, const Altitude &top,
-             const std::vector<SurfacePosition> vertices);
+             const VertexList vertices);
 public:
     const std::string &getName() const {
         return name;
@@ -65,7 +66,7 @@ public:
     const Altitude &getTop() const {
         return top;
     }
-    const std::vector<SurfacePosition> &getVertices() const {
+    const VertexList &getVertices() const {
         return vertices;
     }
 };

@@ -133,8 +133,8 @@ void OpenAirAirspaceWriter::write(const Airspace &as) {
             << "AL " << as.getBottom() << "\n"
             << "AH " << as.getTop() << "\n";
 
-    const std::vector<SurfacePosition> &vertices = as.getVertices();
-    for (std::vector<SurfacePosition>::const_iterator it = vertices.begin();
+    const Airspace::VertexList &vertices = as.getVertices();
+    for (Airspace::VertexList::const_iterator it = vertices.begin();
          it != vertices.end(); ++it) {
         int latitude = (*it).getLatitude().refactor(60);
         int absLatitude = abs(latitude);

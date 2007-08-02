@@ -102,7 +102,7 @@ const Airspace *OpenAirAirspaceReader::read() {
     Airspace::type_t type = Airspace::TYPE_UNKNOWN;
     std::string name;
     Altitude bottom, top;
-    std::vector<SurfacePosition> vertices;
+    Airspace::VertexList vertices;
 
     while (!stream->eof()) {
         try {
