@@ -20,10 +20,12 @@
 #ifndef __CENFIS_DB_H
 #define __CENFIS_DB_H
 
+#include <stdint.h>
+
 struct header {
-    __uint16_t magic1;
+    uint16_t magic1;
     char reserved1[0x06];
-    __uint16_t magic2;
+    uint16_t magic2;
     char reserved2[0x36];
     /*
       table 0: other
@@ -32,28 +34,28 @@ struct header {
       table 3: outlanding
      */
     struct {
-        __uint32_t offset;
-        __uint16_t three, count;
+        uint32_t offset;
+        uint16_t three, count;
     } tables[4] __attribute__((packed));
     char reserved3[0xe0];
-    __uint32_t header_size;
-    __uint16_t thirty1, overall_count;
-    __uint16_t seven1, zero1;
-    __uint32_t zero2;
-    __uint32_t after_tp_offset;
-    __uint16_t twentyone1, a_1;
+    uint32_t header_size;
+    uint16_t thirty1, overall_count;
+    uint16_t seven1, zero1;
+    uint32_t zero2;
+    uint32_t after_tp_offset;
+    uint16_t twentyone1, a_1;
     char reserved4[0xa8];
 } __attribute__((packed));
 
 struct turn_point {
-    __uint32_t latitude, longitude;
-    __uint16_t altitude;
+    uint32_t latitude, longitude;
+    uint16_t altitude;
     char type;
     char foo1[1];
-    __uint8_t freq[3];
+    uint8_t freq[3];
     char title[14];
     char description[14];
-    __uint8_t rwy1, rwy2;
+    uint8_t rwy1, rwy2;
     char foo2[3];
 } __attribute__((packed));
 
