@@ -169,29 +169,22 @@ public:
         :Angle(sign, degrees, minutes, seconds) {}
 };
 
-/** the 3D position of an object on the earth */
-class Position {
+/** the 2D position of an object on the earth */
+class SurfacePosition {
 private:
     Latitude latitude;
     Longitude longitude;
-    Altitude altitude;
-
 public:
-    Position() {}
-    Position(const Latitude &_lat, const Longitude &_lon,
-             const Altitude &_alt)
-        :latitude(_lat), longitude(_lon),
-         altitude(_alt) {}
-    Position(const Position &position)
+    SurfacePosition() {}
+    SurfacePosition(const Latitude &_lat, const Longitude &_lon)
+        :latitude(_lat), longitude(_lon) {}
+    SurfacePosition(const SurfacePosition &position)
         :latitude(position.getLatitude()),
-         longitude(position.getLongitude()),
-         altitude(position.getAltitude()) {}
-    void operator =(const Position &pos) {
-        latitude = pos.getLatitude();
-        longitude = pos.getLongitude();
-        altitude = pos.getAltitude();
+         longitude(position.getLongitude()) {}
+    void operator =(const SurfacePosition &position) {
+        latitude = position.getLatitude();
+        longitude = position.getLongitude();
     }
-
 public:
     bool defined() const {
         return latitude.defined() &&
@@ -203,6 +196,34 @@ public:
     const Longitude &getLongitude() const {
         return longitude;
     }
+};
+
+/** the 3D position of an object on the earth */
+class Position : public SurfacePosition {
+private:
+    Altitude altitude;
+
+public:
+    Position() {}
+    Position(const Latitude &_lat, const Longitude &_lon,
+             const Altitude &_alt)
+        :SurfacePosition(_lat, _lon),
+         altitude(_alt) {}
+    Position(const Position &position)
+        :SurfacePosition(position),
+         altitude(position.getAltitude()) {}
+    void operator =(const SurfacePosition &pos) {
+        SurfacePosition::operator =(pos);
+        altitude = Altitude();
+    }
+    void operator =(const Position &pos) {
+        SurfacePosition::operator =(pos);
+        altitude = pos.getAltitude();
+    }
+
+public:
+    /* no defined() implementation here since we regard this object as
+       defined even if there is no altitude */
     const Altitude &getAltitude() const {
         return altitude;
     }
