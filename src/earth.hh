@@ -230,6 +230,6 @@ public:
 };
 
 /** calculate the great circle distance */
-const Distance operator -(const Position& a, const Position &b);
+const Distance operator -(const SurfacePosition& a, const SurfacePosition &b);
 
 #endif

@@ -60,7 +60,7 @@ Angle::refactor(int factor) const
     return ::refactor(value, 1000, factor);
 }
 
-const Distance operator -(const Position& a, const Position &b) {
+const Distance operator -(const SurfacePosition& a, const SurfacePosition &b) {
     double lat1 = a.getLatitude();
     double lon1 = a.getLongitude();
     double lat2 = b.getLatitude();
