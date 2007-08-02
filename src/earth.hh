@@ -175,12 +175,23 @@ private:
     Latitude latitude;
     Longitude longitude;
     Altitude altitude;
+
 public:
     Position() {}
     Position(const Latitude &_lat, const Longitude &_lon,
-             const Altitude &_alt);
-    Position(const Position &position);
-    void operator =(const Position &pos);
+             const Altitude &_alt)
+        :latitude(_lat), longitude(_lon),
+         altitude(_alt) {}
+    Position(const Position &position)
+        :latitude(position.getLatitude()),
+         longitude(position.getLongitude()),
+         altitude(position.getAltitude()) {}
+    void operator =(const Position &pos) {
+        latitude = pos.getLatitude();
+        longitude = pos.getLongitude();
+        altitude = pos.getAltitude();
+    }
+
 public:
     bool defined() const {
         return latitude.defined() &&

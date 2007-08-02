@@ -60,25 +60,6 @@ Angle::refactor(int factor) const
     return ::refactor(value, 1000, factor);
 }
 
-Position::Position(const Latitude &_lat, const Longitude &_lon,
-                   const Altitude &_alt)
-    :latitude(_lat),
-     longitude(_lon),
-     altitude(_alt) {
-}
-
-Position::Position(const Position &position)
-    :latitude(position.getLatitude()),
-     longitude(position.getLongitude()),
-     altitude(position.getAltitude()) {
-}
-
-void Position::operator =(const Position &pos) {
-    latitude = pos.getLatitude();
-    longitude = pos.getLongitude();
-    altitude = pos.getAltitude();
-}
-
 const Distance operator -(const Position& a, const Position &b) {
     double lat1 = a.getLatitude();
     double lon1 = a.getLongitude();
