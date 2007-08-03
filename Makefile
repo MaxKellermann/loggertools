@@ -68,7 +68,11 @@ tpconv_SOURCES = $(addprefix src/,tp-conv.cc \
 	hexfile-writer.cc)
 tpconv_OBJECTS = $(patsubst src/%.cc,bin/%.o,$(tpconv_SOURCES))
 
-asconv_SOURCES = $(addprefix src/,airspace-conv.cc earth.cc airspace.cc airspace-io.cc airspace-openair-reader.cc airspace-openair-writer.cc)
+asconv_SOURCES = $(addprefix src/,airspace-conv.cc \
+	earth.cc \
+	airspace.cc airspace-io.cc \
+	airspace-openair-reader.cc airspace-openair-writer.cc \
+	)
 asconv_OBJECTS = $(patsubst src/%.cc,bin/%.o,$(asconv_SOURCES))
 
 cenfistool_SOURCES = src/cenfis-tool.c src/cenfis.c src/serialio.c
