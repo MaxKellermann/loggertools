@@ -47,7 +47,7 @@ arg_error(const char *argv0, const char *msg)
 {
     if (msg != NULL)
         cerr << argv0 << ": " << msg << endl;
-    cerr << "Try '" << argv0 << "%s --help' for more information." << endl;
+    cerr << "Try '" << argv0 << " --help' for more information." << endl;
     exit(1);
 }
 
