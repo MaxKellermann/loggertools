@@ -29,7 +29,9 @@ struct fifo_buffer {
     unsigned char buffer[1];
 };
 
-int fifo_buffer_new(size_t size, fifo_buffer_t *buffer_r) {
+int
+fifo_buffer_new(size_t size, fifo_buffer_t *buffer_r)
+{
     fifo_buffer_t buffer;
 
     assert(size > 0);
@@ -47,7 +49,9 @@ int fifo_buffer_new(size_t size, fifo_buffer_t *buffer_r) {
     return 0;
 }
 
-void fifo_buffer_delete(fifo_buffer_t *buffer_r) {
+void
+fifo_buffer_delete(fifo_buffer_t *buffer_r)
+{
     fifo_buffer_t buffer;
 
     assert(buffer_r != NULL);
@@ -59,13 +63,17 @@ void fifo_buffer_delete(fifo_buffer_t *buffer_r) {
     free(buffer);
 }
 
-void fifo_buffer_clear(fifo_buffer_t buffer) {
+void
+fifo_buffer_clear(fifo_buffer_t buffer)
+{
     assert(buffer != NULL);
     buffer->start = 0;
     buffer->end = 0;
 }
 
-const void *fifo_buffer_read(const fifo_buffer_t buffer, size_t *length_r) {
+const void *
+fifo_buffer_read(const fifo_buffer_t buffer, size_t *length_r)
+{
     assert(buffer != NULL);
     assert(buffer->end >= buffer->start);
     assert(length_r != NULL);
@@ -77,7 +85,9 @@ const void *fifo_buffer_read(const fifo_buffer_t buffer, size_t *length_r) {
     return buffer->buffer + buffer->start;
 }
 
-void fifo_buffer_consume(fifo_buffer_t buffer, size_t length) {
+void
+fifo_buffer_consume(fifo_buffer_t buffer, size_t length)
+{
     assert(buffer != NULL);
     assert(buffer->end >= buffer->start);
     assert(buffer->start + length <= buffer->end);
@@ -85,7 +95,9 @@ void fifo_buffer_consume(fifo_buffer_t buffer, size_t length) {
     buffer->start += length;
 }
 
-static void fifo_buffer_move(fifo_buffer_t buffer) {
+static void
+fifo_buffer_move(fifo_buffer_t buffer)
+{
     if (buffer->start == 0)
         return;
 
@@ -97,7 +109,9 @@ static void fifo_buffer_move(fifo_buffer_t buffer) {
     buffer->start = 0;
 }
 
-void *fifo_buffer_write(fifo_buffer_t buffer, size_t *max_length_r) {
+void *
+fifo_buffer_write(fifo_buffer_t buffer, size_t *max_length_r)
+{
     assert(buffer != NULL);
     assert(buffer->end <= buffer->size);
     assert(max_length_r != NULL);
@@ -112,7 +126,9 @@ void *fifo_buffer_write(fifo_buffer_t buffer, size_t *max_length_r) {
     return buffer->buffer + buffer->end;
 }
 
-void fifo_buffer_append(fifo_buffer_t buffer, size_t length) {
+void
+fifo_buffer_append(fifo_buffer_t buffer, size_t length)
+{
     assert(buffer != NULL);
     assert(buffer->end >= buffer->start);
     assert(buffer->end + length <= buffer->size);

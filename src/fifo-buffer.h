@@ -29,19 +29,26 @@ typedef struct fifo_buffer *fifo_buffer_t;
 extern "C" {
 #endif
 
-int fifo_buffer_new(size_t size, fifo_buffer_t *buffer_r);
+int
+fifo_buffer_new(size_t size, fifo_buffer_t *buffer_r);
 
-void fifo_buffer_delete(fifo_buffer_t *buffer_r);
+void
+fifo_buffer_delete(fifo_buffer_t *buffer_r);
 
-void fifo_buffer_clear(fifo_buffer_t buffer);
+void
+fifo_buffer_clear(fifo_buffer_t buffer);
 
-const void *fifo_buffer_read(const fifo_buffer_t buffer, size_t *length_r);
+const void *
+fifo_buffer_read(const fifo_buffer_t buffer, size_t *length_r);
 
-void fifo_buffer_consume(fifo_buffer_t buffer, size_t length);
+void
+fifo_buffer_consume(fifo_buffer_t buffer, size_t length);
 
-void *fifo_buffer_write(fifo_buffer_t buffer, size_t *max_length_r);
+void *
+fifo_buffer_write(fifo_buffer_t buffer, size_t *max_length_r);
 
-void fifo_buffer_append(fifo_buffer_t buffer, size_t length);
+void
+fifo_buffer_append(fifo_buffer_t buffer, size_t length);
 
 #ifdef __cplusplus
 }
