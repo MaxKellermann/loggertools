@@ -22,7 +22,6 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 
 struct fifo_buffer {
     size_t size, start, end;
@@ -39,7 +38,7 @@ fifo_buffer_new(size_t size, fifo_buffer_t *buffer_r)
 
     buffer = (fifo_buffer_t)malloc(sizeof(*buffer) - sizeof(buffer->buffer) + size);
     if (buffer == NULL)
-        return errno;
+        return -1;
 
     buffer->size = size;
     buffer->start = 0;

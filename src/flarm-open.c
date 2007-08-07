@@ -44,15 +44,17 @@ flarm_fdopen(int fd, flarm_t *flarm_r) {
     flarm->fd = fd;
 
     ret = fifo_buffer_new(4096, &flarm->in);
-    if (ret != 0) {
+    if (ret < 0) {
+        int save_errno = errno;
         flarm_close(&flarm);
-        return ret;
+        return save_errno;
     }
 
     ret = fifo_buffer_new(4096, &flarm->frame);
-    if (ret != 0) {
+    if (ret < 0) {
+        int save_errno = errno;
         flarm_close(&flarm);
-        return ret;
+        return save_errno;
     }
 
     *flarm_r = flarm;
