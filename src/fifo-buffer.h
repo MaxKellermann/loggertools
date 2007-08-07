@@ -50,6 +50,12 @@ fifo_buffer_write(fifo_buffer_t buffer, size_t *max_length_r);
 void
 fifo_buffer_append(fifo_buffer_t buffer, size_t length);
 
+int
+fifo_buffer_empty(fifo_buffer_t buffer);
+
+int
+fifo_buffer_full(fifo_buffer_t buffer);
+
 #ifdef __cplusplus
 }
 #endif

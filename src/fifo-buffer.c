@@ -134,3 +134,15 @@ fifo_buffer_append(fifo_buffer_t buffer, size_t length)
 
     buffer->end += length;
 }
+
+int
+fifo_buffer_empty(fifo_buffer_t buffer)
+{
+    return buffer->start == buffer->end;
+}
+
+int
+fifo_buffer_full(fifo_buffer_t buffer)
+{
+    return buffer->start == 0 && buffer->end == buffer->size;
+}
