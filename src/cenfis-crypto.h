@@ -17,17 +17,12 @@
  * 02111-1307, USA.
  */
 
-#include "airspace.hh"
-#include "airspace-io.hh"
+#ifndef __CENFIS_CRYPTO_H
+#define __CENFIS_CRYPTO_H
 
-static const OpenAirAirspaceFormat openAirFormat;
-static const CenfisAirspaceFormat cenfisFormat;
+#include <sys/types.h>
 
-const AirspaceFormat *getAirspaceFormat(const char *ext) {
-    if (strcasecmp(ext, "txt") == 0 || strcmp(ext, "openair") == 0)
-        return &openAirFormat;
-    else if (strcasecmp(ext, "asc") == 0 || strcmp(ext, "cenfis") == 0)
-        return &cenfisFormat;
-    else
-        return NULL;
-}
+void
+cenfis_encrypt(void *p0, size_t length);
+
+#endif

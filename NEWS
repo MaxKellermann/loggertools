@@ -23,6 +23,7 @@ Version 0.0.2 - not yet released
   * tp-seeyou: convert altitude to meters
   * tp-fancy: new format which aims to be human-readable
   * tp-milomei: new format which can parse the Welt2000 files
+  * airsapce-cenfis: writer for the Holltronic Cenfis airspace format
   * lxn-to-igc: print the correct vendor code in ORIGIN records (bug
     report by Calle Koppen)
 

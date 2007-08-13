@@ -72,6 +72,10 @@ asconv_SOURCES = $(addprefix src/,airspace-conv.cc \
 	earth.cc \
 	airspace.cc airspace-io.cc \
 	airspace-openair-reader.cc airspace-openair-writer.cc \
+	airspace-cenfis-writer.cc \
+	cenfis-buffer.cc \
+	cenfis-crypto.c \
+	cenfis-key.c \
 	)
 asconv_OBJECTS = $(patsubst src/%.cc,bin/%.o,$(asconv_SOURCES))
 

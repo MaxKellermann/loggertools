@@ -36,6 +36,12 @@ public:
     virtual AirspaceWriter *createWriter(std::ostream *stream) const;
 };
 
+class CenfisAirspaceFormat : public AirspaceFormat {
+public:
+    virtual AirspaceReader *createReader(std::istream *stream) const;
+    virtual AirspaceWriter *createWriter(std::ostream *stream) const;
+};
+
 const AirspaceFormat *getAirspaceFormat(const char *ext);
 
 #endif
