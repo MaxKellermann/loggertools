@@ -33,8 +33,11 @@ private:
     unsigned segment, offset;
 
 public:
-    HexfileOutputFilterBuf(std::ostream &_next)
-        :next(&_next), segment(0), offset(0) {}
+    HexfileOutputFilterBuf(std::ostream &_next, unsigned _segment)
+        :next(&_next), segment(_segment), offset(0) {
+        if (segment > 0)
+            write_record(0, 0, 0x10 + segment, NULL);
+    }
     virtual ~HexfileOutputFilterBuf();
 
 private:
@@ -57,8 +60,8 @@ private:
     __filebuf_type _M_filebuf;
 
 public:
-    HexfileOutputFilter(__ostream_type &_next)
-        :__ostream_type(), _M_filebuf(_next)
+    HexfileOutputFilter(__ostream_type &_next, unsigned segment = 0)
+        :__ostream_type(), _M_filebuf(_next, segment)
     {
         this->init(&_M_filebuf);
     }
