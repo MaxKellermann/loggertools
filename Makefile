@@ -73,6 +73,8 @@ asconv_SOURCES = $(addprefix src/,airspace-conv.cc \
 	airspace.cc airspace-io.cc \
 	airspace-openair-reader.cc airspace-openair-writer.cc \
 	airspace-cenfis-writer.cc \
+	airspace-cenfis-hex-writer.cc \
+	hexfile-writer.cc \
 	cenfis-buffer.cc \
 	cenfis-crypto.c \
 	cenfis-key.c \
