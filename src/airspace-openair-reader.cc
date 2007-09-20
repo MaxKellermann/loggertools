@@ -74,7 +74,7 @@ static Airspace::type_t parse_type(const char *p) {
     return Airspace::TYPE_UNKNOWN;
 }
 
-static Altitude parse_altitude(const char *p) {
+static const Altitude parse_altitude(const char *p) {
     long value;
     Altitude::ref_t ref;
     char *endptr;
