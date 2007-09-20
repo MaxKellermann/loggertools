@@ -183,7 +183,7 @@ const Airspace *OpenAirAirspaceReader::read() {
     }
 
     if (vertices.size() > 0)
-        return new Airspace(name.c_str(), type,
+        return new Airspace(name, type,
                             bottom, top,
                             vertices);
 
