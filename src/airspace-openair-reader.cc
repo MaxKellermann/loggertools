@@ -86,6 +86,8 @@ static const Altitude parse_altitude(const char *p) {
             ref = Altitude::REF_UNKNOWN;
     } else {
         value = strtol(p, &endptr, 10);
+        while (*endptr == ' ')
+            ++endptr;
         if (strcmp(endptr, "GND") == 0)
             ref = Altitude::REF_GND;
         else if (strcmp(endptr, "MSL") == 0)
