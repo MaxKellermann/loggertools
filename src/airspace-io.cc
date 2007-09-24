@@ -23,6 +23,7 @@
 static const OpenAirAirspaceFormat openAirFormat;
 static const CenfisAirspaceFormat cenfisFormat;
 static const CenfisHexAirspaceFormat cenfisHexFormat;
+static const CenfisTextAirspaceFormat cenfisTextFormat;
 
 const AirspaceFormat *getAirspaceFormat(const char *ext) {
     if (strcasecmp(ext, "txt") == 0 || strcmp(ext, "openair") == 0)
@@ -31,6 +32,8 @@ const AirspaceFormat *getAirspaceFormat(const char *ext) {
         return &cenfisFormat;
     else if (strcasecmp(ext, "bhf") == 0)
         return &cenfisHexFormat;
+    else if (strcasecmp(ext, "asa") == 0 || strcasecmp(ext, "asb") == 0)
+        return &cenfisTextFormat;
     else
         return NULL;
 }
