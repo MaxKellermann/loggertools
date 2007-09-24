@@ -77,6 +77,10 @@ CenfisBuffer::append(const SurfacePosition &pos)
     append_byte(8);
     append_long(pos.getLatitude().refactor(60));
     append_long(pos.getLongitude().refactor(60));
+
+    latitude_sum = pos.getLatitude().getValue();
+    longitude_sum = pos.getLongitude().getValue();
+    num_vertices = 1;
 }
 
 void
@@ -86,6 +90,10 @@ CenfisBuffer::append(const SurfacePosition &pos, const SurfacePosition &rel)
                  rel.getLatitude().refactor(60));
     append_short(pos.getLongitude().refactor(60) -
                  rel.getLongitude().refactor(60));
+
+    latitude_sum += pos.getLatitude().getValue();
+    longitude_sum += pos.getLongitude().getValue();
+    ++num_vertices;
 }
 
 void

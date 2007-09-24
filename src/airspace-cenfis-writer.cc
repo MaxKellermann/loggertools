@@ -208,9 +208,6 @@ CenfisAirspaceWriter::write(const Airspace &as)
 
     /* S, L = vertices */
 
-    unsigned num_vertices = 0;
-    Angle::value_t latitude_sum = 0, longitude_sum = 0;
-
     const Airspace::EdgeList &edges = as.getEdges();
     const SurfacePosition *firstVertex = NULL;
     for (Airspace::EdgeList::const_iterator it = edges.begin();
@@ -227,11 +224,6 @@ CenfisAirspaceWriter::write(const Airspace &as)
         } else {
             // XXX there was no first vertex?
         }
-
-        // XXX check type
-        latitude_sum += edge.getEnd().getLatitude().refactor(60);
-        longitude_sum += edge.getEnd().getLongitude().refactor(60);
-        ++num_vertices;
     }
 
     /* ap_rel_ind (anchor point) */
@@ -239,8 +231,7 @@ CenfisAirspaceWriter::write(const Airspace &as)
     if (firstVertex != NULL) {
         current.header().ap_rel_ind = htons(current.tell());
         current.append_byte(4);
-        current.append_short(latitude_sum / num_vertices - firstVertex->getLatitude().refactor(60));
-        current.append_short(longitude_sum / num_vertices - firstVertex->getLongitude().refactor(60));
+        current.append(current.anchor(), *firstVertex);
     }
 
     current.header().asp_rec_lengh = htons(current.tell());

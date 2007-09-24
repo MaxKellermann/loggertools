@@ -31,13 +31,18 @@ class CenfisBuffer {
 private:
     char *buffer;
     size_t base, buffer_size, buffer_pos;
+    unsigned num_vertices;
+    Latitude::value_t latitude_sum;
+    Longitude::value_t longitude_sum;
 
 public:
     CenfisBuffer()
-        :buffer(NULL), base(0), buffer_size(0), buffer_pos(0) {}
+        :buffer(NULL), base(0), buffer_size(0), buffer_pos(0),
+         num_vertices(0), latitude_sum(0), longitude_sum(0) {}
 
     CenfisBuffer(size_t _base)
-        :buffer(NULL), base(_base), buffer_size(0), buffer_pos(0) {}
+        :buffer(NULL), base(_base), buffer_size(0), buffer_pos(0),
+         num_vertices(0), latitude_sum(0), longitude_sum(0) {}
 
     ~CenfisBuffer()
     {
@@ -119,6 +124,13 @@ public:
     {
         assert(offset < buffer_pos);
         return (unsigned char&)buffer[offset];
+    }
+
+    const SurfacePosition
+    anchor() const
+    {
+        return SurfacePosition(Latitude(latitude_sum / (Latitude::value_t)num_vertices),
+                               Longitude(longitude_sum / (Longitude::value_t)num_vertices));
     }
 
     void auto_bank_switch(size_t length)
