@@ -81,11 +81,7 @@ public:
     void append(const std::string &s);
     void append(const Altitude &alt);
     void append(const SurfacePosition &pos);
-
-private:
     void append(const SurfacePosition &pos, const SurfacePosition &rel);
-
-public:
     void append(const Edge &edge, const SurfacePosition &rel);
 
     void append_byte(uint8_t ch)
