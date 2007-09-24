@@ -21,8 +21,8 @@
 
 Airspace::Airspace(const std::string &_name, type_t _type,
                    const Altitude &_bottom, const Altitude &_top,
-                   const VertexList &_vertices)
+                   const EdgeList &_edges)
     :name(_name), type(_type),
      bottom(_bottom), top(_top),
-     vertices(_vertices) {
+     edges(_edges) {
 }

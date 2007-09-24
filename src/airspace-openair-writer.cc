@@ -133,12 +133,17 @@ void OpenAirAirspaceWriter::write(const Airspace &as) {
             << "AL " << as.getBottom() << "\n"
             << "AH " << as.getTop() << "\n";
 
-    const Airspace::VertexList &vertices = as.getVertices();
-    for (Airspace::VertexList::const_iterator it = vertices.begin();
-         it != vertices.end(); ++it) {
-        int latitude = (*it).getLatitude().refactor(60);
+    const Airspace::EdgeList &edges = as.getEdges();
+    for (Airspace::EdgeList::const_iterator it = edges.begin();
+         it != edges.end(); ++it) {
+        const Edge &edge = (*it);
+        if (edge.getType() != Edge::TYPE_VERTEX)
+            continue; /* XXX what about unsupported edge types? */
+        const SurfacePosition &vertex = edge.getEnd();
+
+        int latitude = vertex.getLatitude().refactor(60);
         int absLatitude = abs(latitude);
-        int longitude = (*it).getLongitude().refactor(60);
+        int longitude = vertex.getLongitude().refactor(60);
         int absLongitude = abs(longitude);
 
         *stream << "DP "

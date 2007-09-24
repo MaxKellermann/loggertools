@@ -25,6 +25,44 @@
 
 #include "earth.hh"
 
+class Edge {
+public:
+    enum type_t {
+        TYPE_VERTEX,
+        TYPE_CIRCLE,
+        TYPE_ARC
+    };
+
+private:
+    type_t type;
+    SurfacePosition end, center;
+    Distance radius;
+
+public:
+    Edge(const SurfacePosition &_end)
+        :type(TYPE_VERTEX), end(_end),
+         radius(Distance::UNIT_UNKNOWN, 0) {}
+    Edge(const SurfacePosition &_center, const Distance &_radius)
+        :type(TYPE_CIRCLE), center(_center), radius(_radius) {}
+    Edge(const SurfacePosition &_end, const SurfacePosition &_center)
+        :type(TYPE_ARC), end(_end), center(_center),
+         radius(Distance::UNIT_UNKNOWN, 0) {}
+
+public:
+    type_t getType() const {
+        return type;
+    }
+    const SurfacePosition &getEnd() const {
+        return end;
+    }
+    const SurfacePosition &getCenter() const {
+        return center;
+    }
+    const Distance &getRadius() const {
+        return radius;
+    }
+};
+
 /** an airspace: polygon with a lower and an upper bound */
 class Airspace {
 public:
@@ -43,16 +81,16 @@ public:
         TYPE_DANGER,
         TYPE_GLIDER
     };
-    typedef std::list<SurfacePosition> VertexList;
+    typedef std::list<Edge> EdgeList;
 private:
     std::string name;
     type_t type;
     Altitude bottom, top;
-    VertexList vertices;
+    EdgeList edges;
 public:
     Airspace(const std::string &name, type_t type,
              const Altitude &bottom, const Altitude &top,
-             const VertexList &vertices);
+             const EdgeList &edges);
 public:
     const std::string &getName() const {
         return name;
@@ -66,8 +104,8 @@ public:
     const Altitude &getTop() const {
         return top;
     }
-    const VertexList &getVertices() const {
-        return vertices;
+    const EdgeList &getEdges() const {
+        return edges;
     }
 };
 

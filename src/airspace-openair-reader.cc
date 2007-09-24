@@ -104,7 +104,7 @@ const Airspace *OpenAirAirspaceReader::read() {
     Airspace::type_t type = Airspace::TYPE_UNKNOWN;
     std::string name;
     Altitude bottom, top;
-    Airspace::VertexList vertices;
+    Airspace::EdgeList edges;
 
     while (!stream->eof()) {
         try {
@@ -121,7 +121,7 @@ const Airspace *OpenAirAirspaceReader::read() {
 
         chomp(line);
         if (line[0] == 0) {
-            if (vertices.empty())
+            if (edges.empty())
                 continue;
             else
                 break;
@@ -175,17 +175,17 @@ const Airspace *OpenAirAirspaceReader::read() {
             else if (*lonWE != 'E')
                 throw malformed_input("expected 'W' or 'E'");
 
-            vertices.push_back(SurfacePosition(Latitude(latitude),
-                                               Longitude(longitude)));
+            edges.push_back(Edge(SurfacePosition(Latitude(latitude),
+                                                 Longitude(longitude))));
         } else {
             throw malformed_input("invalid command");
         }
     }
 
-    if (vertices.size() > 0)
+    if (edges.size() > 0)
         return new Airspace(name, type,
                             bottom, top,
-                            vertices);
+                            edges);
 
     return NULL;
 }

@@ -71,6 +71,16 @@ public:
     bool operator >=(const Distance &b) const {
         return !(*this < b);
     }
+
+public:
+    const Distance toUnit(unit_t new_unit) const {
+        if (new_unit == unit || unit == UNIT_UNKNOWN)
+            return *this;
+        if (unit == UNIT_METERS && new_unit == UNIT_NAUTICAL_MILES)
+            return Distance(new_unit, value / 1852.);
+        // XXX
+        return Distance(UNIT_UNKNOWN, 0);
+    }
 };
 
 /** vertical altitude of an object */

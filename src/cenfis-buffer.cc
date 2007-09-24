@@ -80,11 +80,19 @@ CenfisBuffer::append(const SurfacePosition &pos)
 }
 
 void
-CenfisBuffer::append(const SurfacePosition &pos,
-                             const SurfacePosition &rel)
+CenfisBuffer::append(const Edge &edge, const SurfacePosition &rel)
 {
-    append_short(pos.getLatitude().refactor(60) - rel.getLatitude().refactor(60));
-    append_short(pos.getLongitude().refactor(60) - rel.getLongitude().refactor(60));
+    switch (edge.getType()) {
+    case Edge::TYPE_VERTEX:
+        append_short(edge.getEnd().getLatitude().refactor(60) -
+                     rel.getLatitude().refactor(60));
+        append_short(edge.getEnd().getLongitude().refactor(60) -
+                     rel.getLongitude().refactor(60));
+        break;
+
+    default: // XXX
+        break;
+    }
 }
 
 void
