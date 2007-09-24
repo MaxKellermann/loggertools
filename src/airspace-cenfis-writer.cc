@@ -113,6 +113,13 @@ AirspaceTypeToString(Airspace::type_t type)
 }
 
 static void
+string_to_upper(std::string &s)
+{
+    for (std::string::size_type i = 0; i < s.length(); ++i)
+        s[i] = toupper(s[i]);
+}
+
+static void
 pipe_split(std::string &a, std::string &b, std::string &c, std::string &d)
 {
     std::string::size_type pos;
@@ -162,6 +169,7 @@ CenfisAirspaceWriter::write(const Airspace &as)
     /* AN = name */
 
     std::string name = as.getName(), name2, name3, name4;
+    string_to_upper(name);
     pipe_split(name, name2, name3, name4); /* XXX do proper name parsing */
 
     current.header().an_rel_ind = htons(current.tell());
