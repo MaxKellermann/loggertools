@@ -144,6 +144,7 @@ protected:
     Angle(value_t _value):value(_value) {}
     Angle(value_t _value, int factor);
     Angle(int sign, unsigned degrees, unsigned minutes, unsigned seconds);
+    Angle(double _value);
 public:
     bool defined() const {
         return value != undef;
@@ -165,6 +166,7 @@ public:
     Latitude(int value, int factor):Angle(value, factor) {}
     Latitude(int sign, unsigned degrees, unsigned minutes, unsigned seconds)
         :Angle(sign, degrees, minutes, seconds) {}
+    Latitude(double value):Angle(value) {}
 };
 
 /** the longitude value */
@@ -175,6 +177,7 @@ public:
     Longitude(int value, int factor):Angle(value, factor) {}
     Longitude(int sign, unsigned degrees, unsigned minutes, unsigned seconds)
         :Angle(sign, degrees, minutes, seconds) {}
+    Longitude(double value):Angle(value) {}
 };
 
 /** the 2D position of an object on the earth */

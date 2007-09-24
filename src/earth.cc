@@ -49,6 +49,9 @@ Angle::Angle(int sign, unsigned degrees, unsigned minutes, unsigned seconds)
     assert(seconds < 60);
 }
 
+Angle::Angle(double _value)
+    :value((int)round(_value * (180. * 60. * 1000.) / 3.14159265)) {}
+
 Angle::value_t
 Angle::refactor(int factor) const
 {
