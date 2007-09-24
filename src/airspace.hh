@@ -35,6 +35,7 @@ public:
 
 private:
     type_t type;
+    int sign;
     SurfacePosition end, center;
     Distance radius;
 
@@ -44,13 +45,16 @@ public:
          radius(Distance::UNIT_UNKNOWN, 0) {}
     Edge(const SurfacePosition &_center, const Distance &_radius)
         :type(TYPE_CIRCLE), center(_center), radius(_radius) {}
-    Edge(const SurfacePosition &_end, const SurfacePosition &_center)
-        :type(TYPE_ARC), end(_end), center(_center),
+    Edge(int _sign, const SurfacePosition &_end, const SurfacePosition &_center)
+        :type(TYPE_ARC), sign(_sign), end(_end), center(_center),
          radius(Distance::UNIT_UNKNOWN, 0) {}
 
 public:
     type_t getType() const {
         return type;
+    }
+    int getSign() const {
+        return sign;
     }
     const SurfacePosition &getEnd() const {
         return end;
