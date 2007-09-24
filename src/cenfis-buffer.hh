@@ -129,8 +129,8 @@ public:
     const SurfacePosition
     anchor() const
     {
-        return SurfacePosition(Latitude(latitude_sum / (Latitude::value_t)num_vertices),
-                               Longitude(longitude_sum / (Longitude::value_t)num_vertices));
+        return SurfacePosition(Latitude(latitude_sum / (Latitude::value_t)num_vertices, 60),
+                               Longitude(longitude_sum / (Longitude::value_t)num_vertices, 60));
     }
 
     void auto_bank_switch(size_t length)
