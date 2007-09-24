@@ -27,6 +27,7 @@
 #include <iomanip>
 
 #include <netinet/in.h>
+#include <ctype.h>
 
 class CenfisAirspaceWriter : public AirspaceWriter {
 public:
@@ -111,6 +112,33 @@ AirspaceTypeToString(Airspace::type_t type)
     return "invalid";
 }
 
+static void
+pipe_split(std::string &a, std::string &b, std::string &c, std::string &d)
+{
+    std::string::size_type pos;
+
+    pos = a.find('|');
+    if (pos == std::string::npos)
+        return;
+
+    b = std::string(a, pos + 1);
+    a = std::string(a, 0, pos);
+
+    pos = b.find('|');
+    if (pos == std::string::npos)
+        return;
+
+    c = std::string(b, pos + 1);
+    b = std::string(b, 0, pos);
+
+    pos = c.find('|');
+    if (pos == std::string::npos)
+        return;
+
+    d = std::string(c, pos + 1);
+    c = std::string(c, 0, pos);
+}
+
 void
 CenfisAirspaceWriter::write(const Airspace &as)
 {
@@ -133,13 +161,26 @@ CenfisAirspaceWriter::write(const Airspace &as)
 
     /* AN = name */
 
+    std::string name = as.getName(), name2, name3, name4;
+    pipe_split(name, name2, name3, name4); /* XXX do proper name parsing */
+
     current.header().an_rel_ind = htons(current.tell());
-    current.append(as.getName());
+    current.append(name);
 
-    // XXX AN3?
+    if (name2.length() > 0) {
+        current.header().an2_rel_ind = htons(current.tell());
+        current.append(name2);
+    }
 
-    current.header().an3_rel_ind = htons(current.tell());
-    current.append("A");
+    if (name3.length() > 0) {
+        current.header().an3_rel_ind = htons(current.tell());
+        current.append(name3);
+    }
+
+    if (name4.length() > 0) {
+        current.header().an4_rel_ind = htons(current.tell());
+        current.append(name4);
+    }
 
     /* AL = lower bound */
 
