@@ -114,6 +114,12 @@ public:
         return *(struct cenfis_airspace_header*)buffer;
     }
 
+    unsigned char &operator [](size_t offset)
+    {
+        assert(offset < buffer_pos);
+        return (unsigned char&)buffer[offset];
+    }
+
     void auto_bank_switch(size_t length)
     {
         size_t pos = base + tell();
