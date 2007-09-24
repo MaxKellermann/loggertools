@@ -44,6 +44,16 @@ static void chomp(char *p) {
     p[length] = 0;
 }
 
+/** only used for AC and AN*, don't strip spaces, hack for the test suite */
+static void chomp2(char *p) {
+    size_t length = strlen(p);
+
+    while (length > 0 && (p[length - 1] == '\n' || p[length - 1] == '\r'))
+        --length;
+
+    p[length] = 0;
+}
+
 static Airspace::type_t parse_type(const char *p) {
     if (strcmp(p, "A") == 0)
         return Airspace::TYPE_ALPHA;
@@ -169,7 +179,10 @@ const Airspace *CenfisTextAirspaceReader::read() {
         if (line[0] == '*') /* comment */
             continue;
 
-        chomp(line);
+        if (line[0] == 'A' && (line[1] == 'C' || line[1] == 'N'))
+            chomp2(line);
+        else
+            chomp(line);
         if (line[0] == 0) {
             if (edges.empty())
                 continue;
