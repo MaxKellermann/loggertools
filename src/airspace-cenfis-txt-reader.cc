@@ -104,6 +104,8 @@ parse_altitude(const char *p)
             ref = Altitude::REF_GND;
         else if (strcmp(endptr, "MSL") == 0)
             ref = Altitude::REF_MSL;
+        else if (strcmp(endptr, "STD") == 0)
+            ref = Altitude::REF_1013;
         else
             ref = Altitude::REF_UNKNOWN;
     }
