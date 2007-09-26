@@ -161,6 +161,30 @@ parse_surface_position(char *&src)
     return SurfacePosition(latitude, longitude);
 }
 
+static const Edge
+parse_circle(char *&src)
+{
+    SurfacePosition center = parse_surface_position(src);
+    int miles, deci_miles;
+
+    miles = atoi(next_word(src));
+    deci_miles = atoi(next_word(src));
+    Distance radius = Distance(Distance::UNIT_NAUTICAL_MILES,
+                               (double)miles + (deci_miles / 10.));
+
+    return Edge(center, radius);
+}
+
+static const Edge
+parse_arc(char *&src)
+{
+    int sign = next_word(src)[0] == '+' ? 1 : -1;
+    SurfacePosition end = parse_surface_position(src);
+    SurfacePosition center = parse_surface_position(src);
+
+    return Edge(sign, end, center);
+}
+
 const Airspace *CenfisTextAirspaceReader::read() {
     char line[512], *p;
     Airspace::type_t type = Airspace::TYPE_UNKNOWN;
@@ -215,10 +239,10 @@ const Airspace *CenfisTextAirspaceReader::read() {
             // ???
         } else if (cmd == "S" || cmd == "L") {
             edges.push_back(parse_surface_position(p));
-        } else if (cmd == "A") {
-            // arc
         } else if (cmd == "C") {
-            // circle
+            edges.push_back(parse_circle(p));
+        } else if (cmd == "A") {
+            edges.push_back(parse_arc(p));
         } else if (cmd == "V") {
             // voice index
         } else if (cmd == "FIS") {
