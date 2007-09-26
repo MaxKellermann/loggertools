@@ -188,7 +188,7 @@ parse_arc(char *&src)
 const Airspace *CenfisTextAirspaceReader::read() {
     char line[512], *p;
     Airspace::type_t type = Airspace::TYPE_UNKNOWN;
-    std::string cmd, name, name2, name3, name4;
+    std::string cmd, name, name2, name3, name4, type_string;
     Altitude bottom(0, Altitude::UNIT_METERS, Altitude::REF_GND), top, top2;
     Airspace::EdgeList edges;
     unsigned voice = 0;
@@ -223,11 +223,14 @@ const Airspace *CenfisTextAirspaceReader::read() {
             throw malformed_input("command expected");
 
         if (cmd == "AC") {
+            type_string = p;
             type = parse_type(p);
         } else if (cmd == "AN") {
             name = p;
         } else if (cmd == "AN2") {
             name2 = p;
+            if (name4.length() > 0)
+                name2.insert(name2.begin(), '-');
         } else if (cmd == "AN3") {
             name3 = p;
         } else if (cmd == "AN4") {
@@ -261,19 +264,24 @@ const Airspace *CenfisTextAirspaceReader::read() {
     if (edges.size() == 0)
         return NULL;
 
-    if (name2.length() > 0 || name3.length() > 0 || name4.length() > 0) {
+    if (name2.length() > 0 || name3.length() > 0 || name4.length() > 0 || type_string.length() > 0) {
         name += '|';
         name += name2;
     }
 
-    if (name3.length() > 0 || name4.length() > 0) {
+    if (name3.length() > 0 || name4.length() > 0 || type_string.length() > 0) {
         name += '|';
         name += name3;
     }
 
-    if (name4.length() > 0) {
+    if (name4.length() > 0 || type_string.length() > 0) {
         name += '|';
         name += name4;
+    }
+
+    if (type_string.length() > 0) {
+        name += '|';
+        name += type_string;
     }
 
     return new Airspace(name, type,
