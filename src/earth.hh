@@ -180,6 +180,16 @@ public:
     Longitude(double value):Angle(value) {}
 };
 
+template<class angle_type>
+static const angle_type
+operator -(const angle_type &a, const angle_type &b)
+{
+    if (a.defined() && b.defined())
+        return angle_type(a.getValue() - b.getValue());
+    else
+        return angle_type();
+}
+
 /** the 2D position of an object on the earth */
 class SurfacePosition {
 private:
