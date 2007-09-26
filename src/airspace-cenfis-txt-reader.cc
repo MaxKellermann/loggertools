@@ -191,6 +191,7 @@ const Airspace *CenfisTextAirspaceReader::read() {
     std::string cmd, name, name2, name3, name4;
     Altitude bottom(0, Altitude::UNIT_METERS, Altitude::REF_GND), top, top2;
     Airspace::EdgeList edges;
+    unsigned voice = 0;
 
     while (!stream->eof()) {
         try {
@@ -245,7 +246,10 @@ const Airspace *CenfisTextAirspaceReader::read() {
         } else if (cmd == "A") {
             edges.push_back(parse_arc(p));
         } else if (cmd == "V") {
-            // voice index
+            voice = (unsigned)atoi(next_word(p));
+            const char *type = next_word(p);
+            if (*type == 'R')
+                voice |= 0x8000;
         } else if (cmd == "FIS") {
         } else if (cmd == "UPD") {
             // ignore UPD lines
@@ -275,7 +279,7 @@ const Airspace *CenfisTextAirspaceReader::read() {
     return new Airspace(name, type,
                         bottom, top, top2,
                         edges,
-                        0);
+                        voice);
 }
 
 AirspaceReader *
