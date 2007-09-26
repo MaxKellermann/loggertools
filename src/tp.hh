@@ -21,6 +21,7 @@
 #define __LOGGERTOOLS_TP_HH
 
 #include "earth.hh"
+#include "aviation.hh"
 
 #include <string>
 
