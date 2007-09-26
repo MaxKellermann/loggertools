@@ -189,7 +189,7 @@ const Airspace *CenfisTextAirspaceReader::read() {
     char line[512], *p;
     Airspace::type_t type = Airspace::TYPE_UNKNOWN;
     std::string cmd, name, name2, name3, name4;
-    Altitude bottom(0, Altitude::UNIT_METERS, Altitude::REF_GND), top;
+    Altitude bottom(0, Altitude::UNIT_METERS, Altitude::REF_GND), top, top2;
     Airspace::EdgeList edges;
 
     while (!stream->eof()) {
@@ -236,7 +236,8 @@ const Airspace *CenfisTextAirspaceReader::read() {
         } else if (cmd == "AH") {
             top = parse_altitude(p);
         } else if (cmd == "AH2") {
-            // ???
+            top2 = top;
+            top = parse_altitude(p);
         } else if (cmd == "S" || cmd == "L") {
             edges.push_back(parse_surface_position(p));
         } else if (cmd == "C") {
@@ -272,8 +273,9 @@ const Airspace *CenfisTextAirspaceReader::read() {
     }
 
     return new Airspace(name, type,
-                        bottom, top,
-                        edges);
+                        bottom, top, top2,
+                        edges,
+                        0);
 }
 
 AirspaceReader *
