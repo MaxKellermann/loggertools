@@ -74,13 +74,23 @@ CenfisBuffer::append(const Altitude &alt)
 void
 CenfisBuffer::append(const SurfacePosition &pos)
 {
-    append_byte(8);
     append_long(pos.getLatitude().refactor(60));
     append_long(pos.getLongitude().refactor(60));
 
-    latitude_sum = pos.getLatitude().refactor(60);
-    longitude_sum = pos.getLongitude().refactor(60);
-    num_vertices = 1;
+    latitude_sum += pos.getLatitude().refactor(60);
+    longitude_sum += pos.getLongitude().refactor(60);
+    ++num_vertices;
+}
+
+void
+CenfisBuffer::append_first(const SurfacePosition &pos)
+{
+    assert(num_vertices == 0);
+    assert(latitude_sum == 0);
+    assert(longitude_sum == 0);
+
+    append_byte(8);
+    append(pos);
 }
 
 void

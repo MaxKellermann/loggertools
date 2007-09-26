@@ -218,7 +218,7 @@ CenfisAirspaceWriter::write(const Airspace &as)
         } else if (edge.getType() == Edge::TYPE_VERTEX) {
             current.header().s_rel_ind = htons(current.tell());
             firstVertex = &edge.getEnd();
-            current.append(*firstVertex);
+            current.append_first(*firstVertex);
             current.header().l_rel_ind = htons(current.tell());
             current.append_byte((edges.size() - 1) * 4);
         } else {

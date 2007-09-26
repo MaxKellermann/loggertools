@@ -86,6 +86,7 @@ public:
     void append(const std::string &s);
     void append(const Altitude &alt);
     void append(const SurfacePosition &pos);
+    void append_first(const SurfacePosition &pos);
     void append(const SurfacePosition &pos, const SurfacePosition &rel);
     void append(const Edge &edge, const SurfacePosition &rel);
 
