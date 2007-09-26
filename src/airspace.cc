@@ -24,5 +24,16 @@ Airspace::Airspace(const std::string &_name, type_t _type,
                    const EdgeList &_edges)
     :name(_name), type(_type),
      bottom(_bottom), top(_top),
-     edges(_edges) {
+     edges(_edges),
+     voice(0) {
+}
+
+Airspace::Airspace(const std::string &_name, type_t _type,
+                   const Altitude &_bottom, const Altitude &_top,
+                   const Altitude &_top2,
+                   const EdgeList &_edges,
+                   unsigned _voice)
+    :name(_name), type(_type),
+     bottom(_bottom), top(_top), top2(_top2),
+     edges(_edges), voice(_voice) {
 }

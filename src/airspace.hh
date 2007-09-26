@@ -89,12 +89,25 @@ public:
 private:
     std::string name;
     type_t type;
-    Altitude bottom, top;
+    Altitude bottom, top, top2;
+
+    /** only used for the Cenfis test suite */
+    Altitude top2;
+
     EdgeList edges;
+
+    /** cenfis specific */
+    unsigned voice;
+
 public:
     Airspace(const std::string &name, type_t type,
              const Altitude &bottom, const Altitude &top,
              const EdgeList &edges);
+    Airspace(const std::string &name, type_t type,
+             const Altitude &bottom, const Altitude &top, const Altitude &top2,
+             const EdgeList &edges,
+             unsigned voice);
+
 public:
     const std::string &getName() const {
         return name;
@@ -108,8 +121,19 @@ public:
     const Altitude &getTop() const {
         return top;
     }
+
+    /** only used for the Cenfis test suite */
+    const Altitude &getTop2() const {
+        return top2;
+    }
+
     const EdgeList &getEdges() const {
         return edges;
+    }
+
+    /** cenfis specific */
+    unsigned getVoice() const {
+        return voice;
     }
 };
 
