@@ -89,7 +89,7 @@ public:
 private:
     std::string name;
     type_t type;
-    Altitude bottom, top, top2;
+    Altitude bottom, top;
 
     /** only used for the Cenfis test suite */
     Altitude top2;
