@@ -56,32 +56,6 @@ public:
     }
 };
 
-/** a UHF radio frequency */
-class Frequency {
-private:
-    unsigned hertz;
-public:
-    Frequency():hertz(0) {}
-    Frequency(unsigned _hertz):hertz(_hertz) {}
-    Frequency(unsigned mhz, unsigned khz):hertz((mhz * 1000 + khz) * 1000) {}
-public:
-    bool defined() const {
-        return hertz > 0;
-    }
-    unsigned getHertz() const {
-        return hertz;
-    }
-    unsigned getMegaHertz() const {
-        return hertz / 1000000;
-    }
-    unsigned getKiloHertz() const {
-        return hertz / 1000;
-    }
-    unsigned getKiloHertzPart() const {
-        return getKiloHertz() % 1000;
-    }
-};
-
 /** a turn point used for navigation */
 class TurnPoint {
 public:
