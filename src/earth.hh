@@ -158,6 +158,17 @@ public:
     }
 };
 
+template<class angle_type>
+static const angle_type
+angle_difference(const angle_type &a, const angle_type &b)
+{
+    if (a.defined() && b.defined())
+        return angle_type(a.getValue() - b.getValue());
+    else
+        return angle_type();
+}
+
+
 /** the latitude value */
 class Latitude : public Angle {
 public:
@@ -168,6 +179,13 @@ public:
         :Angle(sign, degrees, minutes, seconds) {}
     Latitude(double value):Angle(value) {}
 };
+
+static inline const Latitude
+operator -(const Latitude &a, const Latitude &b)
+{
+    return angle_difference(a, b);
+}
+
 
 /** the longitude value */
 class Longitude : public Angle {
@@ -180,15 +198,12 @@ public:
     Longitude(double value):Angle(value) {}
 };
 
-template<class angle_type>
-static const angle_type
-operator -(const angle_type &a, const angle_type &b)
+static inline const Longitude
+operator -(const Longitude &a, const Longitude &b)
 {
-    if (a.defined() && b.defined())
-        return angle_type(a.getValue() - b.getValue());
-    else
-        return angle_type();
+    return angle_difference(a, b);
 }
+
 
 /** the 2D position of an object on the earth */
 class SurfacePosition {
