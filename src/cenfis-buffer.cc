@@ -66,9 +66,20 @@ CenfisBuffer::append(const Altitude &alt)
     const Altitude inFeet = alt.toUnit(Altitude::UNIT_FEET);
     append_byte(3);
     append_short((uint16_t)(inFeet.getValue() / 10));
-    append_byte(inFeet.getRef() == Altitude::REF_GND ||
-               inFeet.getRef() == Altitude::REF_AIRFIELD
-               ? 'G' : 'M');
+
+    switch (inFeet.getRef()) {
+    case Altitude::REF_GND:
+        append_byte('G');
+        break;
+
+    case Altitude::REF_1013:
+        append_byte('S');
+        break;
+
+    default:
+        append_byte('M');
+        break;
+    }
 }
 
 void
