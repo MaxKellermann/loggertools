@@ -191,6 +191,7 @@ const Airspace *CenfisTextAirspaceReader::read() {
     std::string cmd, name, name2, name3, name4, type_string;
     Altitude bottom(0, Altitude::UNIT_METERS, Altitude::REF_GND), top, top2;
     Airspace::EdgeList edges;
+    Frequency frequency;
     unsigned voice = 0;
 
     while (!stream->eof()) {
@@ -254,6 +255,10 @@ const Airspace *CenfisTextAirspaceReader::read() {
             if (*type == 'R')
                 voice |= 0x8000;
         } else if (cmd == "FIS") {
+            unsigned mhz = (unsigned)atoi(next_word(p));
+            unsigned khz = (unsigned)atoi(next_word(p));
+
+            frequency = Frequency(mhz, khz);
         } else if (cmd == "UPD") {
             // ignore UPD lines
         } else {
@@ -287,6 +292,7 @@ const Airspace *CenfisTextAirspaceReader::read() {
     return new Airspace(name, type,
                         bottom, top, top2,
                         edges,
+                        frequency,
                         voice);
 }
 

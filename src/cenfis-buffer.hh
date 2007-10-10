@@ -90,6 +90,8 @@ public:
     void append(const SurfacePosition &pos, const SurfacePosition &rel);
     void append(const Edge &edge, const SurfacePosition &rel);
 
+    void append(const Frequency &frequency);
+
     void append_byte(uint8_t ch)
     {
         append(&ch, sizeof(ch));

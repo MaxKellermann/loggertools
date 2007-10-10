@@ -20,10 +20,11 @@
 #ifndef __LOGGERTOOLS_AIRSPACE_HH
 #define __LOGGERTOOLS_AIRSPACE_HH
 
+#include "earth.hh"
+#include "aviation.hh"
+
 #include <string>
 #include <list>
-
-#include "earth.hh"
 
 class Edge {
 public:
@@ -96,6 +97,8 @@ private:
 
     EdgeList edges;
 
+    Frequency frequency;
+
     /** cenfis specific */
     unsigned voice;
 
@@ -106,6 +109,7 @@ public:
     Airspace(const std::string &name, type_t type,
              const Altitude &bottom, const Altitude &top, const Altitude &top2,
              const EdgeList &edges,
+             const Frequency &_frequency,
              unsigned voice);
 
 public:
@@ -129,6 +133,10 @@ public:
 
     const EdgeList &getEdges() const {
         return edges;
+    }
+
+    const Frequency &getFrequency() const {
+        return frequency;
     }
 
     /** cenfis specific */

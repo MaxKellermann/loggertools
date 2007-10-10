@@ -211,6 +211,13 @@ CenfisAirspaceWriter::write(const Airspace &as)
         current.append(as.getTop());
     }
 
+    /* FIS = frequency */
+
+    if (as.getFrequency().defined()) {
+        current.header().fis_rel_ind = htons(current.tell());
+        current.append(as.getFrequency());
+    }
+
     /* S, L = vertices */
 
     const Airspace::EdgeList &edges = as.getEdges();

@@ -120,6 +120,13 @@ CenfisBuffer::append(const Edge &edge, const SurfacePosition &rel)
 }
 
 void
+CenfisBuffer::append(const Frequency &frequency)
+{
+    append_byte(2);
+    append_short(frequency.getKiloHertz() / 25);
+}
+
+void
 CenfisBuffer::encrypt(size_t length)
 {
     assert(length <= buffer_pos);
