@@ -216,6 +216,7 @@ CenfisAirspaceWriter::write(const Airspace &as)
     const Airspace::EdgeList &edges = as.getEdges();
     static SurfacePosition buffer;
     static const SurfacePosition *firstVertex = NULL;
+    size_t l_size_offset = 0;
 
     if (has_first)
         firstVertex = NULL;
@@ -231,11 +232,16 @@ CenfisAirspaceWriter::write(const Airspace &as)
             firstVertex = &buffer;
             current.append_first(*firstVertex);
             current.header().l_rel_ind = htons(current.tell());
-            current.append_byte((edges.size() - 1) * 4);
+
+            l_size_offset = current.tell();
+            current.append_byte(0xff);
         } else {
             // XXX there was no first vertex?
         }
     }
+
+    if (l_size_offset > 0)
+        current[l_size_offset] = current.tell() - l_size_offset - 1;
 
     /* ap_rel_ind (anchor point) */
 
