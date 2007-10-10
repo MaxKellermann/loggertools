@@ -147,10 +147,18 @@ CenfisAirspaceWriter::write(const Airspace &as)
 
     /* AC = type */
 
+    bool has_first = true;
+
     current.header().ac_rel_ind = htons(current.tell());
-    current.append(type_string.length() == 0
-                   ? AirspaceTypeToString(as.getType())
-                   : type_string);
+    if (type_string.length() > 0) {
+        if (type_string[0] == '_') {
+            has_first = false;
+            type_string.erase(type_string.begin());
+        }
+
+        current.append(type_string);
+    } else
+        current.append(AirspaceTypeToString(as.getType()));
 
     /* file info */
 
@@ -206,7 +214,12 @@ CenfisAirspaceWriter::write(const Airspace &as)
     /* S, L = vertices */
 
     const Airspace::EdgeList &edges = as.getEdges();
-    const SurfacePosition *firstVertex = NULL;
+    static SurfacePosition buffer;
+    static const SurfacePosition *firstVertex = NULL;
+
+    if (has_first)
+        firstVertex = NULL;
+
     for (Airspace::EdgeList::const_iterator it = edges.begin();
          it != edges.end(); ++it) {
         const Edge &edge = *it;
@@ -214,7 +227,8 @@ CenfisAirspaceWriter::write(const Airspace &as)
             current.append(edge, *firstVertex);
         } else if (edge.getType() == Edge::TYPE_VERTEX) {
             current.header().s_rel_ind = htons(current.tell());
-            firstVertex = &edge.getEnd();
+            buffer = edge.getEnd();
+            firstVertex = &buffer;
             current.append_first(*firstVertex);
             current.header().l_rel_ind = htons(current.tell());
             current.append_byte((edges.size() - 1) * 4);
