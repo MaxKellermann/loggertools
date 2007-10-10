@@ -293,12 +293,12 @@ CenfisAirspaceWriter::flush()
         offset = 0x8000;
     }
 
-    header.asp_index.offset = htonl(offset);
+    header.asp_index.offset = htonl(0x60000 + offset);
     header.asp_index.total_size = htons(index_buffer.tell());
     header.asp_index.num_elements = htons(index_buffer.tell() / 2);
     offset += index_buffer.tell();
 
-    header.config.offset = htonl(offset);
+    header.config.offset = htonl(0x60000 + offset);
     header.config.total_size = htons(config_buffer.tell());
     header.config.num_elements = htons(config_buffer.tell() / 4);
 
