@@ -132,24 +132,25 @@ pipe_split(std::string &a, std::string &b)
     a = std::string(a, 0, pos);
 }
 
-static void
-pipe_split(std::string &a, std::string &b, std::string &c, std::string &d)
-{
-    pipe_split(a, b);
-    pipe_split(b, c);
-    pipe_split(c, d);
-}
-
 void
 CenfisAirspaceWriter::write(const Airspace &as)
 {
     CenfisBuffer current;
     current.make_header();
 
+    std::string name = as.getName(), name2, name3, name4, type_string;
+    string_to_upper(name);
+    pipe_split(name, name2);
+    pipe_split(name2, name3);
+    pipe_split(name3, name4);
+    pipe_split(name4, type_string);
+
     /* AC = type */
 
     current.header().ac_rel_ind = htons(current.tell());
-    current.append(AirspaceTypeToString(as.getType()));
+    current.append(type_string.length() == 0
+                   ? AirspaceTypeToString(as.getType())
+                   : type_string);
 
     /* file info */
 
@@ -161,10 +162,6 @@ CenfisAirspaceWriter::write(const Airspace &as)
     }
 
     /* AN = name */
-
-    std::string name = as.getName(), name2, name3, name4;
-    string_to_upper(name);
-    pipe_split(name, name2, name3, name4); /* XXX do proper name parsing */
 
     current.header().an_rel_ind = htons(current.tell());
     current.append(name);
