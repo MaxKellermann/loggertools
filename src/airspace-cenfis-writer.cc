@@ -120,7 +120,7 @@ string_to_upper(std::string &s)
 }
 
 static void
-pipe_split(std::string &a, std::string &b, std::string &c, std::string &d)
+pipe_split(std::string &a, std::string &b)
 {
     std::string::size_type pos;
 
@@ -130,20 +130,14 @@ pipe_split(std::string &a, std::string &b, std::string &c, std::string &d)
 
     b = std::string(a, pos + 1);
     a = std::string(a, 0, pos);
+}
 
-    pos = b.find('|');
-    if (pos == std::string::npos)
-        return;
-
-    c = std::string(b, pos + 1);
-    b = std::string(b, 0, pos);
-
-    pos = c.find('|');
-    if (pos == std::string::npos)
-        return;
-
-    d = std::string(c, pos + 1);
-    c = std::string(c, 0, pos);
+static void
+pipe_split(std::string &a, std::string &b, std::string &c, std::string &d)
+{
+    pipe_split(a, b);
+    pipe_split(b, c);
+    pipe_split(c, d);
 }
 
 void
