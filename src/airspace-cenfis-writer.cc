@@ -166,7 +166,7 @@ CenfisAirspaceWriter::write(const Airspace &as)
     current.header().an_rel_ind = htons(current.tell());
     current.append(name);
 
-    if (name2.length() > 0) {
+    if (name2.length() > 0 && name2[0] != '-') {
         current.header().an2_rel_ind = htons(current.tell());
         current.append(name2);
     }
@@ -179,6 +179,12 @@ CenfisAirspaceWriter::write(const Airspace &as)
     if (name4.length() > 0) {
         current.header().an4_rel_ind = htons(current.tell());
         current.append(name4);
+    }
+
+    if (name2.length() > 0 && name2[0] == '-') {
+        current.header().an2_rel_ind = htons(current.tell());
+        name2.erase(name2.begin());
+        current.append(name2);
     }
 
     /* AL = lower bound */
