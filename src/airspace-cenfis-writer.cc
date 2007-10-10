@@ -206,6 +206,9 @@ CenfisAirspaceWriter::write(const Airspace &as)
 
     /* AH = upper bound */
 
+    if (as.getTop2().defined())
+        current.append(as.getTop2());
+
     if (as.getTop().defined()) {
         current.header().ah_rel_ind = htons(current.tell());
         current.append(as.getTop());
