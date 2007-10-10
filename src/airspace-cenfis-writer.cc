@@ -260,6 +260,8 @@ CenfisAirspaceWriter::write(const Airspace &as)
 
     current.header().asp_rec_lengh = htons(current.tell());
 
+    current.header().voice_ind = htons(as.getVoice());
+
     index_buffer.append_short(sizeof(struct cenfis_airspace_file_header) + airspace_buffer.tell());
     airspace_buffer << current;
 }
