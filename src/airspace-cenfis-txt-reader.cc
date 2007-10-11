@@ -193,6 +193,7 @@ const Airspace *CenfisTextAirspaceReader::read() {
     Airspace::EdgeList edges;
     Frequency frequency;
     unsigned voice = 0;
+    bool has_start = false;
 
     while (!stream->eof()) {
         try {
@@ -243,8 +244,13 @@ const Airspace *CenfisTextAirspaceReader::read() {
         } else if (cmd == "AH2") {
             top2 = top;
             top = parse_altitude(p);
-        } else if (cmd == "S" || cmd == "L") {
+        } else if (cmd == "S") {
             edges.push_back(parse_surface_position(p));
+        } else if (cmd == "L") {
+            edges.push_back(parse_surface_position(p));
+            if (!has_start && (type_string.length() == 0 ||
+                               type_string[0] != '_'))
+                type_string.insert(type_string.begin(), '_');
         } else if (cmd == "C") {
             edges.push_back(parse_circle(p));
         } else if (cmd == "A") {
