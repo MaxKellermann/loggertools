@@ -21,6 +21,9 @@
 #include "cenfis-buffer.hh"
 #include "exception.hh"
 
+Latitude::value_t CenfisBuffer::latitude_sum = 0;
+Longitude::value_t CenfisBuffer::longitude_sum = 0;
+
 void
 CenfisBuffer::fill(uint8_t ch, size_t length)
 {
@@ -97,8 +100,9 @@ void
 CenfisBuffer::append_first(const SurfacePosition &pos)
 {
     assert(num_vertices == 0);
-    assert(latitude_sum == 0);
-    assert(longitude_sum == 0);
+
+    latitude_sum = 0;
+    longitude_sum = 0;
 
     append_byte(8);
     append(pos);
@@ -115,6 +119,20 @@ CenfisBuffer::append(const SurfacePosition &pos, const SurfacePosition &rel)
     latitude_sum += pos.getLatitude().refactor(60);
     longitude_sum += pos.getLongitude().refactor(60);
     ++num_vertices;
+}
+
+void
+CenfisBuffer::append_anchor(const SurfacePosition &rel)
+{
+    latitude_sum /= num_vertices;
+    latitude_sum -= rel.getLatitude().refactor(60);
+
+    longitude_sum /= num_vertices;
+    longitude_sum -= rel.getLongitude().refactor(60);
+
+    append_byte(4);
+    append_short(latitude_sum);
+    append_short(longitude_sum);
 }
 
 void

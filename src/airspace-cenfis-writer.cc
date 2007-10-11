@@ -257,8 +257,7 @@ CenfisAirspaceWriter::write(const Airspace &as)
 
     if (firstVertex != NULL) {
         current.header().ap_rel_ind = htons(current.tell());
-        current.append_byte(4);
-        current.append(current.anchor(), *firstVertex);
+        current.append_anchor(*firstVertex);
     }
 
     current.header().asp_rec_lengh = htons(current.tell());
