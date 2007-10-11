@@ -92,6 +92,11 @@ public:
     void
     append_anchor(const SurfacePosition &rel);
 
+private:
+    void append_circle(const Edge &edge);
+    void append_arc(const Edge &edge, const SurfacePosition &rel);
+
+public:
     void append(const Edge &edge, const SurfacePosition &rel);
 
     void append(const Frequency &frequency);

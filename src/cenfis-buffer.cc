@@ -136,11 +136,27 @@ CenfisBuffer::append_anchor(const SurfacePosition &rel)
 }
 
 void
+CenfisBuffer::append_circle(const Edge &edge)
+{
+    assert(edge.getType() == Edge::TYPE_CIRCLE);
+    assert(edge.getCenter().defined());
+    assert(edge.getRadius().defined());
+
+    append_byte(10);
+    append(edge.getCenter());
+    append_short((int)(edge.getRadius().toUnit(Distance::UNIT_NAUTICAL_MILES).getValue() * 10.));
+}
+
+void
 CenfisBuffer::append(const Edge &edge, const SurfacePosition &rel)
 {
     switch (edge.getType()) {
     case Edge::TYPE_VERTEX:
         append(edge.getEnd(), rel);
+        break;
+
+    case Edge::TYPE_CIRCLE:
+        append_circle(edge);
         break;
 
     default: // XXX
