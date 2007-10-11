@@ -32,8 +32,12 @@ private:
     char *buffer;
     size_t base, buffer_size, buffer_pos;
     unsigned num_vertices;
+
+    /* bug reproduction: if an airspace has no first vertex, it
+       inherits some of the anchor of the previous airspace */
     static Latitude::value_t latitude_sum;
     static Longitude::value_t longitude_sum;
+
     const SurfacePosition *arc_start;
 
 public:

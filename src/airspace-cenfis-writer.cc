@@ -152,6 +152,8 @@ CenfisAirspaceWriter::write(const Airspace &as)
     current.header().ac_rel_ind = htons(current.tell());
     if (type_string.length() > 0) {
         if (type_string[0] == '_') {
+            /* reproduce bug: there is no first vertex, marked with an
+               underscore by CenfisTextAirspaceReader */
             has_first = false;
             type_string.erase(type_string.begin());
         }
@@ -190,6 +192,8 @@ CenfisAirspaceWriter::write(const Airspace &as)
     }
 
     if (name2.length() > 0 && name2[0] == '-') {
+        /* reproduce bug: AN4 before AN2, marked with a dash by
+           CenfisTextAirspaceReader */
         current.header().an2_rel_ind = htons(current.tell());
         name2.erase(name2.begin());
         current.append(name2);
@@ -224,6 +228,8 @@ CenfisAirspaceWriter::write(const Airspace &as)
     /* S, L = vertices */
 
     const Airspace::EdgeList &edges = as.getEdges();
+    /* bug reproduction: if an airspace has no first vertex, it
+       inherits the first vertex of the previous one */
     static SurfacePosition buffer;
     const SurfacePosition *firstVertex = has_first ? NULL : &buffer;
     size_t l_size_offset = 0;

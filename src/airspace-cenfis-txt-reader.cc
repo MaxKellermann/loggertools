@@ -232,6 +232,8 @@ const Airspace *CenfisTextAirspaceReader::read() {
         } else if (cmd == "AN2") {
             name2 = p;
             if (name4.length() > 0)
+                /* reproduce bug: AN4 before AN2, memorize that with
+                   the "dash" marker */
                 name2.insert(name2.begin(), '-');
         } else if (cmd == "AN3") {
             name3 = p;
@@ -251,6 +253,8 @@ const Airspace *CenfisTextAirspaceReader::read() {
             edges.push_back(parse_surface_position(p));
             if (!has_start && (type_string.length() == 0 ||
                                type_string[0] != '_'))
+                /* reproduce bug: there is no "S" line, memorize that
+                   with the "underscore" marker */
                 type_string.insert(type_string.begin(), '_');
         } else if (cmd == "C") {
             edges.push_back(parse_circle(p));
