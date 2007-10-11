@@ -169,6 +169,17 @@ angle_difference(const angle_type &a, const angle_type &b)
 }
 
 
+template<class angle_type>
+static const angle_type
+angle_sum(const angle_type &a, const angle_type &b)
+{
+    if (a.defined() && b.defined())
+        return angle_type(a.getValue() + b.getValue());
+    else
+        return angle_type();
+}
+
+
 /** the latitude value */
 class Latitude : public Angle {
 public:
@@ -184,6 +195,12 @@ static inline const Latitude
 operator -(const Latitude &a, const Latitude &b)
 {
     return angle_difference(a, b);
+}
+
+static inline const Latitude
+operator +(const Latitude &a, const Latitude &b)
+{
+    return angle_sum(a, b);
 }
 
 
@@ -202,6 +219,12 @@ static inline const Longitude
 operator -(const Longitude &a, const Longitude &b)
 {
     return angle_difference(a, b);
+}
+
+static inline const Longitude
+operator +(const Longitude &a, const Longitude &b)
+{
+    return angle_sum(a, b);
 }
 
 
