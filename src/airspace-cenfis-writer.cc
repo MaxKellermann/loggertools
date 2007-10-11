@@ -304,6 +304,9 @@ CenfisAirspaceWriter::flush()
     header.config.total_size = htons(config_buffer.tell());
     header.config.num_elements = htons(config_buffer.tell() / 4);
 
+    /* pad to next 0x10 */
+    config_buffer.fill(0x00, (-(offset + config_buffer.tell())) & 0xf);
+
     stream->write((const std::ostream::char_type*)&header, sizeof(header));
     *stream << airspace_buffer << index_buffer << config_buffer;
 
