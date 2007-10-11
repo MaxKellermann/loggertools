@@ -225,11 +225,8 @@ CenfisAirspaceWriter::write(const Airspace &as)
 
     const Airspace::EdgeList &edges = as.getEdges();
     static SurfacePosition buffer;
-    static const SurfacePosition *firstVertex = NULL;
+    const SurfacePosition *firstVertex = has_first ? NULL : &buffer;
     size_t l_size_offset = 0;
-
-    if (has_first)
-        firstVertex = NULL;
 
     for (Airspace::EdgeList::const_iterator it = edges.begin();
          it != edges.end(); ++it) {
