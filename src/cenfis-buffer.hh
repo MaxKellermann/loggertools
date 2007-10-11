@@ -34,15 +34,18 @@ private:
     unsigned num_vertices;
     static Latitude::value_t latitude_sum;
     static Longitude::value_t longitude_sum;
+    const SurfacePosition *arc_start;
 
 public:
     CenfisBuffer()
         :buffer(NULL), base(0), buffer_size(0), buffer_pos(0),
-         num_vertices(0) {}
+         num_vertices(0),
+         arc_start(NULL) {}
 
     CenfisBuffer(size_t _base)
         :buffer(NULL), base(_base), buffer_size(0), buffer_pos(0),
-         num_vertices(0) {}
+         num_vertices(0),
+         arc_start(NULL) {}
 
     ~CenfisBuffer()
     {

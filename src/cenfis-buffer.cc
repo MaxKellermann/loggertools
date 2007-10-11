@@ -21,6 +21,9 @@
 #include "cenfis-buffer.hh"
 #include "exception.hh"
 
+#include <math.h>
+#include <assert.h>
+
 Latitude::value_t CenfisBuffer::latitude_sum = 0;
 Longitude::value_t CenfisBuffer::longitude_sum = 0;
 
@@ -94,6 +97,8 @@ CenfisBuffer::append(const SurfacePosition &pos)
     latitude_sum += pos.getLatitude().refactor(60);
     longitude_sum += pos.getLongitude().refactor(60);
     ++num_vertices;
+
+    arc_start = &pos;
 }
 
 void
@@ -147,19 +152,166 @@ CenfisBuffer::append_circle(const Edge &edge)
     append_short((int)(edge.getRadius().toUnit(Distance::UNIT_NAUTICAL_MILES).getValue() * 10.));
 }
 
+static int
+rad_to_deg10(double angle)
+{
+    static const double rad_to_deg = 57.2957795;
+    return (int)round(angle * rad_to_deg / 10.0);
+}
+
+static double
+deg10_to_rad(int angle)
+{
+    static const double rad_to_deg = 57.2957795;
+    return angle * 10.0 / rad_to_deg;
+}
+
+static int
+sin10(int angle, double arc_radius)
+{
+    return (int)round(sin(deg10_to_rad(angle)) * arc_radius);
+}
+
+static int
+cos10(int angle, double arc_radius)
+{
+    return (int)round(cos(deg10_to_rad(angle)) * arc_radius);
+}
+
+static double
+my_atan2(double xr, double yr)
+{
+    static const double pi_h = 1.57079633;
+
+    if (xr > 0.0)
+        xr += 0.5;
+    else
+        xr -= 0.5;
+
+    if (yr > 0.0)
+        yr += 0.5;
+    else
+        yr -= 0.5;
+
+    if (xr > 0.0 && yr > 0.0)
+        return atan(xr / yr);
+
+    if (xr > 0.0 && yr < 0.0)
+        return atan(yr / xr) * -1.0 + pi_h;
+
+    if (xr < 0.0 && yr < 0.0)
+        return (atan(yr / xr) + pi_h) * -1.0;
+
+    if (xr < 0.0 && yr > 0.0)
+        return atan(xr / yr);
+
+    abort();
+}
+
+static double
+arc_radius(const SurfacePosition &start, const SurfacePosition &center)
+{
+    const Latitude rel_lat = start.getLatitude() - center.getLatitude();
+    const Longitude rel_lon = start.getLongitude() - center.getLongitude();
+    return hypot(rel_lat.refactor(60), rel_lon.refactor(60) * cos(center.getLatitude()));
+}
+
+static double
+arc_angle(const SurfacePosition &start, const SurfacePosition &center)
+{
+    const Latitude rel_lat = start.getLatitude() - center.getLatitude();
+    const Longitude rel_lon = start.getLongitude() - center.getLongitude();
+    double angle = my_atan2(rel_lon.refactor(60) * cos(center.getLatitude()), rel_lat.refactor(60));
+    static const double pi_2 = 6.28318531;
+    if (angle < 0.0)
+        angle += pi_2;
+    return angle;
+}
+
+static int
+arc_angle_deg10(const SurfacePosition &start, const SurfacePosition &center)
+{
+    return rad_to_deg10(arc_angle(start, center));
+}
+
+static int
+deg10_add(int angle, int add)
+{
+    angle += add;
+    if (angle < 0)
+        angle = 35;
+    else if (angle > 35)
+        angle = 0;
+    return angle;
+}
+
+void
+CenfisBuffer::append_arc(const Edge &edge, const SurfacePosition &rel)
+{
+    assert(edge.getType() == Edge::TYPE_ARC);
+    assert(edge.getSign() == -1 || edge.getSign() == 1);
+    assert(edge.getCenter().defined());
+    assert(edge.getEnd().defined());
+
+    if (arc_start == NULL)
+        return; // XXX
+
+    double arc_radius = ::arc_radius(*arc_start, edge.getCenter());
+
+    int start_alfa_i = deg10_add(arc_angle_deg10(*arc_start, edge.getCenter()),
+                                 edge.getSign());
+    int end_alfa_i = deg10_add(arc_angle_deg10(edge.getEnd(), edge.getCenter()),
+                               -edge.getSign());
+
+    static int num_points = 0; /* static due to bug reproduction */
+    if (edge.getSign() > 0) {
+        if (start_alfa_i < end_alfa_i)
+            num_points = end_alfa_i - start_alfa_i;
+        else if (start_alfa_i > end_alfa_i)
+            num_points = (end_alfa_i + 36) - start_alfa_i;
+    } else {
+        if  (start_alfa_i < end_alfa_i)
+            num_points = (start_alfa_i + 36) - end_alfa_i;
+        else if (start_alfa_i > end_alfa_i)
+            num_points = start_alfa_i - end_alfa_i;
+    }
+
+    for (int i = 0; i <= num_points; ++i) {
+        int angle = start_alfa_i + edge.getSign() * i;
+
+        Latitude d_latitude(cos10(angle, arc_radius), 60);
+        Longitude d_longitude((int)round(sin10(angle, arc_radius) /
+                                         cos(edge.getCenter().getLatitude())),
+                              60);
+
+        SurfacePosition pos(edge.getCenter().getLatitude() + d_latitude,
+                            edge.getCenter().getLongitude() + d_longitude);
+
+        append(pos, rel);
+    }
+
+    append(edge.getEnd(), rel);
+
+    ++num_points; /* bug reproduction */
+}
+
+
 void
 CenfisBuffer::append(const Edge &edge, const SurfacePosition &rel)
 {
     switch (edge.getType()) {
     case Edge::TYPE_VERTEX:
         append(edge.getEnd(), rel);
+
+        arc_start = &edge.getEnd();
         break;
 
     case Edge::TYPE_CIRCLE:
         append_circle(edge);
         break;
 
-    default: // XXX
+    case Edge::TYPE_ARC:
+        append_arc(edge, rel);
         break;
     }
 }
