@@ -236,6 +236,9 @@ CenfisAirspaceWriter::write(const Airspace &as)
         const Edge &edge = *it;
         if (firstVertex != NULL) {
             current.append(edge, *firstVertex);
+        } else if (edge.getType() == Edge::TYPE_CIRCLE) {
+            current.header().c_rel_ind = htons(current.tell());
+            current.append(edge, *firstVertex);
         } else if (edge.getType() == Edge::TYPE_VERTEX) {
             current.header().s_rel_ind = htons(current.tell());
             buffer = edge.getEnd();
