@@ -246,6 +246,7 @@ const Airspace *CenfisTextAirspaceReader::read() {
             top = parse_altitude(p);
         } else if (cmd == "S") {
             edges.push_back(parse_surface_position(p));
+            has_start = true;
         } else if (cmd == "L") {
             edges.push_back(parse_surface_position(p));
             if (!has_start && (type_string.length() == 0 ||
