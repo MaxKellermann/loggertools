@@ -317,6 +317,9 @@ CenfisAirspaceWriter::flush()
     /* pad to next 0x10 */
     config_buffer.fill(0x00, (-(offset + config_buffer.tell())) & 0xf);
 
+    if (offset + config_buffer.tell() > 0x10000)
+        throw container_full("the Cenfis has only 0x10000 bytes airspace buffer");
+
     stream->write((const std::ostream::char_type*)&header, sizeof(header));
     *stream << airspace_buffer << index_buffer << config_buffer;
 
