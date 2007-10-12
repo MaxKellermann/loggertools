@@ -135,6 +135,13 @@ pipe_split(std::string &a, std::string &b)
 void
 CenfisAirspaceWriter::write(const Airspace &as)
 {
+    /* ignore some airspace types */
+    if (as.getType() == Airspace::TYPE_UNKNOWN ||
+        as.getType() == Airspace::TYPE_ECHO_LOW ||
+        as.getType() == Airspace::TYPE_ECHO_HIGH ||
+        as.getType() == Airspace::TYPE_GLIDER)
+        return;
+
     CenfisBuffer current;
     current.make_header();
 
