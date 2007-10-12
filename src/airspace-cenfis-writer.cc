@@ -148,9 +148,24 @@ CenfisAirspaceWriter::write(const Airspace &as)
     std::string name = as.getName(), name2, name3, name4, type_string;
     string_to_upper(name);
     pipe_split(name, name2);
-    pipe_split(name2, name3);
-    pipe_split(name3, name4);
-    pipe_split(name4, type_string);
+
+    if (name2.length() > 0) {
+        /* hacked name from CenfisTextAirspaceReader */
+        pipe_split(name2, name3);
+        pipe_split(name3, name4);
+        pipe_split(name4, type_string);
+    } else {
+        if (as.getType() == Airspace::TYPE_RESTRICTED &&
+            name.compare(0, 3, "EDR") == 0) {
+            name.erase(0, 3);
+            name4 = "ED";
+        }
+
+        if (name.compare(0, 2, "HX") == 0) {
+            name.erase(0, 2);
+            name3 = "HX";
+        }
+    }
 
     /* AC = type */
 
