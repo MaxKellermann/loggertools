@@ -106,7 +106,7 @@ AirspaceTypeToString(Airspace::type_t type)
         return "D";
 
     case Airspace::TYPE_GLIDER:
-        return "glider";
+        return "SV";
     }
 
     return "invalid";
