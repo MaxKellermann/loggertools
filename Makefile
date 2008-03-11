@@ -31,6 +31,7 @@ VERSION = $(shell ./bin/version)
 COMMON_CFLAGS = -O0 -g
 COMMON_CFLAGS += -Wall -W -pedantic
 COMMON_CFLAGS += -Werror -pedantic-errors
+COMMON_CFLAGS += -funit-at-a-time
 
 CFLAGS = $(COMMON_CFLAGS)
 CFLAGS += -std=gnu99
