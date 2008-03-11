@@ -23,10 +23,10 @@
 #include "cenfis-airspace.h"
 #include "airspace.hh"
 
-#include <assert.h>
 #include <string>
 #include <ostream>
 
+#include <assert.h>
 #include <string.h>
 
 class CenfisBuffer {

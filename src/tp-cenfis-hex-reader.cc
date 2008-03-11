@@ -17,8 +17,6 @@
  * 02111-1307, USA.
  */
 
-#include <netinet/in.h>
-
 #include "exception.hh"
 #include "tp.hh"
 #include "tp-io.hh"
@@ -30,6 +28,7 @@
 #include <istream>
 #include <sstream>
 
+#include <netinet/in.h>
 #include <stdlib.h>
 #include <string.h>
 

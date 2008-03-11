@@ -17,9 +17,6 @@
  * 02111-1307, USA.
  */
 
-#include <errno.h>
-#include <getopt.h>
-
 #include "tp.hh"
 #include "tp-io.hh"
 
@@ -29,6 +26,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
+#include <getopt.h>
 
 using std::cout;
 using std::cerr;

@@ -17,8 +17,6 @@
  * 02111-1307, USA.
  */
 
-#include <netinet/in.h>
-
 #include "exception.hh"
 #include "tp.hh"
 #include "tp-io.hh"
@@ -28,6 +26,7 @@
 #include <vector>
 #include <algorithm>
 
+#include <netinet/in.h>
 #include <string.h>
 
 int operator <(const struct turn_point &a,

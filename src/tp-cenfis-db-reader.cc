@@ -17,17 +17,15 @@
  * 02111-1307, USA.
  */
 
-#include <netinet/in.h>
-
-#include <vector>
-
 #include "exception.hh"
 #include "tp.hh"
 #include "tp-io.hh"
 #include "cenfis-db.h"
 
+#include <vector>
 #include <istream>
 
+#include <netinet/in.h>
 #include <string.h>
 
 class CenfisDatabaseReader : public TurnPointReader {

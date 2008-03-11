@@ -17,8 +17,6 @@
  * 02111-1307, USA.
  */
 
-#include <netinet/in.h>
-
 #include "exception.hh"
 #include "tp.hh"
 #include "tp-io.hh"
@@ -26,6 +24,7 @@
 
 #include <ostream>
 
+#include <netinet/in.h>
 #include <string.h>
 
 class FilserTurnPointWriter : public TurnPointWriter {
