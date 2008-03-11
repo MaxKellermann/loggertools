@@ -28,6 +28,8 @@
 
 #include <istream>
 
+#include <string.h>
+
 class CenfisDatabaseReader : public TurnPointReader {
 private:
     std::istream *stream;

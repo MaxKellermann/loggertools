@@ -26,6 +26,9 @@
 #include <fstream>
 #include <iostream>
 
+#include <stdlib.h>
+#include <string.h>
+
 using std::cout;
 using std::cerr;
 using std::endl;

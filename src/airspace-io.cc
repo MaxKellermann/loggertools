@@ -20,6 +20,8 @@
 #include "airspace.hh"
 #include "airspace-io.hh"
 
+#include <string.h>
+
 static const OpenAirAirspaceFormat openAirFormat;
 static const CenfisAirspaceFormat cenfisFormat;
 static const CenfisHexAirspaceFormat cenfisHexFormat;

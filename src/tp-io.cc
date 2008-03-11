@@ -20,6 +20,8 @@
 #include "tp.hh"
 #include "tp-io.hh"
 
+#include <string.h>
+
 static const FancyTurnPointFormat fancyFormat;
 static const MilomeiTurnPointFormat milomeiFormat;
 static const SeeYouTurnPointFormat seeYouFormat;

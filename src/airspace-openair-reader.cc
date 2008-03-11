@@ -23,6 +23,9 @@
 
 #include <istream>
 
+#include <stdlib.h>
+#include <string.h>
+
 class OpenAirAirspaceReader : public AirspaceReader {
 public:
     std::istream *stream;

@@ -22,6 +22,9 @@
 
 #include <istream>
 
+#include <stdlib.h>
+#include <string.h>
+
 class ZanderTurnPointReader : public TurnPointReader {
 private:
     std::istream *stream;

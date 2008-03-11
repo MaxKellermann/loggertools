@@ -30,6 +30,9 @@
 #include <istream>
 #include <sstream>
 
+#include <stdlib.h>
+#include <string.h>
+
 const unsigned BANK_SIZE = 0x8000;
 
 struct decoded_hexfile {

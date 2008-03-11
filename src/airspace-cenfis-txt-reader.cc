@@ -23,6 +23,9 @@
 
 #include <istream>
 
+#include <stdlib.h>
+#include <string.h>
+
 class CenfisTextAirspaceReader : public AirspaceReader {
 public:
     std::istream *stream;

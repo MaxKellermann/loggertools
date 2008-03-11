@@ -23,6 +23,9 @@
 
 #include <istream>
 
+#include <stdlib.h>
+#include <string.h>
+
 class MilomeiTurnPointReader : public TurnPointReader {
 private:
     std::istream *stream;

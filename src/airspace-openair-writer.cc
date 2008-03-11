@@ -24,6 +24,8 @@
 #include <ostream>
 #include <iomanip>
 
+#include <stdlib.h>
+
 class OpenAirAirspaceWriter : public AirspaceWriter {
 public:
     std::ostream *stream;

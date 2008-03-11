@@ -28,6 +28,8 @@
 #include <vector>
 #include <algorithm>
 
+#include <string.h>
+
 int operator <(const struct turn_point &a,
                const struct turn_point &b) {
     return memcmp(a.title, b.title, sizeof(a.title)) < 0;

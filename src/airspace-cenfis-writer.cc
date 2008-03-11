@@ -28,6 +28,7 @@
 
 #include <netinet/in.h>
 #include <ctype.h>
+#include <string.h>
 
 class CenfisAirspaceWriter : public AirspaceWriter {
 public:

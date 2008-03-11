@@ -27,6 +27,8 @@
 #include <string>
 #include <ostream>
 
+#include <string.h>
+
 class CenfisBuffer {
 private:
     char *buffer;
@@ -54,7 +56,7 @@ public:
     ~CenfisBuffer()
     {
         if (buffer != NULL)
-            free(buffer);
+            delete[] buffer;
     }
 
 protected:

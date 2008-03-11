@@ -26,6 +26,8 @@
 
 #include <ostream>
 
+#include <string.h>
+
 class FilserTurnPointWriter : public TurnPointWriter {
 private:
     std::ostream *stream;

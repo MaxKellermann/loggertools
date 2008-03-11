@@ -23,6 +23,7 @@
 
 #include <math.h>
 #include <assert.h>
+#include <stdlib.h>
 
 Latitude::value_t CenfisBuffer::latitude_sum = 0;
 Longitude::value_t CenfisBuffer::longitude_sum = 0;

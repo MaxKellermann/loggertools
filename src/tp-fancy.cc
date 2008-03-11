@@ -24,6 +24,8 @@
 #include <ostream>
 #include <iomanip>
 
+#include <stdlib.h>
+
 class FancyTurnPointWriter : public TurnPointWriter {
 private:
     std::ostream *stream;

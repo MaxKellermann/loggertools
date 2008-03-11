@@ -27,6 +27,9 @@
 #include <iostream>
 #include <list>
 
+#include <stdlib.h>
+#include <string.h>
+
 using std::cout;
 using std::cerr;
 using std::endl;

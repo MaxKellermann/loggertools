@@ -20,6 +20,9 @@
 #include "exception.hh"
 #include "earth-parser.hh"
 
+#include <stdlib.h>
+#include <string.h>
+
 static inline void
 skipWhitespace(const char *&p)
 {
