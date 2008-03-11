@@ -146,7 +146,7 @@ struct filser_packet_def_mem {
 } __attribute__((packed));
 
 struct filser_packet_mem_section {
-    u_int16_t section_lengths[0x10];
+    uint16_t section_lengths[0x10];
 } __attribute__((packed));
 
 enum filser_command {
