@@ -27,10 +27,12 @@
 #include <string.h>
 
 class OpenAirAirspaceReader : public AirspaceReader {
-public:
+private:
     std::istream *stream;
+
 public:
     OpenAirAirspaceReader(std::istream *stream);
+
 public:
     virtual const Airspace *read();
 };
