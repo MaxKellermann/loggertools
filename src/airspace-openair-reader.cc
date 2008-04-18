@@ -30,6 +30,7 @@ class OpenAirAirspaceReader : public AirspaceReader {
 private:
     std::istream *stream;
     SurfacePosition x;
+    int direction;
 
 public:
     OpenAirAirspaceReader(std::istream *stream);
@@ -39,7 +40,7 @@ public:
 };
 
 OpenAirAirspaceReader::OpenAirAirspaceReader(std::istream *_stream)
-    :stream(_stream) {}
+    :stream(_stream), direction(1) {}
 
 static void chomp(char *p) {
     size_t length = strlen(p);
@@ -134,6 +135,16 @@ parse_surface_position(const char *p)
     return SurfacePosition(Latitude(latitude), Longitude(longitude));
 }
 
+static int
+parse_direction(const char *p)
+{
+    if (*p == '-')
+        return -1;
+    if (*p == '+')
+        return 1;
+    throw malformed_input("malformed direction");
+}
+
 static const Distance
 parse_distance(const char *p)
 {
@@ -205,6 +216,8 @@ const Airspace *OpenAirAirspaceReader::read() {
         } else if (line[0] == 'V' && line[1] == ' ') {
             if (line[2] == 'X' && line[3] == '=')
                 x = parse_surface_position(line + 4);
+            else if (line[2] == 'D' && line[3] == '=')
+                direction = parse_direction(line + 4);
             else
                 throw malformed_input("unknown variable");
         } else if (line[0] == 'D' && line[1] == 'C' && line[2] == ' ') {
@@ -212,6 +225,14 @@ const Airspace *OpenAirAirspaceReader::read() {
                 throw malformed_input("DC without X");
 
             edges.push_back(Edge(x, parse_distance(line + 3)));
+        } else if (line[0] == 'D' && line[1] == 'B' && line[2] == ' ') {
+            if (!x.defined())
+                throw malformed_input("DB without X");
+
+            // XXX
+
+            /* reset direction */
+            direction = 1;
         } else {
             throw malformed_input("invalid command");
         }
