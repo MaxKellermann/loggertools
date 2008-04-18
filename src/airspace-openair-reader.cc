@@ -29,8 +29,6 @@
 class OpenAirAirspaceReader : public AirspaceReader {
 private:
     std::istream *stream;
-    SurfacePosition x;
-    int direction;
 
 public:
     OpenAirAirspaceReader(std::istream *stream);
@@ -40,7 +38,7 @@ public:
 };
 
 OpenAirAirspaceReader::OpenAirAirspaceReader(std::istream *_stream)
-    :stream(_stream), direction(1) {}
+    :stream(_stream) {}
 
 static void chomp(char *p) {
     size_t length = strlen(p);
@@ -164,6 +162,8 @@ const Airspace *OpenAirAirspaceReader::read() {
     std::string name;
     Altitude bottom, top;
     Airspace::EdgeList edges;
+    SurfacePosition x;
+    int direction = 1;
 
     while (!stream->eof()) {
         try {
