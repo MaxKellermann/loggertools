@@ -29,6 +29,7 @@
 class OpenAirAirspaceReader : public AirspaceReader {
 private:
     std::istream *stream;
+    SurfacePosition x;
 
 public:
     OpenAirAirspaceReader(std::istream *stream);
@@ -133,6 +134,19 @@ parse_surface_position(const char *p)
     return SurfacePosition(Latitude(latitude), Longitude(longitude));
 }
 
+static const Distance
+parse_distance(const char *p)
+{
+    char *endptr;
+    double value;
+
+    value = strtod(p, &endptr);
+    if (*endptr != 0)
+        throw malformed_input("malformed distance");
+
+    return Distance(Distance::UNIT_NAUTICAL_MILES, value);
+}
+
 const Airspace *OpenAirAirspaceReader::read() {
     char line[512];
     Airspace::type_t type = Airspace::TYPE_UNKNOWN;
@@ -188,6 +202,16 @@ const Airspace *OpenAirAirspaceReader::read() {
         } else if (line[0] == 'D' && line[1] == 'P' && line[2] == ' ') {
             SurfacePosition position = parse_surface_position(line + 3);
             edges.push_back(Edge(position));
+        } else if (line[0] == 'V' && line[1] == ' ') {
+            if (line[2] == 'X' && line[3] == '=')
+                x = parse_surface_position(line + 4);
+            else
+                throw malformed_input("unknown variable");
+        } else if (line[0] == 'D' && line[1] == 'C' && line[2] == ' ') {
+            if (!x.defined())
+                throw malformed_input("DC without X");
+
+            edges.push_back(Edge(x, parse_distance(line + 3)));
         } else {
             throw malformed_input("invalid command");
         }
