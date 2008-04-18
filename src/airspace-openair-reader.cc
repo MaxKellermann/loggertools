@@ -104,6 +104,35 @@ static const Altitude parse_altitude(const char *p) {
     return Altitude(value, Altitude::UNIT_FEET, ref);
 }
 
+static const SurfacePosition
+parse_surface_position(const char *p)
+{
+    int lat1, lat2, lat3, lon1, lon2, lon3;
+    char latSN[4], lonWE[4]; /* on AMD64, this must be 32 bits wide? wtf? */
+    int ret;
+
+    ret = sscanf(p, "%2d:%2d:%2d %[SN] %3d:%2d:%2d %[WE]",
+                 &lat1, &lat2, &lat3, latSN,
+                 &lon1, &lon2, &lon3, lonWE);
+    if (ret != 8)
+        throw malformed_input();
+
+    int latitude = ((lat1 * 60) + lat2) * 1000 + (lat3 * 1000 + 499) / 60;
+    int longitude = ((lon1 * 60) + lon2) * 1000 + (lon3 * 1000 + 499) / 60;
+
+    if (*latSN == 'S')
+        latitude = -latitude;
+    else if (*latSN != 'N')
+        throw malformed_input();
+
+    if (*lonWE == 'W')
+        longitude = -longitude;
+    else if (*lonWE != 'E')
+        throw malformed_input("expected 'W' or 'E'");
+
+    return SurfacePosition(Latitude(latitude), Longitude(longitude));
+}
+
 const Airspace *OpenAirAirspaceReader::read() {
     char line[512];
     Airspace::type_t type = Airspace::TYPE_UNKNOWN;
@@ -157,31 +186,8 @@ const Airspace *OpenAirAirspaceReader::read() {
                 throw malformed_input("invalid command");
             }
         } else if (line[0] == 'D' && line[1] == 'P' && line[2] == ' ') {
-            int lat1, lat2, lat3, lon1, lon2, lon3;
-            char latSN[4], lonWE[4]; /* on AMD64, this must be 32 bits wide? wtf? */
-            int ret;
-
-            ret = sscanf(line + 3, "%2d:%2d:%2d %[SN] %3d:%2d:%2d %[WE]",
-                         &lat1, &lat2, &lat3, latSN,
-                         &lon1, &lon2, &lon3, lonWE);
-            if (ret != 8)
-                throw malformed_input();
-
-            int latitude = ((lat1 * 60) + lat2) * 1000 + (lat3 * 1000 + 499) / 60;
-            int longitude = ((lon1 * 60) + lon2) * 1000 + (lon3 * 1000 + 499) / 60;
-
-            if (*latSN == 'S')
-                latitude = -latitude;
-            else if (*latSN != 'N')
-                throw malformed_input();
-
-            if (*lonWE == 'W')
-                longitude = -longitude;
-            else if (*lonWE != 'E')
-                throw malformed_input("expected 'W' or 'E'");
-
-            edges.push_back(Edge(SurfacePosition(Latitude(latitude),
-                                                 Longitude(longitude))));
+            SurfacePosition position = parse_surface_position(line + 3);
+            edges.push_back(Edge(position));
         } else {
             throw malformed_input("invalid command");
         }
