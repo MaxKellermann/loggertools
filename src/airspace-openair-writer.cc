@@ -172,6 +172,16 @@ void write_circle(std::ostream &stream, const Edge &edge)
            << "DC " << edge.getRadius() << "\n";
 }
 
+void write_arc(std::ostream &stream, const Edge &edge,
+               const Edge &prev)
+{
+    if (edge.getSign() < 0)
+        stream << "V D=-\n";
+    stream << "V X=" << edge.getCenter() << "\n"
+           << "DB " << prev.getEnd()
+           << "," << edge.getEnd() << "\n";
+}
+
 void OpenAirAirspaceWriter::write(const Airspace &as) {
     *stream << "AC " << as.getType() << "\n"
             << "AN " << as.getName() << "\n"
@@ -192,7 +202,12 @@ void OpenAirAirspaceWriter::write(const Airspace &as) {
             break;
 
         case Edge::TYPE_ARC:
-            // XXX implement
+            if (it != edges.begin()) {
+                Airspace::EdgeList::const_iterator prev = it;
+                --prev;
+                if (prev->getType() == Edge::TYPE_VERTEX)
+                    write_arc(*stream, edge, *prev);
+            }
             break;
         }
     }
