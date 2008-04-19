@@ -156,6 +156,16 @@ parse_distance(const char *p)
     return Distance(Distance::UNIT_NAUTICAL_MILES, value);
 }
 
+static bool
+last_edge_equals(const Airspace::EdgeList &edges, const SurfacePosition &sp)
+{
+    if (edges.size() == 0)
+        return false;
+
+    const Edge &last = *(--edges.end());
+    return last.getType() == Edge::TYPE_VERTEX && last.getEnd() == sp;
+}
+
 const Airspace *OpenAirAirspaceReader::read() {
     char line[512];
     Airspace::type_t type = Airspace::TYPE_UNKNOWN;
@@ -226,10 +236,24 @@ const Airspace *OpenAirAirspaceReader::read() {
 
             edges.push_back(Edge(x, parse_distance(line + 3)));
         } else if (line[0] == 'D' && line[1] == 'B' && line[2] == ' ') {
+            // arc with three points
+            SurfacePosition start, end;
+
             if (!x.defined())
                 throw malformed_input("DB without X");
 
-            // XXX
+            start = parse_surface_position(line + 3);
+            const char *comma = strchr(line + 3, ',');
+            if (comma == NULL)
+                throw malformed_input("comma expected");
+            end = parse_surface_position(comma + 1);
+
+            if (!last_edge_equals(edges, start))
+                /* add a new vertex when the last vertex isn't equal
+                   to the arc start */
+                edges.push_back(Edge(start));
+
+            edges.push_back(Edge(direction, end, x));
 
             /* reset direction */
             direction = 1;
