@@ -17,13 +17,24 @@
  * 02111-1307, USA.
  */
 
+#include "version.h"
+
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#ifdef __GLIBC__
+#include <getopt.h>
+#endif
 
 #include "cenfis.h"
+
+struct config {
+    int verbose;
+    const char *tty;
+};
 
 static void usage(void) {
     puts("usage: cenfistool COMMAND [ARGUMENTS]\n"
@@ -43,9 +54,69 @@ static void arg_error(const char *msg) {
     _exit(1);
 }
 
-static void command_send(int argc, char **argv, int pos) {
+/** read configuration options from the command line */
+static void
+parse_cmdline(struct config *config, int argc, char **argv)
+{
+    int ret;
+#ifdef __GLIBC__
+    static const struct option long_options[] = {
+        {"help", 0, 0, 'h'},
+        {"version", 0, 0, 'V'},
+        {"verbose", 0, 0, 'v'},
+        {"quiet", 1, 0, 'q'},
+        {"tty", 1, 0, 't'},
+        {0,0,0,0}
+    };
+#endif
+
+    memset(config, 0, sizeof(*config));
+    config->tty = "/dev/ttyS0";
+
+    while (1) {
+#ifdef __GLIBC__
+        int option_index = 0;
+
+        ret = getopt_long(argc, argv, "hVvqt:",
+                          long_options, &option_index);
+#else
+        ret = getopt(argc, argv, "hVvqt:");
+#endif
+        if (ret == -1)
+            break;
+
+        switch (ret) {
+        case 'h':
+            usage();
+            exit(0);
+
+        case 'V':
+            puts("loggertools v" VERSION " (C) 2004-2008 Max Kellermann <max@duempel.org>\n"
+                 "http://max.kellermann.name/projects/loggertools/\n");
+            exit(0);
+
+        case 'v':
+            ++config->verbose;
+            break;
+
+        case 'q':
+            config->verbose = 0;
+            break;
+
+        case 't':
+            config->tty = optarg;
+            break;
+
+        default:
+            exit(1);
+        }
+    }
+}
+
+static void
+command_send(const struct config *config, int argc, char **argv, int pos)
+{
     const char *filename = NULL;
-    const char *device = "/dev/ttyS0";
     FILE *file;
     char line[256];
     size_t length;
@@ -68,14 +139,14 @@ static void command_send(int argc, char **argv, int pos) {
         _exit(1);
     }
 
-    status = cenfis_open(device, &cenfis);
+    status = cenfis_open(config->tty, &cenfis);
     if (cenfis_is_error(status)) {
         if (status == CENFIS_STATUS_ERRNO) {
             fprintf(stderr, "failed to open '%s': %s\n",
-                    device, strerror(errno));
+                    config->tty, strerror(errno));
         } else {
             fprintf(stderr, "cenfis_open('%s') failed with status %d\n",
-                    device, status);
+                    config->tty, status);
         }
         _exit(1);
     }
@@ -127,9 +198,10 @@ static void command_send(int argc, char **argv, int pos) {
     }
 }
 
-static void command_upload(int argc, char **argv, int pos) {
+static void
+command_upload(const struct config *config, int argc, char **argv, int pos)
+{
     const char *filename = NULL;
-    const char *device = "/dev/ttyS0";
     FILE *file;
     char line[256];
     size_t length;
@@ -152,14 +224,14 @@ static void command_upload(int argc, char **argv, int pos) {
         _exit(1);
     }
 
-    status = cenfis_open(device, &cenfis);
+    status = cenfis_open(config->tty, &cenfis);
     if (cenfis_is_error(status)) {
         if (status == CENFIS_STATUS_ERRNO) {
             fprintf(stderr, "failed to open '%s': %s\n",
-                    device, strerror(errno));
+                    config->tty, strerror(errno));
         } else {
             fprintf(stderr, "cenfis_open('%s') failed with status %d\n",
-                    device, status);
+                    config->tty, status);
         }
         _exit(1);
     }
@@ -251,19 +323,20 @@ static void command_upload(int argc, char **argv, int pos) {
 }
 
 int main(int argc, char **argv) {
-    if (argc < 2) {
-        usage();
-        _exit(0);
-    }
+    struct config config;
+    const char *cmd;
 
-    if (strcmp(argv[1], "send") == 0) {
-        command_send(argc, argv, 2);
-    } else if (strcmp(argv[1], "upload") == 0) {
-        command_upload(argc, argv, 2);
-    } else if (strcmp(argv[1], "help") == 0 ||
-               strcmp(argv[1], "--help") == 0 ||
-               strcmp(argv[1], "-h") == 0) {
-        usage();
+    parse_cmdline(&config, argc, argv);
+
+    if (optind >= argc)
+        arg_error("no command specified");
+
+    cmd = argv[optind++];
+
+    if (strcmp(cmd, "send") == 0) {
+        command_send(&config, argc, argv, optind);
+    } else if (strcmp(cmd, "upload") == 0) {
+        command_upload(&config, argc, argv, optind);
     } else {
         arg_error("Unknown command");
     }
