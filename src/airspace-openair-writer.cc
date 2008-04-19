@@ -31,6 +31,7 @@ public:
     std::ostream *stream;
 public:
     OpenAirAirspaceWriter(std::ostream *stream);
+
 public:
     virtual void write(const Airspace &as);
     virtual void flush();
@@ -129,6 +130,30 @@ static std::ostream &operator <<(std::ostream &os, const Altitude &alt) {
         return os << std::setfill('0') << std::setw(4) << value << ref;
 }
 
+void write_vertex(std::ostream &stream, const Edge &edge)
+{
+    const SurfacePosition &vertex = edge.getEnd();
+
+    int latitude = vertex.getLatitude().refactor(60);
+    int absLatitude = abs(latitude);
+    int longitude = vertex.getLongitude().refactor(60);
+    int absLongitude = abs(longitude);
+
+    stream << "DP "
+           << std::setfill('0') << std::setw(2) << (absLatitude / 3600)
+           << ':'
+           << std::setfill('0') << std::setw(2) << ((absLatitude / 60) % 60)
+           << ':'
+           << std::setfill('0') << std::setw(2) << (absLatitude % 60)
+           << ' ' << (latitude < 0 ? 'S' : 'N') << ' '
+           << std::setfill('0') << std::setw(3) << (absLongitude / 3600)
+           << ':'
+           << std::setfill('0') << std::setw(2) << ((absLongitude / 60) % 60)
+           << ':'
+           << std::setfill('0') << std::setw(2) << (absLongitude % 60)
+           << ' ' << (longitude < 0 ? 'W' : 'E') << "\n";
+}
+
 void OpenAirAirspaceWriter::write(const Airspace &as) {
     *stream << "AC " << as.getType() << "\n"
             << "AN " << as.getName() << "\n"
@@ -139,28 +164,16 @@ void OpenAirAirspaceWriter::write(const Airspace &as) {
     for (Airspace::EdgeList::const_iterator it = edges.begin();
          it != edges.end(); ++it) {
         const Edge &edge = (*it);
-        if (edge.getType() != Edge::TYPE_VERTEX)
-            continue; /* XXX what about unsupported edge types? */
-        const SurfacePosition &vertex = edge.getEnd();
+        switch (edge.getType()) {
+        case Edge::TYPE_VERTEX:
+            write_vertex(*stream, edge);
+            break;
 
-        int latitude = vertex.getLatitude().refactor(60);
-        int absLatitude = abs(latitude);
-        int longitude = vertex.getLongitude().refactor(60);
-        int absLongitude = abs(longitude);
-
-        *stream << "DP "
-                << std::setfill('0') << std::setw(2) << (absLatitude / 3600)
-                << ':'
-                << std::setfill('0') << std::setw(2) << ((absLatitude / 60) % 60)
-                << ':'
-                << std::setfill('0') << std::setw(2) << (absLatitude % 60)
-                << ' ' << (latitude < 0 ? 'S' : 'N') << ' '
-                << std::setfill('0') << std::setw(3) << (absLongitude / 3600)
-                << ':'
-                << std::setfill('0') << std::setw(2) << ((absLongitude / 60) % 60)
-                << ':'
-                << std::setfill('0') << std::setw(2) << (absLongitude % 60)
-                << ' ' << (longitude < 0 ? 'W' : 'E') << "\n";
+        case Edge::TYPE_CIRCLE:
+        case Edge::TYPE_ARC:
+            // XXX implement
+            break;
+        }
     }
 
     *stream << "\n";
