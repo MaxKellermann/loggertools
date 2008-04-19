@@ -131,6 +131,15 @@ static std::ostream &operator <<(std::ostream &os, const Altitude &alt) {
 }
 
 static std::ostream &
+operator <<(std::ostream &os, const Distance &distance)
+{
+    if (!distance.defined())
+        return os << "UNKNOWN";
+
+    return os << distance.toUnit(Distance::UNIT_NAUTICAL_MILES).getValue();
+}
+
+static std::ostream &
 operator <<(std::ostream &os, const SurfacePosition &position)
 {
     int latitude = position.getLatitude().refactor(60);
@@ -157,6 +166,12 @@ void write_vertex(std::ostream &stream, const Edge &edge)
     stream << "DP " << edge.getEnd() << "\n";
 }
 
+void write_circle(std::ostream &stream, const Edge &edge)
+{
+    stream << "V X=" << edge.getCenter() << "\n"
+           << "DC " << edge.getRadius() << "\n";
+}
+
 void OpenAirAirspaceWriter::write(const Airspace &as) {
     *stream << "AC " << as.getType() << "\n"
             << "AN " << as.getName() << "\n"
@@ -173,6 +188,9 @@ void OpenAirAirspaceWriter::write(const Airspace &as) {
             break;
 
         case Edge::TYPE_CIRCLE:
+            write_circle(*stream, edge);
+            break;
+
         case Edge::TYPE_ARC:
             // XXX implement
             break;
