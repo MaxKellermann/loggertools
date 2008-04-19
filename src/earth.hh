@@ -189,6 +189,11 @@ public:
     Latitude(int sign, unsigned degrees, unsigned minutes, unsigned seconds)
         :Angle(sign, degrees, minutes, seconds) {}
     Latitude(double value):Angle(value) {}
+
+public:
+    bool operator ==(const Latitude &b) const {
+        return getValue() == b.getValue();
+    }
 };
 
 static inline const Latitude
@@ -213,6 +218,11 @@ public:
     Longitude(int sign, unsigned degrees, unsigned minutes, unsigned seconds)
         :Angle(sign, degrees, minutes, seconds) {}
     Longitude(double value):Angle(value) {}
+
+public:
+    bool operator ==(const Longitude &b) const {
+        return getValue() == b.getValue();
+    }
 };
 
 static inline const Longitude
@@ -254,6 +264,12 @@ public:
     }
     const Longitude &getLongitude() const {
         return longitude;
+    }
+
+    bool operator ==(const SurfacePosition &b) const
+    {
+        return latitude == b.latitude &&
+            longitude == b.longitude;
     }
 };
 
