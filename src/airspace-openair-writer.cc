@@ -130,28 +130,31 @@ static std::ostream &operator <<(std::ostream &os, const Altitude &alt) {
         return os << std::setfill('0') << std::setw(4) << value << ref;
 }
 
-void write_vertex(std::ostream &stream, const Edge &edge)
+static std::ostream &
+operator <<(std::ostream &os, const SurfacePosition &position)
 {
-    const SurfacePosition &vertex = edge.getEnd();
-
-    int latitude = vertex.getLatitude().refactor(60);
+    int latitude = position.getLatitude().refactor(60);
     int absLatitude = abs(latitude);
-    int longitude = vertex.getLongitude().refactor(60);
+    int longitude = position.getLongitude().refactor(60);
     int absLongitude = abs(longitude);
 
-    stream << "DP "
-           << std::setfill('0') << std::setw(2) << (absLatitude / 3600)
-           << ':'
-           << std::setfill('0') << std::setw(2) << ((absLatitude / 60) % 60)
-           << ':'
-           << std::setfill('0') << std::setw(2) << (absLatitude % 60)
-           << ' ' << (latitude < 0 ? 'S' : 'N') << ' '
-           << std::setfill('0') << std::setw(3) << (absLongitude / 3600)
-           << ':'
-           << std::setfill('0') << std::setw(2) << ((absLongitude / 60) % 60)
-           << ':'
-           << std::setfill('0') << std::setw(2) << (absLongitude % 60)
-           << ' ' << (longitude < 0 ? 'W' : 'E') << "\n";
+    return os << std::setfill('0') << std::setw(2) << (absLatitude / 3600)
+              << ':'
+              << std::setfill('0') << std::setw(2) << ((absLatitude / 60) % 60)
+              << ':'
+              << std::setfill('0') << std::setw(2) << (absLatitude % 60)
+              << ' ' << (latitude < 0 ? 'S' : 'N') << ' '
+              << std::setfill('0') << std::setw(3) << (absLongitude / 3600)
+              << ':'
+              << std::setfill('0') << std::setw(2) << ((absLongitude / 60) % 60)
+              << ':'
+              << std::setfill('0') << std::setw(2) << (absLongitude % 60)
+              << ' ' << (longitude < 0 ? 'W' : 'E');
+}
+
+void write_vertex(std::ostream &stream, const Edge &edge)
+{
+    stream << "DP " << edge.getEnd() << "\n";
 }
 
 void OpenAirAirspaceWriter::write(const Airspace &as) {
