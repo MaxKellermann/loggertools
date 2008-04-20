@@ -1,0 +1,38 @@
+.TH "cenfistool" "1" "April 2008"
+.PP
+.SH "NAME"
+cenfistool \- upload hexfiles to a Holltronic Cenfis device
+.PP
+.SH "SYNOPSIS"
+.B cenfistool
+[\fIOPTION\fR]...
+\fBCOMMAND\fR
+[\fIARGUMENTS\fR]...
+.SH DESCRIPTION
+.PP
+This program talks to a Holltronic Cenfis device over a serial cable.
+It supports uploading hexfiles which may contain firmware, turn points
+or airspace data.
+.TP
+\fB\-t\fR, \fB\-\-tty\fI=DEVICE\fR
+Specify a device node different than /dev/ttyS0
+.SH COMMANDS
+.TP
+\fBsend\fR
+Directly send the specified file to the Cenfis device.  This command
+is usually only used for debugging, because it does not synchronize
+with the device.
+.TP
+\fBupload\fR
+Synchronize with the Cenfis device, then upload the specified hexfile.
+.SH AUTHOR
+Max Kellermann <max@duempel.org>
+.SH COPYRIGHT
+Copyright (C) 2004-2008 Max Kellermann
+.br
+This is free software.  You may redistribute copies of it under the
+terms of the GNU General Public License
+<http://www.gnu.org/licenses/gpl.html>.  There is NO WARRANTY, to the
+extent permitted by law.
+.SH "SEE ALSO"
+\fBtpconv\fR(1), \fBasconv\fR(1)

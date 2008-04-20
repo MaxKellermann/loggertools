@@ -42,7 +42,7 @@ static void usage(void) {
          "  send <filename.bhf>\n"
          "      directly send the specified file to the Cenfis device\n"
          "  upload <filename.bhf>\n"
-         "      wait for the Cenfis device to be ready, then upload the specified hexfile\n"
+         "      synchronize with the Cenfis device, then upload the specified hexfile.\n"
          "  help\n"
          "      print this help page\n");
 }
