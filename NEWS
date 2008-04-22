@@ -5,12 +5,19 @@ Version 0.0.2 - not yet released
       most cases
     - added methods getAnyName(), getAbbreviatedName()
     - removed method getCodeOrFullName()
+  * tpconv:
+    - added filter "name"
+    - show filter errors
+    - allow runway directions 19 up to 36
+    - filter "distance": parse center from filter arguments
+  * asconv:
+    - airsapce-cenfis: writer for the Holltronic Cenfis airspace format
+    - openair: support "DC", "DB"
+  * cenfistool:
+    - added manual page
+    - support the "--tty" option
   * reimplemented HexfileOutputFilter without boost::iostreams
   * fixed the -o option in hexfile-tool.c
-  * tp-conv: added filter "name"
-  * tp-conv: show filter errors
-  * tp-conv: allow runway directions 19 up to 36
-  * tp-distance: parse center from filter arguments
   * tp-cenfis: set description instead of title
   * tp-cenfis: special description "Waypoint"
   * tp-cenfis: don't multiply runway direction with 10
@@ -23,7 +30,6 @@ Version 0.0.2 - not yet released
   * tp-seeyou: convert altitude to meters
   * tp-fancy: new format which aims to be human-readable
   * tp-milomei: new format which can parse the Welt2000 files
-  * airsapce-cenfis: writer for the Holltronic Cenfis airspace format
   * lxn-to-igc: print the correct vendor code in ORIGIN records (bug
     report by Calle Koppen)
 
