@@ -210,11 +210,27 @@ CenfisAirspaceWriter::write(const Airspace &as)
             name.compare(0, 3, "EDR") == 0) {
             name.erase(0, 3);
             name4 = "ED";
+        } else if ((as.getType() == Airspace::TYPE_RESTRICTED &&
+                    name.compare(0, 4, "ED-R") == 0) ||
+                   (as.getType() == Airspace::TYPE_DANGER &&
+                    name.compare(0, 4, "ED-D") == 0)) {
+            name.erase(0, 4);
+            name4 = "ED";
         }
 
         if (name.compare(0, 2, "HX") == 0) {
             name.erase(0, 2);
             name3 = "HX";
+        } else if (name.length() > 5 &&
+                   name.compare(name.length() - 5, 5, " (HX)") == 0) {
+            name.erase(name.length() - 5, 5);
+            name3 = "HX";
+        }
+
+        if (name.length() > 6 &&
+            name.compare(name.length() - 6, 6, " (TRA)") == 0) {
+            name.erase(name.length() - 6, 6);
+            name2 = "TRA";
         }
     }
 
