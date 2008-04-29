@@ -114,6 +114,55 @@ AirspaceTypeToString(Airspace::type_t type)
 }
 
 static void
+string_latin1_to_ascii(std::string &s)
+{
+    for (std::string::size_type i = 0; i < s.length(); ++i) {
+        if ((s[i] & 0x80) == 0)
+            continue;
+
+        switch (s[i]) {
+        case '\xc4':
+            s.replace(i, 1, "AE");
+            ++i;
+            break;
+
+        case '\xd6':
+            s.replace(i, 1, "OE");
+            ++i;
+            break;
+
+        case '\xdc':
+            s.replace(i, 1, "UE");
+            ++i;
+            break;
+
+        case '\xdf':
+            s.replace(i, 1, "ss");
+            ++i;
+            break;
+
+        case '\xe4':
+            s.replace(i, 1, "ae");
+            ++i;
+            break;
+
+        case '\xf6':
+            s.replace(i, 1, "oe");
+            ++i;
+            break;
+
+        case '\xfc':
+            s.replace(i, 1, "ue");
+            ++i;
+            break;
+
+        default:
+            s[i] = ' ';
+        }
+    }
+}
+
+static void
 string_to_upper(std::string &s)
 {
     for (std::string::size_type i = 0; i < s.length(); ++i)
@@ -147,6 +196,7 @@ CenfisAirspaceWriter::write(const Airspace &as)
     current.make_header();
 
     std::string name = as.getName(), name2, name3, name4, type_string;
+    string_latin1_to_ascii(name);
     string_to_upper(name);
     pipe_split(name, name2);
 
