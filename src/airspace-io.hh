@@ -1,6 +1,6 @@
 /*
  * loggertools
- * Copyright (C) 2004-2007 Max Kellermann <max@duempel.org>
+ * Copyright (C) 2004-2008 Max Kellermann <max@duempel.org>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -20,11 +20,8 @@
 #ifndef __LOGGERTOOLS_AIRSPACE_IO_HH
 #define __LOGGERTOOLS_AIRSPACE_IO_HH
 
-#include <exception>
-#include <string>
-#include <iosfwd>
-
 #include "io.hh"
+#include "airspace.hh"
 
 typedef Reader<Airspace> AirspaceReader;
 typedef Writer<Airspace> AirspaceWriter;
