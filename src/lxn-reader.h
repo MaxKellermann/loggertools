@@ -1,6 +1,6 @@
 /*
  * loggertools
- * Copyright (C) 2004-2007 Max Kellermann <max@duempel.org>
+ * Copyright (C) 2004-2008 Max Kellermann <max@duempel.org>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -20,7 +20,8 @@
 #ifndef __LXN_READER_H
 #define __LXN_READER_H
 
-#include <sys/types.h>
+#include <stdint.h>
+#include <stddef.h>
 
 enum lxn_commands {
     LXN_END = 0x40,
@@ -71,7 +72,7 @@ struct lxn_start {
 
 struct lxn_origin {
     unsigned char cmd;
-    u_int32_t time, latitude, longitude;
+    uint32_t time, latitude, longitude;
 } __attribute__((packed));
 
 struct lxn_security_old {
@@ -86,7 +87,7 @@ struct lxn_serial {
 
 struct lxn_position {
     unsigned char cmd;
-    u_int16_t time, latitude, longitude, aalt, galt;
+    uint16_t time, latitude, longitude, aalt, galt;
 } __attribute__((packed));
 
 struct lxn_security {
@@ -107,36 +108,36 @@ struct lxn_event {
 
 struct lxn_task {
     unsigned char cmd;
-    u_int32_t time;
+    uint32_t time;
     unsigned char day, month, year;
     unsigned char day2, month2, year2;
-    u_int16_t task_id;
+    uint16_t task_id;
     unsigned char num_tps;
     unsigned char usage[12];
-    u_int32_t longitude[12], latitude[12];
+    uint32_t longitude[12], latitude[12];
     char name[12][9];
 } __attribute__((packed));
 
 struct lxn_b_ext {
     unsigned char cmd;
-    u_int16_t data[];
+    uint16_t data[];
 } __attribute__((packed));
 
 struct lxn_k_ext {
     unsigned char cmd;
     unsigned char foo;
-    u_int16_t data[];
+    uint16_t data[];
 } __attribute__((packed));
 
 struct lxn_date {
     unsigned char cmd;
     unsigned char day, month;
-    u_int16_t year;
+    uint16_t year;
 } __attribute__((packed));
 
 struct lxn_flight_info {
     unsigned char cmd;
-    u_int16_t id;
+    uint16_t id;
     char pilot[19];
     char glider[12];
     char registration[8];
@@ -150,7 +151,7 @@ struct lxn_flight_info {
 
 struct lxn_ext_config {
     unsigned char cmd;
-    u_int16_t time, dat;
+    uint16_t time, dat;
 } __attribute__((packed));
 
 struct extension_definition {

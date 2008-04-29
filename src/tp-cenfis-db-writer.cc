@@ -176,7 +176,7 @@ static int typeToTable(char type) {
 void CenfisDatabaseWriter::flush() {
     struct table_entry entry;
     struct foo foo;
-    u_int32_t foo_offset, table_offset;
+    uint32_t foo_offset, table_offset;
 
     if (stream == NULL)
         throw already_flushed();
