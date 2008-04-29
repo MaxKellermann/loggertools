@@ -193,7 +193,8 @@ void CenfisDatabaseWriter::flush() {
     unsigned n = 0;
     for (std::vector<struct turn_point>::const_iterator it = tps.begin();
          it != tps.end(); ++it, ++n) {
-        int table = typeToTable((*it).type);
+        const struct turn_point &tp = *it;
+        int table = typeToTable(tp.type);
         if (table >= 0) {
             unsigned offset = sizeof(header)
                 + sizeof(struct turn_point) * n;
@@ -227,9 +228,9 @@ void CenfisDatabaseWriter::flush() {
 
     for (std::vector<struct turn_point>::iterator it = tps.begin();
          it != tps.end(); ++it) {
-        struct turn_point *tp = &(*it);
+        struct turn_point &tp = *it;
 
-        stream->write((char*)tp, sizeof(*tp));
+        stream->write((char*)&tp, sizeof(tp));
     }
 
     /* write foo */
