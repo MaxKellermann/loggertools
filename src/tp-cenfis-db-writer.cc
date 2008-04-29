@@ -226,11 +226,11 @@ void CenfisDatabaseWriter::flush() {
 
     /* write all TPs */
 
-    for (std::vector<struct turn_point>::iterator it = tps.begin();
+    for (std::vector<struct turn_point>::const_iterator it = tps.begin();
          it != tps.end(); ++it) {
-        struct turn_point &tp = *it;
+        const struct turn_point &tp = *it;
 
-        stream->write((char*)&tp, sizeof(tp));
+        stream->write((const char*)&tp, sizeof(tp));
     }
 
     /* write foo */
