@@ -25,6 +25,7 @@ static const OpenAirAirspaceFormat openAirFormat;
 static const CenfisAirspaceFormat cenfisFormat;
 static const CenfisHexAirspaceFormat cenfisHexFormat;
 static const CenfisTextAirspaceFormat cenfisTextFormat;
+static const SVGAirspaceFormat svgFormat;
 
 const AirspaceFormat *getAirspaceFormat(const char *ext) {
     if (strcasecmp(ext, "txt") == 0 || strcmp(ext, "openair") == 0)
@@ -35,6 +36,8 @@ const AirspaceFormat *getAirspaceFormat(const char *ext) {
         return &cenfisHexFormat;
     else if (strcasecmp(ext, "asa") == 0 || strcasecmp(ext, "asb") == 0)
         return &cenfisTextFormat;
+    else if (strcasecmp(ext, "svg") == 0)
+        return &svgFormat;
     else
         return NULL;
 }
