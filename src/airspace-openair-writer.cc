@@ -161,19 +161,22 @@ operator <<(std::ostream &os, const SurfacePosition &position)
               << ' ' << (longitude < 0 ? 'W' : 'E');
 }
 
-void write_vertex(std::ostream &stream, const Edge &edge)
+static void
+write_vertex(std::ostream &stream, const Edge &edge)
 {
     stream << "DP " << edge.getEnd() << "\n";
 }
 
-void write_circle(std::ostream &stream, const Edge &edge)
+static void
+write_circle(std::ostream &stream, const Edge &edge)
 {
     stream << "V X=" << edge.getCenter() << "\n"
            << "DC " << edge.getRadius() << "\n";
 }
 
-void write_arc(std::ostream &stream, const Edge &edge,
-               const Edge &prev)
+static void
+write_arc(std::ostream &stream, const Edge &edge,
+          const Edge &prev)
 {
     if (edge.getSign() < 0)
         stream << "V D=-\n";
