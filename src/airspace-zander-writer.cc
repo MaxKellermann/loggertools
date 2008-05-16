@@ -153,8 +153,10 @@ static void
 write_arc(std::ostream &stream, const Edge &edge,
           const Edge &prev)
 {
-    stream << "A " << edge.getCenter() << "\n"
-           << "  " << prev.getEnd() << "\n"
+    write_vertex(stream, prev, 'L');
+
+    stream << "A " << edge.getEnd() << "\n"
+           << "  " << edge.getCenter() << "\n"
            << (edge.getSign() < 0 ? '-' : '+')
            << "\n";
 }
