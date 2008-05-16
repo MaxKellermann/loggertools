@@ -51,6 +51,12 @@ public:
     virtual AirspaceWriter *createWriter(std::ostream *stream) const;
 };
 
+class ZanderAirspaceFormat : public AirspaceFormat {
+public:
+    virtual AirspaceReader *createReader(std::istream *stream) const;
+    virtual AirspaceWriter *createWriter(std::ostream *stream) const;
+};
+
 class SVGAirspaceFormat : public AirspaceFormat {
 public:
     virtual AirspaceReader *createReader(std::istream *stream) const;

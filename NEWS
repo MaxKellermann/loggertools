@@ -12,6 +12,7 @@ Version 0.0.2 - not yet released
     - filter "distance": parse center from filter arguments
   * asconv:
     - airsapce-cenfis: writer for the Holltronic Cenfis airspace format
+    - airspace-zander: writer for the Zander airspace format
     - openair: support "DC", "DB"
   * cenfistool:
     - added manual page
