@@ -125,7 +125,7 @@ static std::ostream &operator <<(std::ostream &os, const Altitude &alt) {
     }
 
     if (ref == Altitude::REF_1013)
-        return os << ref << ((value + 499) / 1000);
+        return os << ref << ((value + 499) / 100);
     else
         return os << std::setfill('0') << std::setw(4) << value << ref;
 }

@@ -96,7 +96,7 @@ parse_altitude(const char *p)
 
     if (p[0] == 'F' && p[1] == 'L') {
         ref = Altitude::REF_1013;
-        value = strtol(p + 2, &endptr, 10) * 1000;
+        value = strtol(p + 2, &endptr, 10) * 100;
         if (value == 0 && *endptr != 0)
             ref = Altitude::REF_UNKNOWN;
     } else {
