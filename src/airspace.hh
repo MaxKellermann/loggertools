@@ -68,6 +68,34 @@ public:
     }
 };
 
+static inline bool operator ==(const Edge &a, const Edge &b)
+{
+    if (a.getType() != b.getType())
+        return false;
+
+    switch (a.getType()) {
+    case Edge::TYPE_VERTEX:
+        return a.getEnd() == b.getEnd();
+
+    case Edge::TYPE_CIRCLE:
+        return a.getCenter() == b.getCenter() &&
+            a.getRadius() == b.getRadius();
+
+    case Edge::TYPE_ARC:
+        return a.getEnd() == b.getEnd() &&
+            a.getCenter() == b.getCenter() &&
+            a.getRadius() == b.getRadius();
+    }
+
+    return false;
+}
+
+static inline bool operator !=(const Edge &a, const Edge &b)
+{
+    return !(a == b);
+}
+
+
 /** an airspace: polygon with a lower and an upper bound */
 class Airspace {
 public:

@@ -83,6 +83,15 @@ public:
     }
 };
 
+static inline bool operator ==(const Distance &a, const Distance &b)
+{
+    if (!a.defined() || !b.defined())
+        return !a.defined() && !b.defined();
+
+    return (long)a.getMeters() == (long)b.getMeters(); // XXX
+}
+
+
 /** vertical altitude of an object */
 class Altitude {
 public:
