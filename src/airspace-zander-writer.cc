@@ -157,7 +157,8 @@ write_arc(std::ostream &stream, const Edge &edge,
 
     stream << "A " << edge.getEnd() << "\n"
            << "  " << edge.getCenter() << "\n"
-           << (edge.getSign() < 0 ? '-' : '+')
+           << "  " << (edge.getSign() < 0 ? '-' : '+')
+           << (edge.getEnd() - edge.getCenter()) << " NM"
            << "\n";
 }
 
