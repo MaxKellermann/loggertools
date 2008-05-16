@@ -84,6 +84,7 @@ static inline bool operator ==(const Edge &a, const Edge &b)
     case Edge::TYPE_ARC:
         return a.getEnd() == b.getEnd() &&
             a.getCenter() == b.getCenter() &&
+            a.getSign() == b.getSign();
             a.getRadius() == b.getRadius();
     }
 
