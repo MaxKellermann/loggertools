@@ -61,7 +61,7 @@ static const char *type_to_string(Airspace::type_t type) {
     case Airspace::TYPE_FOX:
         return "F";
     case Airspace::TYPE_CTR:
-        return "CTR";
+        return "C";
     case Airspace::TYPE_TMZ:
         return "TMZ";
     case Airspace::TYPE_RESTRICTED:
@@ -162,10 +162,97 @@ write_arc(std::ostream &stream, const Edge &edge,
            << "\n";
 }
 
-void ZanderAirspaceWriter::write(const Airspace &as) {
-    std::string name = as.getName();
+static void
+string_latin1_to_ascii(std::string &s)
+{
+    for (std::string::size_type i = 0; i < s.length(); ++i) {
+        if ((s[i] & 0x80) == 0)
+            continue;
+
+        switch (s[i]) {
+        case '\xc4':
+            s[i] = 'A';
+            break;
+
+        case '\xd6':
+            s[i] = 'O';
+            break;
+
+        case '\xdc':
+            s[i] = 'U';
+            break;
+
+        case '\xdf':
+            s[i] = 'S';
+            break;
+
+        case '\xe4':
+            s[i] = 'a';
+            break;
+
+        case '\xf6':
+            s[i] = 'o';
+            break;
+
+        case '\xfc':
+            s[i] = 'u';
+            break;
+
+        default:
+            s[i] = ' ';
+        }
+    }
+}
+
+static void
+transform_name(std::string &name, Airspace::type_t type)
+{
+    std::string::size_type n;
+
+    string_latin1_to_ascii(name);
+
+    n = name.find(" (TRA)");
+    if (n != std::string::npos)
+        name.replace(n, n + 6, "TRA");
+
+    /* delete "(HX)" */
+    n = name.find(" (HX)");
+    if (n != std::string::npos)
+        name.erase(n, 5);
+
+    /* last letter with minus; preserve when cutting */
+    if (name.length() >= 3 && name[name.length() - 2] == ' ') {
+        name[name.length() - 2] = '-';
+        if (name.length() > 10)
+            name.erase(8, name.length() - 10);
+    }
+
+    /* TYPE_CTR: append "CTR" to name, print type "C" */
+    if (type == Airspace::TYPE_CTR) {
+        n = name.find_last_of('-');
+        if (n == std::string::npos) {
+            if (name.length() > 6)
+                name.erase(6);
+            name.append("-CTR");
+        } else {
+            if (name.length() > 7 && n > 6) {
+                name.erase(6, n - 6);
+                n = 6;
+            }
+            if (name.length() > 7)
+                name.erase(7);
+            name.insert(n + 1, "CTR");
+        }
+    }
+
+    /* cut to 10 characters */
     if (name.length() > 10)
         name.erase(10);
+}
+
+void ZanderAirspaceWriter::write(const Airspace &as) {
+    std::string name = as.getName();
+    transform_name(name, as.getType());
 
     *stream << "N "
             << std::setfill(' ') << std::setw(10) << std::left << name
