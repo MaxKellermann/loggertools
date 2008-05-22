@@ -132,7 +132,8 @@ operator <<(std::ostream &os, const SurfacePosition &position)
               << (latitude < 0 ? 'S' : 'N') << ' '
               << std::setfill('0') << std::setw(3) << (absLongitude / 3600)
               << std::setfill('0') << std::setw(2) << ((absLongitude / 60) % 60)
-              << std::setfill('0') << std::setw(2) << (absLongitude % 60)
+        // << std::setfill('0') << std::setw(2) << (absLongitude % 60)
+              << "00" /* WinZAN always writes zeroes here*/
               << (longitude < 0 ? 'W' : 'E');
 }
 
