@@ -35,8 +35,6 @@
 #include <stdlib.h>
 #include <sys/select.h>
 
-#include "filser.h"
-
 struct dump {
     const char *prefix;
     unsigned char line[0x10];
@@ -116,23 +114,47 @@ static int open_virtual(void) {
     return fd;
 }
 
-static void open_real(filser_t *device_r) {
-    int ret;
-    filser_t device;
+static int
+open_real(void)
+{
+    int fd, ret;
+    struct termios attr;
 
-    ret = filser_open("/dev/ttyS0.orig", &device);
-    if (ret != 0) {
-        fprintf(stderr, "failed to open ttyS0: %s\n",
-                strerror(errno));
-        _exit(1);
+    fd = open("/dev/ttyS0", O_RDWR | O_NOCTTY);
+    if (fd < 0)
+        return -1;
+
+    ret = tcgetattr(fd, &attr);
+    if (ret < 0) {
+        int save_errno = errno;
+        close(fd);
+        errno = save_errno;
+        return -1;
     }
 
-    *device_r = device;
+    attr.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
+    attr.c_oflag &= ~OPOST;
+    attr.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
+    attr.c_cflag &= ~(CSIZE | PARENB | IXON | IXOFF);
+    attr.c_cflag |= (CS8 | CLOCAL);
+    attr.c_cc[VMIN] = 0;
+    attr.c_cc[VTIME] = 1;
+    cfsetospeed(&attr, B9600);
+    cfsetispeed(&attr, B9600);
+
+    ret = tcsetattr(fd, TCSANOW, &attr);
+    if (ret < 0) {
+        int save_errno = errno;
+        close(fd);
+        errno = save_errno;
+        return -1;
+    }
+
+    return fd;
 }
 
 int main(int argc, char **argv) {
-    int virtual_fd, ret;
-    filser_t real_device = NULL;
+    int virtual_fd, real_fd = -1, ret;
     fd_set rfds;
     struct dump dump;
 
@@ -148,13 +170,13 @@ int main(int argc, char **argv) {
         unsigned char data[16];
         ssize_t nbytes, i;
 
-        max_fd = real_device == NULL || virtual_fd > real_device->fd
-            ? virtual_fd : real_device->fd;
+        max_fd = virtual_fd > real_fd
+            ? virtual_fd : real_fd;
 
         FD_ZERO(&rfds);
         FD_SET(virtual_fd, &rfds);
-        if (real_device != NULL)
-            FD_SET(real_device->fd, &rfds);
+        if (real_fd >= 0)
+            FD_SET(real_fd, &rfds);
 
         ret = select(max_fd + 1, &rfds, NULL, NULL, NULL);
         if (ret < 0) {
@@ -162,8 +184,8 @@ int main(int argc, char **argv) {
             _exit(1);
         }
 
-        if (real_device != NULL && FD_ISSET(real_device->fd, &rfds)) {
-            nbytes = read(real_device->fd, &data, sizeof(data));
+        if (real_fd >= 0 && FD_ISSET(real_fd, &rfds)) {
+            nbytes = read(real_fd, &data, sizeof(data));
             if (nbytes < 0) {
                 fprintf(stderr, "read failed: %s\n", strerror(errno));
                 _exit(1);
@@ -186,7 +208,8 @@ int main(int argc, char **argv) {
             if (nbytes < 0) {
                 if (errno == EIO) {
                     close(virtual_fd);
-                    filser_close(&real_device);
+                    close(real_fd);
+                    real_fd = -1;
                     virtual_fd = open_virtual();
                     continue;
                 }
@@ -199,13 +222,13 @@ int main(int argc, char **argv) {
                 for (i = 0; i < nbytes; i++)
                     dump_char(&dump, "SEND", data[i]);
 
-                if (real_device == NULL)
-                    open_real(&real_device);
+                if (real_fd < 0)
+                    real_fd = open_real();
 
                 if (nbytes == 1 && data[0] == 0x16)
-                    tcflush(real_device->fd, TCIOFLUSH);
+                    tcflush(real_fd, TCIOFLUSH);
 
-                nbytes = write(real_device->fd, &data, (size_t)nbytes);
+                nbytes = write(real_fd, &data, (size_t)nbytes);
                 if (nbytes < 0) {
                     fprintf(stderr, "write failed: %s\n", strerror(errno));
                     _exit(1);

@@ -154,7 +154,7 @@ bin/zander: $(zander_OBJECTS)
 bin/lxn-fwd: src/lxn-fwd.c bin/filser-open.o bin/filser-proto.o
 	$(CC) $(CFLAGS) -o $@ $^
 
-bin/fwd: src/fwd.c bin/filser-open.o bin/filser-proto.o
+bin/fwd: src/fwd.c
 	$(CC) $(CFLAGS) -o $@ $^
 
 bin/version: $(version_OBJECTS)
