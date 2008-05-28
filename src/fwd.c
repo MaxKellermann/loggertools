@@ -87,32 +87,6 @@ static void dump_char(struct dump *d, const char *prefix,
         dump_eol(d);
 }
 
-static void syn_ack_wait(filser_t device) {
-    int ret;
-    unsigned tries = 10;
-
-    do {
-        alarm(10);
-        ret = filser_syn_ack(device);
-        alarm(0);
-        if (ret < 0) {
-            fprintf(stderr, "failed to connect: %s\n",
-                    strerror(errno));
-            _exit(1);
-        }
-
-        if (ret == 0) {
-            fprintf(stderr, "no filser found, trying again\n");
-            sleep(1);
-        }
-    } while (ret == 0 && tries-- > 0);
-
-    if (ret == 0) {
-        fprintf(stderr, "no filser\n");
-        _exit(1);
-    }
-}
-
 static int open_virtual(void) {
     int fd, ret;
 
@@ -152,8 +126,6 @@ static void open_real(filser_t *device_r) {
                 strerror(errno));
         _exit(1);
     }
-
-    syn_ack_wait(device);
 
     *device_r = device;
 }
