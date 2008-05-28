@@ -182,6 +182,40 @@ cmd_info(struct config *config, int argc, char **argv)
     return 0;
 }
 
+static int
+cmd_read_personal_data(struct config *config)
+{
+    int ret;
+    zander_t zander;
+    struct zander_personal_data pd;
+
+    ret = zander_open(config->tty, &zander);
+    if (ret < 0) {
+        perror("failed to open zander");
+        exit(2);
+    }
+
+    ret = zander_read_personal_data(zander, &pd);
+    if (ret < 0) {
+        perror("failed to connect to zander");
+        exit(2);
+    }
+
+    printf("pilot: %.40s\n"
+           "model: %.40s\n"
+           "competition class: %.40s\n"
+           "registration: %.10s\n"
+           "competition sign: %.10s\n",
+           pd.name,
+           pd.aircraft_model,
+           pd.competition_class,
+           pd.registration,
+           pd.competition_sign);
+
+    zander_close(&zander);
+    return 0;
+}
+
 int main(int argc, char **argv) {
     struct config config;
     const char *cmd;
@@ -197,6 +231,8 @@ int main(int argc, char **argv) {
 
     if (strcmp(cmd, "info") == 0) {
         return cmd_info(&config, argc, argv);
+    } if (strcmp(cmd, "personal_data") == 0) {
+        return cmd_read_personal_data(&config);
     } else {
         arg_error("unknown command");
     }

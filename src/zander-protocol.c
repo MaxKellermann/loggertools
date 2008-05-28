@@ -36,6 +36,20 @@ int zander_read_serial(zander_t zander,
     return zander_read(zander, serial, sizeof(*serial));
 }
 
+int
+zander_read_personal_data(zander_t zander,
+                          struct zander_personal_data *pd)
+{
+    static const unsigned char cmd = ZANDER_CMD_READ_PERSONAL_DATA;
+    int ret;
+
+    ret = zander_write(zander, &cmd, sizeof(cmd));
+    if (ret != 0)
+        return ret;
+
+    return zander_read(zander, pd, sizeof(*pd));
+}
+
 int zander_write_memory(zander_t zander, unsigned address,
                         const void *data, size_t length) {
     struct zander_write_data header;
