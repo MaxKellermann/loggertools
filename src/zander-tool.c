@@ -55,6 +55,8 @@ static void usage(void) {
 #endif
          " -t DEVICE      open this tty device (default /dev/ttyS0)\n"
          "valid commands:\n"
+         "  test\n"
+         "        test connection to the GP940\n"
          "  list\n"
          "        print a list of flights\n"
          "  read_tp_tsk <out_filename.da4>\n"
@@ -139,10 +141,50 @@ static void alarm_handler(int dummy) {
     (void)dummy;
 }
 
-int main(int argc, char **argv) {
-    struct config config;
+static int
+cmd_info(struct config *config, int argc, char **argv)
+{
     int ret;
     zander_t zander;
+    struct zander_serial serial;
+
+    (void)argc;
+    (void)argv;
+
+    ret = zander_open(config->tty, &zander);
+    if (ret < 0) {
+        perror("failed to open zander");
+        exit(2);
+    }
+
+    ret = zander_read_serial(zander, &serial);
+    if (ret < 0) {
+        perror("failed to connect to zander");
+        exit(2);
+    }
+
+    printf("serial: %.3s\n"
+           "seal: %s\n"
+           "type: %s\n"
+           "version: %.5s\n"
+           "memory: %s\n",
+           serial.serial,
+           serial.seal == '1' ? "yes" : "no",
+           serial.version[1] == '1' ? "GP940" : "GP941",
+           serial.version,
+           serial.ram_type == '1'
+           ? "1 MB"
+           : (serial.ram_type == '0'
+              ? "512 kB"
+              : "unknown"));
+
+    zander_close(&zander);
+    return 0;
+}
+
+int main(int argc, char **argv) {
+    struct config config;
+    const char *cmd;
 
     signal(SIGALRM, alarm_handler);
 
@@ -151,11 +193,11 @@ int main(int argc, char **argv) {
     if (optind >= argc)
         arg_error("no command specified");
 
-    ret = zander_open(config.tty, &zander);
-    if (ret < 0) {
-        perror("failed to open zander");
-        exit(2);
-    }
+    cmd = argv[optind++];
 
-    zander_close(&zander);
+    if (strcmp(cmd, "info") == 0) {
+        return cmd_info(&config, argc, argv);
+    } else {
+        arg_error("unknown command");
+    }
 }
