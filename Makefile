@@ -40,7 +40,7 @@ CFLAGS += -Wmissing-prototypes -Wcast-qual -Wfloat-equal -Wshadow -Wpointer-arit
 CXXFLAGS += $(COMMON_CFLAGS)
 CXXFLAGS += -Wwrite-strings -Wcast-qual -Wfloat-equal -Wpointer-arith -Wsign-compare -Wmissing-format-attribute -Wredundant-decls -Winline -Wdisabled-optimization -Wno-long-long -Wundef
 
-all: bin/tpconv bin/asconv bin/cenfistool bin/hexfile bin/lxn2igc bin/filsertool bin/lxn-logger bin/fakefilser bin/flarmtool bin/zander bin/fwd
+all: bin/tpconv bin/asconv bin/cenfistool bin/hexfile bin/lxn2igc bin/filsertool bin/lxn-logger bin/fakefilser bin/flarmtool bin/zander bin/lxn-fwd bin/fwd
 
 clean:
 	rm -rf bin
@@ -149,6 +149,9 @@ bin/flarmtool: $(flarmtool_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
 
 bin/zander: $(zander_OBJECTS)
+	$(CC) $(CFLAGS) -o $@ $^
+
+bin/lxn-fwd: src/lxn-fwd.c bin/filser-open.o bin/filser-proto.o
 	$(CC) $(CFLAGS) -o $@ $^
 
 bin/fwd: src/fwd.c bin/filser-open.o bin/filser-proto.o
