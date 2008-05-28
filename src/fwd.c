@@ -162,7 +162,7 @@ static void open_real(filser_t *device_r) {
 
 int main(int argc, char **argv) {
     int virtual_fd, ret;
-    filser_t real_device;
+    filser_t real_device = NULL;
     fd_set rfds;
     struct dump dump;
 
@@ -178,11 +178,12 @@ int main(int argc, char **argv) {
         unsigned char data[16];
         ssize_t nbytes, i;
 
-        max_fd = virtual_fd > real_device->fd ? virtual_fd : real_device->fd;
+        max_fd = real_device == NULL || virtual_fd > real_device->fd
+            ? virtual_fd : real_device->fd;
 
         FD_ZERO(&rfds);
         FD_SET(virtual_fd, &rfds);
-        if (real_device->fd >= 0)
+        if (real_device != NULL)
             FD_SET(real_device->fd, &rfds);
 
         ret = select(max_fd + 1, &rfds, NULL, NULL, NULL);
@@ -191,7 +192,7 @@ int main(int argc, char **argv) {
             _exit(1);
         }
 
-        if (real_device->fd >= 0 && FD_ISSET(real_device->fd, &rfds)) {
+        if (real_device != NULL && FD_ISSET(real_device->fd, &rfds)) {
             nbytes = read(real_device->fd, &data, sizeof(data));
             if (nbytes < 0) {
                 fprintf(stderr, "read failed: %s\n", strerror(errno));
