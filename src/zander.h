@@ -114,6 +114,12 @@ int
 zander_read_personal_data(zander_t zander,
                           struct zander_personal_data *pd);
 
+int
+zander_read_9v_battery(zander_t zander, struct zander_battery *battery);
+
+int
+zander_read_li_battery(zander_t zander, struct zander_battery *battery);
+
 int zander_write_memory(zander_t zander, unsigned address,
                         const void *data, size_t length);
 

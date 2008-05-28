@@ -50,6 +50,32 @@ zander_read_personal_data(zander_t zander,
     return zander_read(zander, pd, sizeof(*pd));
 }
 
+int
+zander_read_9v_battery(zander_t zander, struct zander_battery *battery)
+{
+    static const unsigned char cmd = ZANDER_CMD_READ_9V_BATTERY;
+    int ret;
+
+    ret = zander_write(zander, &cmd, sizeof(cmd));
+    if (ret != 0)
+        return ret;
+
+    return zander_read(zander, battery, sizeof(*battery));
+}
+
+int
+zander_read_li_battery(zander_t zander, struct zander_battery *battery)
+{
+    static const unsigned char cmd = ZANDER_CMD_READ_LI_BATTERY;
+    int ret;
+
+    ret = zander_write(zander, &cmd, sizeof(cmd));
+    if (ret != 0)
+        return ret;
+
+    return zander_read(zander, battery, sizeof(*battery));
+}
+
 int zander_write_memory(zander_t zander, unsigned address,
                         const void *data, size_t length) {
     struct zander_write_data header;

@@ -216,6 +216,53 @@ cmd_read_personal_data(struct config *config)
     return 0;
 }
 
+static int
+cmd_battery(struct config *config)
+{
+    int ret;
+    zander_t zander;
+    struct zander_serial serial;
+    struct zander_battery battery;
+    float voltage;
+
+    ret = zander_open(config->tty, &zander);
+    if (ret < 0) {
+        perror("failed to open zander");
+        exit(2);
+    }
+
+    ret = zander_read_serial(zander, &serial);
+    if (ret < 0) {
+        perror("failed to connect to zander");
+        exit(2);
+    }
+
+    ret = zander_read_li_battery(zander, &battery);
+    if (ret < 0) {
+        perror("failed to read Li battery");
+        exit(2);
+    }
+
+    voltage = ntohs(battery.voltage) * 0.000686;
+    printf("Li battery: %.2f V\n", voltage);
+
+    if (serial.version[1] != '1') {
+        /* 9V battery not available in GP940 */
+
+        ret = zander_read_9v_battery(zander, &battery);
+        if (ret < 0) {
+            perror("failed to read 9V battery");
+            exit(2);
+        }
+
+        voltage = ntohs(battery.voltage) * 0.000686;
+        printf("9V battery: %.2f V\n", voltage);
+    }
+
+    zander_close(&zander);
+    return 0;
+}
+
 int main(int argc, char **argv) {
     struct config config;
     const char *cmd;
@@ -233,6 +280,8 @@ int main(int argc, char **argv) {
         return cmd_info(&config, argc, argv);
     } if (strcmp(cmd, "personal_data") == 0) {
         return cmd_read_personal_data(&config);
+    } if (strcmp(cmd, "battery") == 0) {
+        return cmd_battery(&config);
     } else {
         arg_error("unknown command");
     }
