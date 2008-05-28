@@ -225,9 +225,6 @@ int main(int argc, char **argv) {
                 if (real_fd < 0)
                     real_fd = open_real();
 
-                if (nbytes == 1 && data[0] == 0x16)
-                    tcflush(real_fd, TCIOFLUSH);
-
                 nbytes = write(real_fd, &data, (size_t)nbytes);
                 if (nbytes < 0) {
                     fprintf(stderr, "write failed: %s\n", strerror(errno));
