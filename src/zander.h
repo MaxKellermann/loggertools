@@ -110,9 +110,14 @@ void zander_close(zander_t *zander_r);
 
 int zander_read_serial(zander_t zander,
                        struct zander_serial *serial);
+
 int
 zander_read_personal_data(zander_t zander,
                           struct zander_personal_data *pd);
+
+int
+zander_write_personal_data(zander_t zander,
+                           const struct zander_personal_data *pd);
 
 int
 zander_read_9v_battery(zander_t zander, struct zander_battery *battery);
