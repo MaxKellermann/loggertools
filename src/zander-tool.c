@@ -263,6 +263,64 @@ cmd_battery(struct config *config)
     return 0;
 }
 
+static int
+cmd_show_task(struct config *config)
+{
+    int ret;
+    zander_t zander;
+    struct zander_serial serial;
+    struct zander_read_task task;
+    unsigned i;
+
+    ret = zander_open(config->tty, &zander);
+    if (ret != 0) {
+        zander_perror("failed to open zander", ret);
+        exit(2);
+    }
+
+    ret = zander_read_serial(zander, &serial);
+    if (ret != 0) {
+        zander_perror("failed to connect to zander", ret);
+        exit(2);
+    }
+
+    ret = zander_read_task(zander, &task);
+    if (ret != 0) {
+        zander_perror("failed to read task", ret);
+        exit(2);
+    }
+
+    printf("uploaded: %02u/%02u/%02u %02u:%02u:%02u\n",
+           task.upload_date.year,
+           task.upload_date.month,
+           task.upload_date.day,
+           task.upload_time.hour,
+           task.upload_time.minute,
+           task.upload_time.second);
+
+    printf("for: %02u/%02u/%02u\n",
+           task.waypoints[0].date.year,
+           task.waypoints[0].date.month,
+           task.waypoints[0].date.day);
+
+    for (i = 0; i < task.waypoints[0].num_wp; ++i) {
+        printf("waypoint%u: '%.12s' %02u.%02u.%02u %c, %03u.%02u.%02u %c\n",
+               i,
+               task.waypoints[i].name,
+               task.waypoints[i].latitude.degrees,
+               task.waypoints[i].latitude.minutes,
+               task.waypoints[i].latitude.seconds,
+               task.waypoints[i].latitude.sign == 1 ? 'S' : 'N',
+               task.waypoints[i].longitude.degrees,
+               task.waypoints[i].longitude.minutes,
+               task.waypoints[i].longitude.seconds,
+               task.waypoints[i].longitude.sign == 1 ? 'W' : 'E');
+    }
+
+    zander_close(&zander);
+    return 0;
+}
+
 int main(int argc, char **argv) {
     struct config config;
     const char *cmd;
@@ -282,6 +340,8 @@ int main(int argc, char **argv) {
         return cmd_read_personal_data(&config);
     } if (strcmp(cmd, "battery") == 0) {
         return cmd_battery(&config);
+    } if (strcmp(cmd, "show_task") == 0) {
+        return cmd_show_task(&config);
     } else {
         arg_error("unknown command");
     }

@@ -117,3 +117,16 @@ int zander_write_memory(zander_t zander, unsigned address,
 
     return 0;
 }
+
+int
+zander_read_task(zander_t zander, struct zander_read_task *task)
+{
+    static const unsigned char cmd = ZANDER_CMD_READ_TASK;
+    int ret;
+
+    ret = zander_write(zander, &cmd, sizeof(cmd));
+    if (ret != 0)
+        return ret;
+
+    return zander_read(zander, task, sizeof(*task));
+}

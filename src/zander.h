@@ -85,8 +85,7 @@ struct zander_read_task {
     unsigned char foo;
     struct zander_date upload_date;
     struct zander_time upload_time;
-    unsigned char foo2[18];
-    struct zander_date for_date;
+    unsigned char foo2[17];
     struct zander_task_wp waypoints[20];
 } __attribute__((packed));
 
@@ -127,6 +126,9 @@ zander_read_li_battery(zander_t zander, struct zander_battery *battery);
 
 int zander_write_memory(zander_t zander, unsigned address,
                         const void *data, size_t length);
+
+int
+zander_read_task(zander_t zander, struct zander_read_task *task);
 
 /* zander-error.c */
 
