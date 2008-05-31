@@ -123,6 +123,13 @@ zander_read_li_battery(zander_t zander, struct zander_battery *battery);
 int zander_write_memory(zander_t zander, unsigned address,
                         const void *data, size_t length);
 
+/* zander-error.c */
+
+const char *
+zander_strerror(int error);
+
+void
+zander_perror(const char *msg, int error);
 
 #ifdef __cplusplus
 }

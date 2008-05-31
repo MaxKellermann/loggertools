@@ -103,7 +103,7 @@ fakefilser_OBJECTS = $(patsubst src/%.c,bin/%.o,$(fakefilser_SOURCES))
 flarmtool_SOURCES = src/flarm-tool.c src/flarm-crc.c src/flarm-open.c src/flarm-escape.c src/fifo-buffer.c src/flarm-buffer.c src/flarm-send.c src/flarm-message.c src/flarm-recv.c src/flarm-mode.c src/flarm-error.c
 flarmtool_OBJECTS = $(patsubst src/%.c,bin/%.o,$(flarmtool_SOURCES))
 
-zander_SOURCES = src/zander-tool.c src/zander-open.c src/zander-io.c src/zander-protocol.c
+zander_SOURCES = src/zander-tool.c src/zander-open.c src/zander-io.c src/zander-error.c src/zander-protocol.c
 zander_OBJECTS = $(patsubst src/%.c,bin/%.o,$(zander_SOURCES))
 
 version_SOURCES = src/version.c

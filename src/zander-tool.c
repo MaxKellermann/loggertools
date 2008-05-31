@@ -152,14 +152,14 @@ cmd_info(struct config *config, int argc, char **argv)
     (void)argv;
 
     ret = zander_open(config->tty, &zander);
-    if (ret < 0) {
-        perror("failed to open zander");
+    if (ret != 0) {
+        zander_perror("failed to open zander", ret);
         exit(2);
     }
 
     ret = zander_read_serial(zander, &serial);
-    if (ret < 0) {
-        perror("failed to connect to zander");
+    if (ret != 0) {
+        zander_perror("failed to connect to zander", ret);
         exit(2);
     }
 
@@ -190,14 +190,14 @@ cmd_read_personal_data(struct config *config)
     struct zander_personal_data pd;
 
     ret = zander_open(config->tty, &zander);
-    if (ret < 0) {
-        perror("failed to open zander");
+    if (ret != 0) {
+        zander_perror("failed to open zander", ret);
         exit(2);
     }
 
     ret = zander_read_personal_data(zander, &pd);
-    if (ret < 0) {
-        perror("failed to connect to zander");
+    if (ret != 0) {
+        zander_perror("failed to connect to zander", ret);
         exit(2);
     }
 
@@ -226,20 +226,20 @@ cmd_battery(struct config *config)
     float voltage;
 
     ret = zander_open(config->tty, &zander);
-    if (ret < 0) {
-        perror("failed to open zander");
+    if (ret != 0) {
+        zander_perror("failed to open zander", ret);
         exit(2);
     }
 
     ret = zander_read_serial(zander, &serial);
-    if (ret < 0) {
-        perror("failed to connect to zander");
+    if (ret != 0) {
+        zander_perror("failed to connect to zander", ret);
         exit(2);
     }
 
     ret = zander_read_li_battery(zander, &battery);
-    if (ret < 0) {
-        perror("failed to read Li battery");
+    if (ret != 0) {
+        zander_perror("failed to read Li battery", ret);
         exit(2);
     }
 
@@ -250,8 +250,8 @@ cmd_battery(struct config *config)
         /* 9V battery not available in GP940 */
 
         ret = zander_read_9v_battery(zander, &battery);
-        if (ret < 0) {
-            perror("failed to read 9V battery");
+        if (ret != 0) {
+            zander_perror("failed to read 9V battery", ret);
             exit(2);
         }
 
