@@ -65,7 +65,7 @@ void
 SVGAirspaceWriter::write(const Airspace &as)
 {
     stream << "  <g>\n";
-    stream << "  <polygon points=\"";
+    stream << "  <path d=\"";
 
     Airspace::EdgeList circles;
 
@@ -80,6 +80,11 @@ SVGAirspaceWriter::write(const Airspace &as)
 
             transform(edge.getEnd(), x, y);
 
+            if (it == edges.begin())
+                stream << "M";
+            else
+                stream << "L";
+
             stream << x << "," << y << " ";
             break;
 
@@ -92,7 +97,7 @@ SVGAirspaceWriter::write(const Airspace &as)
         }
     }
 
-    stream << "\" style=\"fill:#cccccc; fill-opacity:0.3; stroke:#000000; stroke-width:1\"/>\n";
+    stream << "Z\" style=\"fill:#cccccc; fill-opacity:0.3; stroke:#000000; stroke-width:1\"/>\n";
 
     for (Airspace::EdgeList::const_iterator it = circles.begin();
          it != circles.end(); ++it) {
