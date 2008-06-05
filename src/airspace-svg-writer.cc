@@ -61,6 +61,21 @@ transform(const Distance &distance)
     return (int)(distance.toUnit(Distance::UNIT_NAUTICAL_MILES).getValue() * 1000 / 500);
 }
 
+static std::ostream &
+operator <<(std::ostream &os, const SurfacePosition &position)
+{
+    int x, y;
+    transform(position, x, y);
+
+    return os << x << "," << y;
+}
+
+static std::ostream &
+operator <<(std::ostream &os, const Distance &distance)
+{
+    return os << transform(distance);
+}
+
 void
 SVGAirspaceWriter::write(const Airspace &as)
 {
@@ -76,16 +91,12 @@ SVGAirspaceWriter::write(const Airspace &as)
 
         switch (edge.getType()) {
         case Edge::TYPE_VERTEX:
-            int x, y;
-
-            transform(edge.getEnd(), x, y);
-
             if (it == edges.begin())
                 stream << "M";
             else
                 stream << "L";
 
-            stream << x << "," << y << " ";
+            stream << edge.getEnd() << " ";
             break;
 
         case Edge::TYPE_CIRCLE:
@@ -93,12 +104,10 @@ SVGAirspaceWriter::write(const Airspace &as)
             break;
 
         case Edge::TYPE_ARC:
-            transform(edge.getEnd(), x, y);
-
-            int radius = transform(edge.getEnd() - edge.getCenter());
+            const Distance radius = edge.getEnd() - edge.getCenter();
 
             stream << "A" << radius << "," << radius
-                   << " 0 0,0 " << x << "," << y;
+                   << " 0 0,0 " << edge.getEnd() << " ";
             break;
         }
     }
