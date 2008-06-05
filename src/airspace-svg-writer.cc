@@ -81,8 +81,8 @@ operator <<(std::ostream &os, const Longitude &longitude)
 static std::ostream &
 operator <<(std::ostream &os, const SurfacePosition &position)
 {
-    return os << transform(position.getLongitude()) << ","
-              << transform(position.getLatitude());
+    return os << position.getLongitude() << ","
+              << position.getLatitude();
 }
 
 static std::ostream &
