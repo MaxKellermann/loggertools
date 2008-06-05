@@ -48,6 +48,25 @@ SVGAirspaceWriter::SVGAirspaceWriter(std::ostream *_stream)
         "    xmlns=\"http://www.w3.org/2000/svg\">\n";
 }
 
+static const char *
+airspace_style(const Airspace &airspace)
+{
+    switch (airspace.getType()) {
+    case Airspace::TYPE_CHARLY:
+    case Airspace::TYPE_DELTA:
+        return "fill:#00d000; fill-opacity:0.2; stroke:#008000; stroke-width:1";
+
+    case Airspace::TYPE_CTR:
+        return "fill:#d00000; fill-opacity:0.3; stroke:#800000; stroke-width:1";
+
+    case Airspace::TYPE_FOX:
+        return "fill:#00d0a0; fill-opacity:0.3; stroke:#008060; stroke-width:1";
+
+    default:
+        return "fill:#cccccc; fill-opacity:0.3; stroke:#000000; stroke-width:1";
+    }
+}
+
 static int
 transform(const Latitude &latitude)
 {
@@ -127,7 +146,7 @@ SVGAirspaceWriter::write(const Airspace &as)
         }
     }
 
-    stream << "Z\" style=\"fill:#cccccc; fill-opacity:0.3; stroke:#000000; stroke-width:1\"/>\n";
+    stream << "Z\" style=\"" << airspace_style(as) << "\"/>\n";
 
     for (Airspace::EdgeList::const_iterator it = circles.begin();
          it != circles.end(); ++it) {
@@ -137,7 +156,7 @@ SVGAirspaceWriter::write(const Airspace &as)
         stream << "<circle cx=\"" << edge.getCenter().getLongitude()
                << "\" cy=\"" << edge.getCenter().getLatitude()
                << "\" r=\"" << transform(edge.getRadius())
-               << "\" style=\"fill:#cccccc; fill-opacity:0.3; stroke:#000000; stroke-width:1\"/>\n";
+               << "\" style=\"" << airspace_style(as) << "\"/>\n";
     }
     stream << "  </g>\n";
 }
