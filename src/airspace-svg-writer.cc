@@ -137,8 +137,7 @@ SVGAirspaceWriter::write(const Airspace &as)
         stream << "<circle cx=\"" << edge.getCenter().getLongitude()
                << "\" cy=\"" << edge.getCenter().getLatitude()
                << "\" r=\"" << transform(edge.getRadius())
-               << "\" fill=\"#cccccc\" fill-opacity=\"0.3\" "
-               << " stroke=\"#000000\" stroke-width=\"1\"/>\n";
+               << "\" style=\"fill:#cccccc; fill-opacity:0.3; stroke:#000000; stroke-width:1\"/>\n";
     }
     stream << "  </g>\n";
 }
