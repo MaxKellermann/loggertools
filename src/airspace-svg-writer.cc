@@ -48,11 +48,16 @@ SVGAirspaceWriter::SVGAirspaceWriter(std::ostream *_stream)
         "    xmlns=\"http://www.w3.org/2000/svg\">\n";
 }
 
-static void
-transform(const SurfacePosition &position, int &x, int &y)
+static int
+transform(const Latitude &latitude)
 {
-    x = (position.getLongitude().getValue() - 360008) / 500;
-    y = (position.getLatitude().getValue() - 2800000) / 500;
+    return (latitude.getValue() - 2800000) / 500;
+}
+
+static int
+transform(const Longitude &longitude)
+{
+    return (longitude.getValue() - 360008) / 500;
 }
 
 static int
@@ -62,12 +67,22 @@ transform(const Distance &distance)
 }
 
 static std::ostream &
+operator <<(std::ostream &os, const Latitude &latitude)
+{
+    return os << transform(latitude);
+}
+
+static std::ostream &
+operator <<(std::ostream &os, const Longitude &longitude)
+{
+    return os << transform(longitude);
+}
+
+static std::ostream &
 operator <<(std::ostream &os, const SurfacePosition &position)
 {
-    int x, y;
-    transform(position, x, y);
-
-    return os << x << "," << y;
+    return os << transform(position.getLongitude()) << ","
+              << transform(position.getLatitude());
 }
 
 static std::ostream &
@@ -119,10 +134,8 @@ SVGAirspaceWriter::write(const Airspace &as)
         const Edge &edge = *it;
         assert(edge.getType() == Edge::TYPE_CIRCLE);
 
-        int x, y;
-        transform(edge.getCenter(), x, y);
-
-        stream << "<circle cx=\"" << x << "\" cy=\"" << y
+        stream << "<circle cx=\"" << edge.getCenter().getLongitude()
+               << "\" cy=\"" << edge.getCenter().getLatitude()
                << "\" r=\"" << transform(edge.getRadius())
                << "\" fill=\"#cccccc\" fill-opacity=\"0.3\" "
                << " stroke=\"#000000\" stroke-width=\"1\"/>\n";
