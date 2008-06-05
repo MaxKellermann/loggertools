@@ -93,6 +93,12 @@ SVGAirspaceWriter::write(const Airspace &as)
             break;
 
         case Edge::TYPE_ARC:
+            transform(edge.getEnd(), x, y);
+
+            int radius = transform(edge.getEnd() - edge.getCenter());
+
+            stream << "A" << radius << "," << radius
+                   << " 0 0,0 " << x << "," << y;
             break;
         }
     }
