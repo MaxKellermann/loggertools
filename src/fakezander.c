@@ -184,7 +184,6 @@ static void parse_cmdline(struct config *config,
         arg_error("Data directory not specified");
 }
 
-/*
 static void download_to_file(struct fake_zander *zander,
                              const char *filename,
                              size_t length) {
@@ -244,17 +243,59 @@ static void upload_from_file(struct fake_zander *zander,
     free(buffer);
 }
 
-*/
-
 static void handle_read_serial(struct fake_zander *zander) {
     static const struct zander_serial serial = {
-        .serial = "123",
+        .serial = "543",
+        .foo = "GP",
         .seal = '1',
-        .version = "01234",
+        .version = "V1.05",
         .ram_type = '0',
     };
 
     write(zander->device->fd, &serial, sizeof(serial));
+}
+
+static void handle_read_li_battery(struct fake_zander *zander) {
+    const struct zander_battery battery = {
+        .voltage = htons(7000),
+    };
+
+    write(zander->device->fd, &battery, sizeof(battery));
+}
+
+static void handle_write_personal_data(struct fake_zander *zander) {
+    download_to_file(zander, "personal_data",
+                     sizeof(struct zander_personal_data));
+}
+
+static void handle_read_personal_data(struct fake_zander *zander) {
+    upload_from_file(zander, "personal_data",
+                     sizeof(struct zander_personal_data));
+}
+
+static void handle_write_task(struct fake_zander *zander) {
+    download_to_file(zander, "task",
+                     sizeof(struct zander_write_task));
+}
+
+static void handle_read_task(struct fake_zander *zander) {
+    static const struct zander_read_task task = {
+        .upload_date = {
+            .day = 10,
+            .month = 6,
+            .year = 8,
+        },
+        .upload_time = {
+            .hour = 18,
+            .minute = 33,
+            .second = 11,
+        },
+    };
+
+    write(zander->device->fd, &task, sizeof(task) - sizeof(task.waypoints));
+
+    upload_from_file(zander, "task",
+                     sizeof(struct zander_write_task));
 }
 
 static int open_virtual(const char *symlink_path) {
@@ -362,6 +403,31 @@ int main(int argc, char **argv) {
         case ZANDER_CMD_READ_SERIAL:
             printf("received READ_SERIAL\n");
             handle_read_serial(&zander);
+            break;
+
+        case ZANDER_CMD_READ_LI_BATTERY:
+            printf("received READ_LI_BATTERY\n");
+            handle_read_li_battery(&zander);
+            break;
+
+        case ZANDER_CMD_WRITE_PERSONAL_DATA:
+            printf("received WRITE_PERSONAL_DATA\n");
+            handle_write_personal_data(&zander);
+            break;
+
+        case ZANDER_CMD_READ_PERSONAL_DATA:
+            printf("received READ_PERSONAL_DATA\n");
+            handle_read_personal_data(&zander);
+            break;
+
+        case ZANDER_CMD_WRITE_TASK:
+            printf("received WRITE_TASK\n");
+            handle_write_task(&zander);
+            break;
+
+        case ZANDER_CMD_READ_TASK:
+            printf("received READ_TASK\n");
+            handle_read_task(&zander);
             break;
 
         default:
