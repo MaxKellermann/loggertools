@@ -1,4 +1,3 @@
-#!/usr/bin/python
 #
 #  loggertools
 #  Copyright (C) 2004-2008 Max Kellermann <max@duempel.org>
