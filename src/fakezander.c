@@ -21,6 +21,7 @@
 #define _XOPEN_SOURCE_EXTENDED
 
 #include <assert.h>
+#include <stdbool.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <netinet/in.h>
@@ -186,7 +187,7 @@ static void parse_cmdline(struct config *config,
 
 static void download_to_file(struct fake_zander *zander,
                              const char *filename,
-                             size_t length) {
+                             size_t length, bool pad) {
     void *buffer;
     char *p, *end;
     int ret;
@@ -208,6 +209,11 @@ static void download_to_file(struct fake_zander *zander,
         }
 
         p += nbytes;
+
+        if (pad) {
+            memset(p, 0, (const char*)buffer + length - p);
+            break;
+        }
     } while (p < end);
 
     ret = datadir_write(zander->datadir, filename,
@@ -265,7 +271,7 @@ static void handle_read_li_battery(struct fake_zander *zander) {
 
 static void handle_write_personal_data(struct fake_zander *zander) {
     download_to_file(zander, "personal_data",
-                     sizeof(struct zander_personal_data));
+                     sizeof(struct zander_personal_data), false);
 }
 
 static void handle_read_personal_data(struct fake_zander *zander) {
@@ -275,7 +281,7 @@ static void handle_read_personal_data(struct fake_zander *zander) {
 
 static void handle_write_task(struct fake_zander *zander) {
     download_to_file(zander, "task",
-                     sizeof(struct zander_write_task));
+                     sizeof(struct zander_write_task), true);
 }
 
 static void handle_read_task(struct fake_zander *zander) {
