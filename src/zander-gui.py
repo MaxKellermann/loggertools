@@ -289,6 +289,7 @@ class TaskDialog(gtk.Dialog):
         
         renderer = gtk.CellRendererText()
         renderer.set_property('editable', True)
+        renderer.set_property('width-chars', 25)
         renderer.connect('edited', self.__on_cell_edited)
         renderer.set_property('ellipsize', pango.ELLIPSIZE_END)
         column = gtk.TreeViewColumn(u'Name', renderer, text = 1)
