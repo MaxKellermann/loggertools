@@ -19,7 +19,7 @@
 
 import pygtk
 pygtk.require('2.0')
-import gtk
+import gtk, pango
 
 import serial
 
@@ -110,6 +110,190 @@ class PersonalDataDialog(gtk.Dialog):
         else:
             self.destroy()
 
+class SurfacePosition:
+    def __init__(self, latitude, longitude):
+        self.latitude = latitude
+        self.longitude = longitude
+
+    def save(self):
+        # XXX
+        return '\0\0\0\0\0\0\0\0'
+
+class TaskWaypoint:
+    def __init__(self, name, position):
+        assert isinstance(name, str) or isinstance(name, unicode)
+        assert isinstance(position, SurfacePosition)
+
+        self.name = name
+        self.position = position
+
+    def save(self):
+        return dump_str(self.name, 12) + self.position.save()
+
+class Task:
+    def __init__(self):
+        self.waypoints = list()
+
+    def save(self):
+        # XXX
+        pass
+
+class TaskListStore(gtk.ListStore):
+    def __init__(self, task):
+        self._task = task
+        gtk.ListStore.__init__(self, str, str, str, str)
+
+    def reload(self):
+        self.clear()
+
+        for i, waypoint in zip(range(len(self._task.waypoints)), self._task.waypoints):
+            if i == 0:
+                t = u'Airfield'
+            elif i == 1:
+                t = u'Start'
+            elif i == len(self._task.waypoints) - 2:
+                t = u'Finish'
+            elif i == len(self._task.waypoints) - 1:
+                t = u'Landing'
+            else:
+                t = u'Turn point'
+            self.append((t, waypoint.name, 'x', 'y'))
+
+        self.append((None, None, None, None))
+
+    def append_waypoint(self, waypoint):
+        self.insert(len(self._task.waypoints),
+                    (u'Foo', waypoint.name, 'x', 'y'))
+
+    def iter_to_index(self, iter):
+        path = self.get_path(iter)
+        i = path[0]
+        if i == len(self._task.waypoints): return None
+        return i
+
+class TaskDialog(gtk.Dialog):
+    def __init__(self, port):
+        gtk.Dialog.__init__(self, u'Task declaration', None, 0,
+                            ('Read from GP940', 1,
+                             'Write to GP940', 2,
+                             gtk.STOCK_CLOSE, gtk.RESPONSE_REJECT))
+
+        self._port = port
+        self._task = Task()
+
+        self.set_default_response(gtk.RESPONSE_ACCEPT)
+        self.connect("close", lambda dialog: dialog.response(gtk.RESPONSE_REJECT))
+        self.connect("response", self.__on_response)
+
+        self.vbox.pack_start(self.__create_toolbar(), expand = False)
+
+        self.model = TaskListStore(self._task)
+        self.model.reload()
+
+        self.list = gtk.TreeView(model=self.model)
+        self.list.get_selection().connect('changed', self.__on_selection_changed)
+
+        renderer = gtk.CellRendererText()
+        column = gtk.TreeViewColumn(u'Type', renderer, text = 0)
+        self.list.append_column(column)
+        
+        renderer = gtk.CellRendererText()
+        renderer.set_property('editable', True)
+        renderer.connect('edited', self.__on_cell_edited)
+        renderer.set_property('ellipsize', pango.ELLIPSIZE_END)
+        column = gtk.TreeViewColumn(u'Name', renderer, text = 1)
+        self.list.append_column(column)
+
+        renderer = gtk.CellRendererText()
+        column = gtk.TreeViewColumn(u'Position', renderer, text = 2)
+        self.list.append_column(column)
+
+        renderer = gtk.CellRendererText()
+        column = gtk.TreeViewColumn(u'Length', renderer, text = 2)
+        self.list.append_column(column)
+
+        self.list.show()
+        self.vbox.add(self.list)
+
+    def __create_toolbar(self):
+        toolbar = gtk.Toolbar()
+        toolbar.show()
+
+        icon = gtk.image_new_from_stock(gtk.STOCK_GO_UP, gtk.ICON_SIZE_LARGE_TOOLBAR)
+        icon.show()
+        self.move_up_button = gtk.ToolButton(icon, 'Up')
+        #self.move_up_button.connect('clicked', self.__on_move_up)
+        self.move_up_button.set_sensitive(False)
+        self.move_up_button.show()
+        toolbar.insert(self.move_up_button, -1)
+
+        icon = gtk.image_new_from_stock(gtk.STOCK_GO_DOWN, gtk.ICON_SIZE_LARGE_TOOLBAR)
+        icon.show()
+        self.move_down_button = gtk.ToolButton(icon, 'Down')
+        #self.move_down_button.connect('clicked', self.__on_move_down)
+        self.move_down_button.set_sensitive(False)
+        self.move_down_button.show()
+        toolbar.insert(self.move_down_button, -1)
+
+        icon = gtk.image_new_from_stock(gtk.STOCK_DELETE, gtk.ICON_SIZE_LARGE_TOOLBAR)
+        icon.show()
+        self.delete_button = gtk.ToolButton(icon, u'Delete')
+        self.delete_button.connect('clicked', self.__on_delete)
+        self.delete_button.set_sensitive(False)
+        self.delete_button.show()
+        toolbar.insert(self.delete_button, -1)
+
+        return toolbar
+
+    def __on_cell_edited(self, cell, path_string, new_text):
+        iter = self.model.get_iter_from_string(path_string)
+        i = self.model.iter_to_index(iter)
+
+        if i is None:
+            waypoint = TaskWaypoint(new_text, SurfacePosition(0, 0))
+            waypoint.name = new_text
+            self.model.append_waypoint(waypoint)
+        else:
+            waypoint = self._task.waypoints[i]
+            waypoint.name = new_text
+            self.model.set_value(iter, 1, new_text)
+
+    def __on_delete(self, widget):
+        (model, iter) = self.list.get_selection().get_selected()
+        i = model.iter_to_index(iter)
+        if i is None: return
+        del self._task.waypoints[i]
+        model.remove(iter)
+
+    def __on_selection_changed(self, selection):
+        # enable or disable the edit/delete buttons
+        sensitive = selection.count_selected_rows() == 1
+        self.move_up_button.set_sensitive(sensitive)
+        self.move_down_button.set_sensitive(sensitive)
+        self.delete_button.set_sensitive(sensitive)
+
+    def load(self, data):
+        assert isinstance(data, str)
+        assert len(data) == 140
+
+        self._pilot.set_text(data[0:40].strip(' \0'))
+        self.model.set_text(data[40:80].strip(' \0'))
+        self._class.set_text(data[80:120].strip(' \0'))
+        self._registration.set_text(data[120:130].strip(' \0'))
+        self._sign.set_text(data[130:140].strip(' \0'))
+
+    def save(self):
+        return self._task.save()
+
+    def __on_response(self, dialog, response_id):
+        if response_id == 1:
+            self._port.write('\x13')
+            self.load(self._port.read(140))
+        elif response_id == 2:
+            self._port.write('\x12' + self.save())
+        else:
+            self.destroy()
+
 class MainWindow:
     def __init__(self):
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
@@ -183,10 +367,12 @@ class MainWindow:
         PersonalDataDialog(self._port_setup.open()).show()
 
     def _task(self, widget):
-        pass
+        TaskDialog(self._port_setup.open()).show()
 
 if __name__ == '__main__':
-    main = MainWindow()
-    main.main()
+    #main = MainWindow()
+    #main.main()
     #PersonalDataDialog(serial.Serial('/tmp/fakezander')).show()
     #gtk.main()
+    TaskDialog(serial.Serial('/tmp/fakezander')).show()
+    gtk.main()
