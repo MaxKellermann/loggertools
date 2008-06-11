@@ -111,6 +111,28 @@ class PersonalDataDialog(gtk.Dialog):
         else:
             self.destroy()
 
+def load_angle(x):
+    assert isinstance(x, str)
+    assert len(x) == 4
+    x = struct.unpack('BBBB', x)
+    assert(x[3] == 0 or x[3] == 1)
+    value = reduce(lambda a, b: a * 60 + b, x[0:3])
+    if x[3] != 0:
+        value = -value
+    return value
+
+def save_angle(value):
+    assert isinstance(value, int)
+    assert value >= -180 * 3600
+    assert value <= 180 * 3600
+    if value < 0:
+        sign = 1
+        value = -value
+    else:
+        sign = 0
+    return struct.pack('BBBB', value / 3600, (value / 60) % 60,
+                       value % 60, sign)
+
 class SurfacePosition:
     def __init__(self, latitude, longitude):
         assert isinstance(latitude, int)
@@ -143,18 +165,7 @@ class SurfacePosition:
         return latitude + ' ' + longitude
 
     def save(self):
-        # XXX
-        return '\0\0\0\0\0\0\0\0'
-
-def load_angle(x):
-    assert isinstance(x, str)
-    assert len(x) == 4
-    x = struct.unpack('BBBB', x)
-    assert(x[3] == 0 or x[3] == 1)
-    value = reduce(lambda a, b: a * 60 + b, x[0:3])
-    if x[3] != 0:
-        value = -value
-    return value
+        return save_angle(self.latitude) + save_angle(self.longitude)
 
 class TaskWaypoint:
     def __init__(self, name, position):
