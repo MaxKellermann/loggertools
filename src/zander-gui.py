@@ -113,8 +113,34 @@ class PersonalDataDialog(gtk.Dialog):
 
 class SurfacePosition:
     def __init__(self, latitude, longitude):
+        assert isinstance(latitude, int)
+        assert isinstance(longitude, int)
+        assert latitude >= -90 * 3600
+        assert latitude <= 90 * 3600
+        assert longitude >= -180 * 3600
+        assert longitude <= 180 * 3600
+
         self.latitude = latitude
         self.longitude = longitude
+
+    def __str__(self):
+        a = abs(self.latitude)
+        if self.latitude < 0:
+            sign = 'W'
+        else:
+            sign = 'E'
+        latitude = '%u.%u.%u %c' % (a / 3600, (a / 60) % 60,
+                                    a % 60, sign)
+
+        a = abs(self.longitude)
+        if self.longitude < 0:
+            sign = 'S'
+        else:
+            sign = 'N'
+        longitude = '%u.%u.%u %c' % (a / 3600, (a / 60) % 60,
+                                     a % 60, sign)
+
+        return latitude + ' ' + longitude
 
     def save(self):
         # XXX
@@ -167,13 +193,13 @@ class TaskListStore(gtk.ListStore):
                 t = u'Landing'
             else:
                 t = u'Turn point'
-            self.append((t, waypoint.name, 'x', 'y'))
+            self.append((t, waypoint.name, str(waypoint.position), 'y'))
 
         self.append((None, None, None, None))
 
     def append_waypoint(self, waypoint):
         self.insert(len(self._task.waypoints),
-                    (u'Foo', waypoint.name, 'x', 'y'))
+                    (u'Foo', waypoint.name, str(waypoint.position), 'y'))
 
     def iter_to_index(self, iter):
         path = self.get_path(iter)
