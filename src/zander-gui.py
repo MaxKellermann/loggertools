@@ -21,6 +21,7 @@ import pygtk
 pygtk.require('2.0')
 import gtk, pango
 
+import struct
 import serial
 
 from loggertools.gtk.form import TableForm
@@ -135,8 +136,17 @@ class Task:
         self.waypoints = list()
 
     def save(self):
-        # XXX
-        pass
+        x = ''
+        prefix = struct.pack('B', len(self.waypoints)) + '\0\0\0'
+        print "prefix=",repr(prefix)
+        print self.waypoints
+        for waypoint in self.waypoints:
+            x += prefix
+            x += waypoint.save()
+        if len(x) < 480:
+            x += '\0' * (480 - len(x))
+        print repr(x)
+        return x
 
 class TaskListStore(gtk.ListStore):
     def __init__(self, task):
@@ -252,6 +262,7 @@ class TaskDialog(gtk.Dialog):
         if i is None:
             waypoint = TaskWaypoint(new_text, SurfacePosition(0, 0))
             waypoint.name = new_text
+            self._task.waypoints.append(waypoint)
             self.model.append_waypoint(waypoint)
         else:
             waypoint = self._task.waypoints[i]
@@ -274,13 +285,19 @@ class TaskDialog(gtk.Dialog):
 
     def load(self, data):
         assert isinstance(data, str)
-        assert len(data) == 140
+        assert len(data) == 480
 
-        self._pilot.set_text(data[0:40].strip(' \0'))
-        self.model.set_text(data[40:80].strip(' \0'))
-        self._class.set_text(data[80:120].strip(' \0'))
-        self._registration.set_text(data[120:130].strip(' \0'))
-        self._sign.set_text(data[130:140].strip(' \0'))
+        task = Task()
+
+        num_waypoints = struct.unpack('B', data[24])[0]
+        for i in range(num_waypoints):
+            waypoint = data[24 + i * 24 : 24 + i * 24 + 24]
+            task.waypoints.append(TaskWaypoint(waypoint[4:16].strip(), SurfacePosition(0, 0)))
+
+        self._task = task
+        self.model = TaskListStore(self._task)
+        self.model.reload()
+        self.list.set_model(self.model)
 
     def save(self):
         return self._task.save()
@@ -288,7 +305,7 @@ class TaskDialog(gtk.Dialog):
     def __on_response(self, dialog, response_id):
         if response_id == 1:
             self._port.write('\x13')
-            self.load(self._port.read(140))
+            self.load(self._port.read(480))
         elif response_id == 2:
             self._port.write('\x12' + self.save())
         else:
