@@ -167,6 +167,28 @@ class SurfacePosition:
     def save(self):
         return save_angle(self.latitude) + save_angle(self.longitude)
 
+def convert_angle(value):
+    assert isinstance(value, int)
+    assert value >= -180 * 3600
+    assert value <= 180 * 3600
+
+    import math
+    return value * math.pi / (180. * 3600.)
+
+def great_circle_distance(a, b):
+    # formula from http://en.wikipedia.org/wiki/Great-circle_distance
+    lat1 = convert_angle(a.latitude)
+    lon1 = convert_angle(a.longitude)
+    lat2 = convert_angle(b.latitude)
+    lon2 = convert_angle(b.longitude)
+
+    from math import atan2, hypot, cos, sin
+    return atan2(hypot(cos(lat2) * sin(lon2 - lon1),
+                       cos(lat1) * sin(lat2) -
+                       sin(lat1) * cos(lat2) * cos(lon2 - lon1)),
+                 (sin(lat1) * sin(lat2) +
+                  cos(lat1) * cos(lat2) * cos(lon2 - lon1))) * 6372.795;
+
 class TaskWaypoint:
     def __init__(self, name, position):
         assert isinstance(name, str) or isinstance(name, unicode)
@@ -203,6 +225,7 @@ class TaskListStore(gtk.ListStore):
     def reload(self):
         self.clear()
 
+        prev = None
         for i, waypoint in zip(range(len(self._task.waypoints)), self._task.waypoints):
             if i == 0:
                 t = u'Airfield'
@@ -214,7 +237,12 @@ class TaskListStore(gtk.ListStore):
                 t = u'Landing'
             else:
                 t = u'Turn point'
-            self.append((t, waypoint.name, str(waypoint.position), 'y'))
+            if prev:
+                distance = '%u km' % int(great_circle_distance(prev, waypoint.position))
+            else:
+                distance = ''
+            prev = waypoint.position
+            self.append((t, waypoint.name, str(waypoint.position), distance))
 
         self.append((None, None, None, None))
 
