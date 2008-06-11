@@ -281,6 +281,7 @@ class TaskDialog(gtk.Dialog):
         self.model.reload()
 
         self.list = gtk.TreeView(model=self.model)
+        self.list.set_enable_search(False)
         self.list.get_selection().connect('changed', self.__on_selection_changed)
 
         renderer = gtk.CellRendererText()
