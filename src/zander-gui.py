@@ -207,14 +207,11 @@ class Task:
     def save(self):
         x = ''
         prefix = struct.pack('B', len(self.waypoints)) + '\0\0\0'
-        print "prefix=",repr(prefix)
-        print self.waypoints
         for waypoint in self.waypoints:
             x += prefix
             x += waypoint.save()
         if len(x) < 480:
             x += '\0' * (480 - len(x))
-        print repr(x)
         return x
 
 class TaskListStore(gtk.ListStore):
