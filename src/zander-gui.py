@@ -245,7 +245,7 @@ class TaskDialog(gtk.Dialog):
         self.list.append_column(column)
 
         renderer = gtk.CellRendererText()
-        column = gtk.TreeViewColumn(u'Length', renderer, text = 2)
+        column = gtk.TreeViewColumn(u'Length', renderer, text = 3)
         self.list.append_column(column)
 
         self.list.show()
