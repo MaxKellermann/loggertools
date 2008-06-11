@@ -126,18 +126,18 @@ class SurfacePosition:
     def __str__(self):
         a = abs(self.latitude)
         if self.latitude < 0:
-            sign = 'W'
+            sign = 'S'
         else:
-            sign = 'E'
-        latitude = '%u.%u.%u %c' % (a / 3600, (a / 60) % 60,
+            sign = 'N'
+        latitude = '%02u.%02u.%02u %c' % (a / 3600, (a / 60) % 60,
                                     a % 60, sign)
 
         a = abs(self.longitude)
         if self.longitude < 0:
-            sign = 'S'
+            sign = 'W'
         else:
-            sign = 'N'
-        longitude = '%u.%u.%u %c' % (a / 3600, (a / 60) % 60,
+            sign = 'E'
+        longitude = '%03u.%02u.%02u %c' % (a / 3600, (a / 60) % 60,
                                      a % 60, sign)
 
         return latitude + ' ' + longitude
@@ -145,6 +145,16 @@ class SurfacePosition:
     def save(self):
         # XXX
         return '\0\0\0\0\0\0\0\0'
+
+def load_angle(x):
+    assert isinstance(x, str)
+    assert len(x) == 4
+    x = struct.unpack('BBBB', x)
+    assert(x[3] == 0 or x[3] == 1)
+    value = reduce(lambda a, b: a * 60 + b, x[0:3])
+    if x[3] != 0:
+        value = -value
+    return value
 
 class TaskWaypoint:
     def __init__(self, name, position):
@@ -318,7 +328,10 @@ class TaskDialog(gtk.Dialog):
         num_waypoints = struct.unpack('B', data[24])[0]
         for i in range(num_waypoints):
             waypoint = data[24 + i * 24 : 24 + i * 24 + 24]
-            task.waypoints.append(TaskWaypoint(waypoint[4:16].strip(), SurfacePosition(0, 0)))
+            position = SurfacePosition(load_angle(waypoint[16:20]),
+                                       load_angle(waypoint[20:24]))
+            task.waypoints.append(TaskWaypoint(waypoint[4:16].strip(),
+                                               position))
 
         self._task = task
         self.model = TaskListStore(self._task)
