@@ -249,8 +249,9 @@ class TaskListStore(gtk.ListStore):
         self.append((None, None, None, None))
 
     def append_waypoint(self, waypoint):
-        self.insert(len(self._task.waypoints),
-                    (u'Foo', waypoint.name, str(waypoint.position), 'y'))
+        i = len(self._task.waypoints)
+        self._task.waypoints.append(waypoint)
+        self.insert(i, (u'Foo', waypoint.name, str(waypoint.position), 'y'))
 
     def iter_to_index(self, iter):
         path = self.get_path(iter)
@@ -341,7 +342,6 @@ class TaskDialog(gtk.Dialog):
         if i is None:
             waypoint = TaskWaypoint(new_text, SurfacePosition(0, 0))
             waypoint.name = new_text
-            self._task.waypoints.append(waypoint)
             self.model.append_waypoint(waypoint)
         else:
             waypoint = self._task.waypoints[i]
