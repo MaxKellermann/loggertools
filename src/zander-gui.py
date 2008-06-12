@@ -219,9 +219,6 @@ class TaskListStore(gtk.ListStore):
         self._task = task
         gtk.ListStore.__init__(self, str, str, str)
 
-    def reload(self):
-        self.clear()
-
         prev = None
         total = 0
         for i, waypoint in zip(range(len(self._task.waypoints)), self._task.waypoints):
@@ -266,7 +263,6 @@ class TaskDialog(gtk.Dialog):
         self.vbox.pack_start(self.__create_toolbar(), expand = False)
 
         self.model = TaskListStore(self._task)
-        self.model.reload()
 
         self.list = gtk.TreeView(model=self.model)
         self.list.set_enable_search(False)
@@ -364,7 +360,6 @@ class TaskDialog(gtk.Dialog):
 
         self._task = task
         self.model = TaskListStore(self._task)
-        self.model.reload()
         self.list.set_model(self.model)
 
     def save(self):
