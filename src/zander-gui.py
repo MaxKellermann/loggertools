@@ -221,7 +221,7 @@ class TaskListStore(gtk.ListStore):
 
         prev = None
         total = 0
-        for i, waypoint in zip(range(len(self._task.waypoints)), self._task.waypoints):
+        for waypoint in self._task.waypoints:
             if prev:
                 length = int(great_circle_distance(prev, waypoint.position))
                 total += length
