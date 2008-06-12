@@ -217,7 +217,7 @@ class Task:
 class TaskListStore(gtk.ListStore):
     def __init__(self, task):
         self._task = task
-        gtk.ListStore.__init__(self, str, str, str, str)
+        gtk.ListStore.__init__(self, str, str, str)
 
     def reload(self):
         self.clear()
@@ -225,16 +225,6 @@ class TaskListStore(gtk.ListStore):
         prev = None
         total = 0
         for i, waypoint in zip(range(len(self._task.waypoints)), self._task.waypoints):
-            if i == 0:
-                t = u'Airfield'
-            elif i == 1:
-                t = u'Start'
-            elif i == len(self._task.waypoints) - 2:
-                t = u'Finish'
-            elif i == len(self._task.waypoints) - 1:
-                t = u'Landing'
-            else:
-                t = u'Turn point'
             if i == len(self._task.waypoints) - 1:
                 distance = '%u km' % total
             elif i >= 2:
@@ -244,14 +234,14 @@ class TaskListStore(gtk.ListStore):
             else:
                 distance = ''
             prev = waypoint.position
-            self.append((t, waypoint.name, str(waypoint.position), distance))
+            self.append((waypoint.name, str(waypoint.position), distance))
 
-        self.append((None, None, None, None))
+        self.append((None, None, None))
 
     def append_waypoint(self, waypoint):
         i = len(self._task.waypoints)
         self._task.waypoints.append(waypoint)
-        self.insert(i, (u'Foo', waypoint.name, str(waypoint.position), 'y'))
+        self.insert(i, (waypoint.name, str(waypoint.position), 'y'))
 
     def iter_to_index(self, iter):
         path = self.get_path(iter)
@@ -281,25 +271,21 @@ class TaskDialog(gtk.Dialog):
         self.list = gtk.TreeView(model=self.model)
         self.list.set_enable_search(False)
         self.list.get_selection().connect('changed', self.__on_selection_changed)
-
-        renderer = gtk.CellRendererText()
-        column = gtk.TreeViewColumn(u'Type', renderer, text = 0)
-        self.list.append_column(column)
         
         renderer = gtk.CellRendererText()
         renderer.set_property('editable', True)
         renderer.set_property('width-chars', 25)
         renderer.connect('edited', self.__on_cell_edited)
         renderer.set_property('ellipsize', pango.ELLIPSIZE_END)
-        column = gtk.TreeViewColumn(u'Name', renderer, text = 1)
+        column = gtk.TreeViewColumn(u'Name', renderer, text = 0)
         self.list.append_column(column)
 
         renderer = gtk.CellRendererText()
-        column = gtk.TreeViewColumn(u'Position', renderer, text = 2)
+        column = gtk.TreeViewColumn(u'Position', renderer, text = 1)
         self.list.append_column(column)
 
         renderer = gtk.CellRendererText()
-        column = gtk.TreeViewColumn(u'Length', renderer, text = 3)
+        column = gtk.TreeViewColumn(u'Length', renderer, text = 2)
         self.list.append_column(column)
 
         self.list.show()
@@ -346,7 +332,7 @@ class TaskDialog(gtk.Dialog):
         else:
             waypoint = self._task.waypoints[i]
             waypoint.name = new_text
-            self.model.set_value(iter, 1, new_text)
+            self.model.set_value(iter, 0, new_text)
 
     def __on_delete(self, widget):
         (model, iter) = self.list.get_selection().get_selected()
