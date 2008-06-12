@@ -233,10 +233,23 @@ class TaskListStore(gtk.ListStore):
 
         self.append((None, None, 'total %u km' % total))
 
+    def _calc_total(self):
+        prev = None
+        total = 0
+        for waypoint in self._task.waypoints:
+            if prev:
+                length = int(great_circle_distance(prev, waypoint.position))
+                total += length
+            prev = waypoint.position
+
+        self.set_value(self.get_iter((len(self._task.waypoints),)),
+                       2, 'total %u km' % total)
+
     def append_waypoint(self, waypoint):
         i = len(self._task.waypoints)
         self._task.waypoints.append(waypoint)
         self.insert(i, (waypoint.name, str(waypoint.position), 'y'))
+        self._calc_total()
 
     def iter_to_index(self, iter):
         path = self.get_path(iter)
