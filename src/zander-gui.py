@@ -169,6 +169,14 @@ class TaskListStore(gtk.ListStore):
         self.set_value(self.get_iter(len(self._task.waypoints)),
                        2, 'total %u km' % total)
 
+    def set_waypoint(self, i, waypoint):
+        self._task.waypoints[i] = waypoint
+        iter = self.get_iter(i)
+        self.set(iter, 0, waypoint.name,
+                 1, str(waypoint.position))
+        # XXX length
+        self._calc_total()
+
     def append_waypoint(self, waypoint):
         i = len(self._task.waypoints)
         self._task.waypoints.append(waypoint)
@@ -256,14 +264,12 @@ class TaskDialog(gtk.Dialog):
         iter = self.model.get_iter_from_string(path_string)
         i = self.model.iter_to_index(iter)
 
+        waypoint = TaskWaypoint(new_text, SurfacePosition(0, 0))
+
         if i is None:
-            waypoint = TaskWaypoint(new_text, SurfacePosition(0, 0))
-            waypoint.name = new_text
             self.model.append_waypoint(waypoint)
         else:
-            waypoint = self._task.waypoints[i]
-            waypoint.name = new_text
-            self.model.set_value(iter, 0, new_text)
+            self.model.set_waypoint(i, waypoint)
 
     def __on_delete(self, widget):
         (model, iter) = self.list.get_selection().get_selected()
