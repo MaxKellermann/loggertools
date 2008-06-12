@@ -242,7 +242,7 @@ class TaskListStore(gtk.ListStore):
                 total += length
             prev = waypoint.position
 
-        self.set_value(self.get_iter((len(self._task.waypoints),)),
+        self.set_value(self.get_iter(len(self._task.waypoints)),
                        2, 'total %u km' % total)
 
     def append_waypoint(self, waypoint):
