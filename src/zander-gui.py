@@ -222,18 +222,16 @@ class TaskListStore(gtk.ListStore):
         prev = None
         total = 0
         for i, waypoint in zip(range(len(self._task.waypoints)), self._task.waypoints):
-            if i == len(self._task.waypoints) - 1:
-                distance = '%u km' % total
-            elif i >= 2:
+            if prev:
                 length = int(great_circle_distance(prev, waypoint.position))
-                distance = '%u km' % length
                 total += length
+                distance = '%u km' % length
             else:
                 distance = ''
             prev = waypoint.position
             self.append((waypoint.name, str(waypoint.position), distance))
 
-        self.append((None, None, None))
+        self.append((None, None, 'total %u km' % total))
 
     def append_waypoint(self, waypoint):
         i = len(self._task.waypoints)
