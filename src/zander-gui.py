@@ -24,6 +24,8 @@ import gtk, pango
 import struct
 import serial
 
+from loggertools.earth import SurfacePosition, great_circle_distance
+from loggertools.zander import load_surface_position, save_surface_position
 from loggertools.gtk.form import TableForm
 
 class PortSetupForm(TableForm):
@@ -111,84 +113,6 @@ class PersonalDataDialog(gtk.Dialog):
         else:
             self.destroy()
 
-def load_angle(x):
-    assert isinstance(x, str)
-    assert len(x) == 4
-    x = struct.unpack('BBBB', x)
-    assert(x[3] == 0 or x[3] == 1)
-    value = reduce(lambda a, b: a * 60 + b, x[0:3])
-    if x[3] != 0:
-        value = -value
-    return value
-
-def save_angle(value):
-    assert isinstance(value, int)
-    assert value >= -180 * 3600
-    assert value <= 180 * 3600
-    if value < 0:
-        sign = 1
-        value = -value
-    else:
-        sign = 0
-    return struct.pack('BBBB', value / 3600, (value / 60) % 60,
-                       value % 60, sign)
-
-class SurfacePosition:
-    def __init__(self, latitude, longitude):
-        assert isinstance(latitude, int)
-        assert isinstance(longitude, int)
-        assert latitude >= -90 * 3600
-        assert latitude <= 90 * 3600
-        assert longitude >= -180 * 3600
-        assert longitude <= 180 * 3600
-
-        self.latitude = latitude
-        self.longitude = longitude
-
-    def __str__(self):
-        a = abs(self.latitude)
-        if self.latitude < 0:
-            sign = 'S'
-        else:
-            sign = 'N'
-        latitude = '%02u.%02u.%02u %c' % (a / 3600, (a / 60) % 60,
-                                    a % 60, sign)
-
-        a = abs(self.longitude)
-        if self.longitude < 0:
-            sign = 'W'
-        else:
-            sign = 'E'
-        longitude = '%03u.%02u.%02u %c' % (a / 3600, (a / 60) % 60,
-                                     a % 60, sign)
-
-        return latitude + ' ' + longitude
-
-    def save(self):
-        return save_angle(self.latitude) + save_angle(self.longitude)
-
-def convert_angle(value):
-    assert isinstance(value, int)
-    assert value >= -180 * 3600
-    assert value <= 180 * 3600
-
-    import math
-    return value * math.pi / (180. * 3600.)
-
-def great_circle_distance(a, b):
-    # formula from http://en.wikipedia.org/wiki/Great-circle_distance
-    lat1 = convert_angle(a.latitude)
-    lon1 = convert_angle(a.longitude)
-    lat2 = convert_angle(b.latitude)
-    lon2 = convert_angle(b.longitude)
-
-    from math import atan2, hypot, cos, sin
-    return atan2(hypot(cos(lat2) * sin(lon2 - lon1),
-                       cos(lat1) * sin(lat2) -
-                       sin(lat1) * cos(lat2) * cos(lon2 - lon1)),
-                 (sin(lat1) * sin(lat2) +
-                  cos(lat1) * cos(lat2) * cos(lon2 - lon1))) * 6372.795;
-
 class TaskWaypoint:
     def __init__(self, name, position):
         assert isinstance(name, str) or isinstance(name, unicode)
@@ -198,7 +122,7 @@ class TaskWaypoint:
         self.position = position
 
     def save(self):
-        return dump_str(self.name, 12) + self.position.save()
+        return dump_str(self.name, 12) + save_surface_position(self.position)
 
 class Task:
     def __init__(self):
@@ -364,8 +288,7 @@ class TaskDialog(gtk.Dialog):
         num_waypoints = struct.unpack('B', data[24])[0]
         for i in range(num_waypoints):
             waypoint = data[24 + i * 24 : 24 + i * 24 + 24]
-            position = SurfacePosition(load_angle(waypoint[16:20]),
-                                       load_angle(waypoint[20:24]))
+            position = load_surface_position(waypoint[16:24])
             task.waypoints.append(TaskWaypoint(waypoint[4:16].strip(),
                                                position))
 
