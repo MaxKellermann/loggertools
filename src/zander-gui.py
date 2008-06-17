@@ -264,7 +264,12 @@ class TaskDialog(gtk.Dialog):
         iter = self.model.get_iter_from_string(path_string)
         i = self.model.iter_to_index(iter)
 
+        from loggertools.waypoint import load_wz
+        waypoints = load_wz(file('/tmp/EU_2007.WZ'))
         waypoint = TaskWaypoint(new_text, SurfacePosition(0, 0))
+        for x in waypoints:
+            if x.name == new_text:
+                waypoint = TaskWaypoint(new_text, x.position)
 
         if i is None:
             self.model.append_waypoint(waypoint)
