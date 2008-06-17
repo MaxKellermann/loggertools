@@ -310,10 +310,27 @@ class TaskDialog(gtk.Dialog):
     def save(self):
         return self._task.save()
 
+    def __read_from_zander(self, check_cancel, length):
+        ret = ''
+        tries = 0
+        while length > 0 and tries < 5:
+            check_cancel()
+            x = self._port.read(length)
+            if len(x) == 0:
+                tries += 1
+            else:
+                ret += x
+                length -= len(x)
+        return ret
+
+    def __load_from_zander(self, check_cancel):
+        self._port.write('\x13')
+        self.load(self.__read_from_zander(check_cancel, 480))
+
     def __on_response(self, dialog, response_id):
         if response_id == 1:
-            self._port.write('\x13')
-            self.load(self._port.read(480))
+            from loggertools.gtk.progress import progress_do
+            progress_do(u'Loading from Zander...', self.__load_from_zander)
         elif response_id == 2:
             self._port.write('\x12' + self.save())
         else:
@@ -399,5 +416,6 @@ if __name__ == '__main__':
     #main.main()
     #PersonalDataDialog(serial.Serial('/tmp/fakezander')).show()
     #gtk.main()
-    TaskDialog(serial.Serial('/dev/ttyS0')).show()
+    TaskDialog(serial.Serial('/dev/ttyS0', timeout=1)).show()
+    gtk.gdk.threads_init()
     gtk.main()
