@@ -399,5 +399,5 @@ if __name__ == '__main__':
     #main.main()
     #PersonalDataDialog(serial.Serial('/tmp/fakezander')).show()
     #gtk.main()
-    TaskDialog(serial.Serial('/tmp/fakezander')).show()
+    TaskDialog(serial.Serial('/dev/ttyS0')).show()
     gtk.main()
