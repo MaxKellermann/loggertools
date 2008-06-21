@@ -249,6 +249,22 @@ static void upload_from_file(struct fake_zander *zander,
     free(buffer);
 }
 
+static void upload_from_file_at(struct fake_zander *zander,
+                                const char *filename,
+                                off_t start, size_t length) {
+    void *buffer;
+
+    buffer = datadir_read_at(zander->datadir, filename, start, length);
+    if (buffer == NULL) {
+        fprintf(stderr, "failed to read %s\n", filename);
+        exit(2);
+    }
+
+    write(zander->device->fd, buffer, length);
+
+    free(buffer);
+}
+
 static void handle_read_serial(struct fake_zander *zander) {
     static const struct zander_serial serial = {
         .serial = "543",
@@ -302,6 +318,37 @@ static void handle_read_task(struct fake_zander *zander) {
 
     upload_from_file(zander, "task",
                      sizeof(struct zander_write_task));
+}
+
+static void handle_read_memory(struct fake_zander *zander) {
+    ssize_t nbytes;
+    struct zander_read_data read_data;
+    unsigned start, length;
+
+    nbytes = read(zander_fileno(zander->device),
+                  &read_data, sizeof(read_data));
+    if (nbytes != sizeof(read_data)) {
+        fprintf(stderr, "failed to read start/length struct\n");
+        return;
+    }
+
+    start = read_data.start.address[0] << 16 |
+        read_data.start.address[1] << 8 |
+        read_data.start.address[2];
+
+    length = read_data.length.address[0] << 16 |
+        read_data.length.address[1] << 8 |
+        read_data.length.address[2];
+
+    printf("READ_MEMORY: start=0x%x length=0x%x\n",
+           start, length);
+
+    if (start >= 0x3000 && start < 0x13000)
+        upload_from_file_at(zander, "0x30",
+                            start - 0x3000, length);
+    else if (start >= 0x30000 && start < 0x40000)
+        upload_from_file_at(zander, "0x30",
+                            start - 0x3000, length);
 }
 
 static int open_virtual(const char *symlink_path) {
@@ -434,6 +481,11 @@ int main(int argc, char **argv) {
         case ZANDER_CMD_READ_TASK:
             printf("received READ_TASK\n");
             handle_read_task(&zander);
+            break;
+
+        case ZANDER_CMD_READ_MEMORY:
+            printf("received READ_MEMORY\n");
+            handle_read_memory(&zander);
             break;
 
         default:

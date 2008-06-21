@@ -27,6 +27,7 @@ struct zander {
 };
 
 enum zander_cmd {
+    ZANDER_CMD_READ_MEMORY = 0x01,
     ZANDER_CMD_WRITE_MEMORY = 0x02,
     ZANDER_CMD_READ_9V_BATTERY = 0x0a,
     ZANDER_CMD_READ_LI_BATTERY = 0x0d,
