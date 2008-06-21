@@ -104,9 +104,9 @@ int zander_write_memory(zander_t zander, unsigned address,
         return EFBIG;
 
     memset(&header, 0, sizeof(header));
-    header.address[0] = address >> 16;
-    header.address[1] = address >> 8;
-    header.address[2] = address;
+    header.address.address[0] = address >> 16;
+    header.address.address[1] = address >> 8;
+    header.address.address[2] = address;
 
     ret = zander_write(zander, &header, sizeof(header));
     if (ret != 0)
