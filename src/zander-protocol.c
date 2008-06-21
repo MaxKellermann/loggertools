@@ -97,15 +97,16 @@ int zander_write_memory(zander_t zander, unsigned address,
 
     assert(data != NULL);
 
-    /* zander has only 64kB writable memory */
     if (length == 0)
         return EINVAL;
 
-    if (length > 1000 || address + length > 0x10000)
+    if (length > 1000 || address + length > 0x1000000)
         return EFBIG;
 
     memset(&header, 0, sizeof(header));
-    header.address = htons(address);
+    header.address[0] = address >> 16;
+    header.address[1] = address >> 8;
+    header.address[2] = address;
 
     ret = zander_write(zander, &header, sizeof(header));
     if (ret != 0)

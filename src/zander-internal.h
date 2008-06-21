@@ -37,10 +37,12 @@ enum zander_cmd {
     ZANDER_CMD_READ_TASK = 0x13,
 };
 
+struct zander_address {
+    unsigned char address[3];
+} __attribute__((packed));
+
 struct zander_write_data {
-    unsigned char zero;
-    /** big endian */
-    uint16_t address;
+    struct zander_address address;
     /*unsigned char data[x];*/
 } __attribute__((packed));
 
