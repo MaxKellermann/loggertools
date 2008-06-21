@@ -62,6 +62,10 @@ struct zander_time {
     unsigned char hour, minute, second;
 } __attribute__((packed));
 
+struct zander_duration {
+    uint16_t minutes;
+} __attribute__((packed));
+
 struct zander_angle {
     unsigned char degrees;
     unsigned char minutes;
@@ -87,6 +91,21 @@ struct zander_read_task {
     struct zander_time upload_time;
     unsigned char foo2[17];
     struct zander_task_wp waypoints[20];
+} __attribute__((packed));
+
+struct zander_address {
+    unsigned char address[3];
+} __attribute__((packed));
+
+struct zander_flight {
+    uint16_t no;
+    struct zander_date date;
+    struct zander_time record_start;
+    struct zander_duration flight_start;
+    struct zander_duration flight_end;
+    struct zander_duration record_end;
+    struct zander_address memory_start;
+    struct zander_address memory_end;
 } __attribute__((packed));
 
 

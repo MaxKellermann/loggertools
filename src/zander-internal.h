@@ -38,10 +38,6 @@ enum zander_cmd {
     ZANDER_CMD_READ_TASK = 0x13,
 };
 
-struct zander_address {
-    unsigned char address[3];
-} __attribute__((packed));
-
 struct zander_read_data {
     struct zander_address start;
     struct zander_address length;
