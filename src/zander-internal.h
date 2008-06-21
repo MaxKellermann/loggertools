@@ -41,6 +41,11 @@ struct zander_address {
     unsigned char address[3];
 } __attribute__((packed));
 
+struct zander_read_data {
+    struct zander_address start;
+    struct zander_address length;
+} __attribute__((packed));
+
 struct zander_write_data {
     struct zander_address address;
     /*unsigned char data[x];*/
