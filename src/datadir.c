@@ -162,6 +162,52 @@ void *datadir_read(struct datadir *dir,
     return buffer;
 }
 
+void *datadir_read_at(struct datadir *dir,
+                      const char *filename,
+                      off_t start, size_t length) {
+    char *path;
+    int fd, ret;
+    struct stat st;
+    off_t oret;
+    void *buffer;
+    ssize_t nbytes;
+
+    path = make_path(dir, filename);
+    if (path == NULL)
+        return NULL;
+
+    ret = stat(path, &st);
+    if (ret < 0 || start + (off_t)length > st.st_size) {
+        free(path);
+        return NULL;
+    }
+
+    fd = open(path, O_RDONLY);
+    free(path);
+    if (fd < 0)
+        return NULL;
+
+    oret = lseek(fd, start, SEEK_SET);
+    if (oret < 0) {
+        close(fd);
+        return NULL;
+    }
+
+    buffer = malloc(length);
+    if (buffer == NULL) {
+        close(fd);
+        return NULL;
+    }
+
+    nbytes = read(fd, buffer, length);
+    close(fd);
+    if (nbytes != (ssize_t)length) {
+        free(buffer);
+        return NULL;
+    }
+
+    return buffer;
+}
 
 int datadir_write(struct datadir *dir,
                   const char *filename,

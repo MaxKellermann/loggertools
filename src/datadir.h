@@ -38,6 +38,10 @@ void *datadir_read(struct datadir *dir,
                    const char *filename,
                    size_t length);
 
+void *datadir_read_at(struct datadir *dir,
+                      const char *filename,
+                      off_t start, size_t length);
+
 int datadir_write(struct datadir *dir,
                   const char *filename,
                   void *data, size_t length);
