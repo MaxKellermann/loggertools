@@ -321,6 +321,52 @@ cmd_show_task(struct config *config)
     return 0;
 }
 
+static int
+cmd_raw(struct config *config, int argc, char **argv)
+{
+    int ret;
+    zander_t zander;
+    struct zander_serial serial;
+    unsigned char buffer[1024];
+    ssize_t nbytes;
+    size_t offset;
+    unsigned tries;
+
+    for (ret = 0; ret < argc; ++ret)
+        buffer[ret] = strtoul(argv[ret], NULL, 0);
+
+    ret = zander_open(config->tty, &zander);
+    if (ret != 0) {
+        zander_perror("failed to open zander", ret);
+        exit(2);
+    }
+
+    ret = zander_read_serial(zander, &serial);
+    if (ret != 0) {
+        zander_perror("failed to connect to zander", ret);
+        exit(2);
+    }
+
+    write(zander_fileno(zander), buffer, argc);
+
+    for (tries = 0, offset = 0; tries < 20; ++tries) {
+        nbytes = read(zander_fileno(zander), buffer, sizeof(buffer));
+        if (nbytes > 0) {
+            write(1, buffer, (size_t)nbytes);
+            offset += (size_t)nbytes;
+
+            tries = 0;
+        } else if (nbytes < 0) {
+            perror("failed to read");
+            break;
+        } else
+            usleep(100000);
+    }
+
+    zander_close(&zander);
+    return 0;
+}
+
 int main(int argc, char **argv) {
     struct config config;
     const char *cmd;
@@ -342,6 +388,8 @@ int main(int argc, char **argv) {
         return cmd_battery(&config);
     } if (strcmp(cmd, "show_task") == 0) {
         return cmd_show_task(&config);
+    } if (strcmp(cmd, "raw") == 0) {
+        return cmd_raw(&config, argc - 2, argv + 2);
     } else {
         arg_error("unknown command");
     }
