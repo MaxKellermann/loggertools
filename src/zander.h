@@ -22,6 +22,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <stdbool.h>
 #include <netinet/in.h>
 
 
@@ -153,6 +154,10 @@ int
 zander_read_task(zander_t zander, struct zander_read_task *task);
 
 int
+zander_read_memory(zander_t zander, void *dest,
+                   unsigned start, unsigned length);
+
+int
 zander_flight_list(zander_t zander,
                    struct zander_flight flights[ZANDER_MAX_FLIGHTS]);
 
@@ -176,6 +181,19 @@ zander_time_add_duration(struct zander_time *t,
     t->hour += minutes / 60;
     t->hour %= 24;
     t->minute = minutes % 60;
+}
+
+static inline void
+zander_host_to_address(struct zander_address *dest, unsigned src) {
+    dest->address[0] = src >> 16;
+    dest->address[1] = src >> 8;
+    dest->address[2] = src;
+}
+
+static inline bool
+zander_address_defined(const struct zander_address *address) {
+    return address->address[0] != 0 || address->address[1] != 0 ||
+        address->address[2] != 0;
 }
 
 static inline unsigned
