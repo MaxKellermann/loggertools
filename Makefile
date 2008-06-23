@@ -40,7 +40,7 @@ CFLAGS += -Wmissing-prototypes -Wcast-qual -Wfloat-equal -Wshadow -Wpointer-arit
 CXXFLAGS += $(COMMON_CFLAGS)
 CXXFLAGS += -Wwrite-strings -Wcast-qual -Wfloat-equal -Wpointer-arith -Wsign-compare -Wmissing-format-attribute -Wredundant-decls -Winline -Wdisabled-optimization -Wno-long-long -Wundef
 
-all: bin/tpconv bin/asconv bin/cenfistool bin/hexfile bin/lxn2igc bin/filsertool bin/lxn-logger bin/fakefilser bin/flarmtool bin/zander bin/fakezander bin/lxn-fwd bin/fwd
+all: bin/tpconv bin/asconv bin/cenfistool bin/hexfile bin/lxn2igc bin/filsertool bin/lxn-logger bin/fakefilser bin/flarmtool bin/zander bin/zander-logger bin/fakezander bin/lxn-fwd bin/fwd
 
 clean:
 	rm -rf bin
@@ -106,6 +106,9 @@ flarmtool_OBJECTS = $(patsubst src/%.c,bin/%.o,$(flarmtool_SOURCES))
 zander_SOURCES = src/zander-tool.c src/zander-open.c src/zander-io.c src/zander-error.c src/zander-protocol.c
 zander_OBJECTS = $(patsubst src/%.c,bin/%.o,$(zander_SOURCES))
 
+zander_logger_SOURCES = src/zander-logger.c src/zander-open.c src/zander-io.c src/zander-error.c src/zander-protocol.c
+zander_logger_OBJECTS = $(patsubst src/%.c,bin/%.o,$(zander_logger_SOURCES))
+
 fakezander_SOURCES = src/fakezander.c src/zander-open.c src/datadir.c src/dump.c
 fakezander_OBJECTS = $(patsubst src/%.c,bin/%.o,$(fakezander_SOURCES))
 
@@ -152,6 +155,9 @@ bin/flarmtool: $(flarmtool_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
 
 bin/zander: $(zander_OBJECTS)
+	$(CC) $(CFLAGS) -o $@ $^
+
+bin/zander-logger: $(zander_logger_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
 
 bin/fakezander: $(fakezander_OBJECTS)
