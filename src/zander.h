@@ -199,7 +199,7 @@ zander_address_defined(const struct zander_address *address) {
 static inline unsigned
 zander_address_to_host(const struct zander_address *address) {
     return address->address[0] << 16 | address->address[1] << 8 |
-        address->address[0];
+        address->address[2];
 }
 
 
