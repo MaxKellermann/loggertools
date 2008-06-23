@@ -357,12 +357,14 @@ cmd_list(struct config *config)
         zander_time_add_duration(&flight_start, &f->flight_start);
         zander_time_add_duration(&flight_end, &f->flight_end);
 
-        printf("%3u | %02u.%02u.%02u | %02u:%02u-%02u:%02u | %02u:%02u-%02u:%02u\n",
+        printf("%3u | %02u.%02u.%02u | %02u:%02u-%02u:%02u | %02u:%02u-%02u:%02u | 0x%06x-0x%06x\n",
                ntohs(f->no), f->date.day, f->date.month, f->date.year,
                f->record_start.hour, f->record_start.minute,
                record_end.hour, record_end.minute,
                flight_start.hour, flight_start.minute,
-               flight_end.hour, flight_end.minute);
+               flight_end.hour, flight_end.minute,
+               zander_address_to_host(&f->memory_start),
+               zander_address_to_host(&f->memory_end));
     }
 
     zander_close(&zander);
