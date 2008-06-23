@@ -48,7 +48,7 @@ struct config {
 };
 
 static void usage(void) {
-    puts("usage: lxigc [OPTIONS]\n"
+    puts("usage: lxn-logger [OPTIONS]\n"
          "valid options:\n"
 #ifdef __GLIBC__
          " --help\n"
