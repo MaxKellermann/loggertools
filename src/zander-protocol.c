@@ -131,3 +131,34 @@ zander_read_task(zander_t zander, struct zander_read_task *task)
 
     return zander_read(zander, task, sizeof(*task));
 }
+
+int
+zander_flight_list(zander_t zander,
+                   struct zander_flight flights[ZANDER_MAX_FLIGHTS])
+{
+    static struct {
+        unsigned char cmd;
+        struct zander_read_data read_data;
+    } request = {
+        .cmd = ZANDER_CMD_READ_MEMORY,
+        .read_data = {
+            .start = {
+                .address = { [1] = 0x30, },
+            },
+            .length = {
+                .address = {
+                    [1] = (sizeof(flights[0]) * ZANDER_MAX_FLIGHTS) >> 8,
+                    [2] = (sizeof(flights[0]) * ZANDER_MAX_FLIGHTS) & 0xff,
+                },
+            },
+        },
+    };
+    int ret;
+
+    ret = zander_write(zander, &request, sizeof(request));
+    if (ret != 0)
+        return ret;
+
+    return zander_read(zander, flights,
+                       sizeof(flights[0]) * ZANDER_MAX_FLIGHTS);
+}

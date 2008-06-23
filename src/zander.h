@@ -22,6 +22,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <netinet/in.h>
 
 
 typedef struct zander *zander_t;
@@ -108,6 +109,8 @@ struct zander_flight {
     struct zander_address memory_end;
 } __attribute__((packed));
 
+#define ZANDER_MAX_FLIGHTS 200 /* XXX? */
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -149,6 +152,10 @@ int zander_write_memory(zander_t zander, unsigned address,
 int
 zander_read_task(zander_t zander, struct zander_read_task *task);
 
+int
+zander_flight_list(zander_t zander,
+                   struct zander_flight flights[ZANDER_MAX_FLIGHTS]);
+
 /* zander-error.c */
 
 const char *
@@ -156,6 +163,27 @@ zander_strerror(int error);
 
 void
 zander_perror(const char *msg, int error);
+
+
+/* inline functions */
+
+static inline void
+zander_time_add_duration(struct zander_time *t,
+                         const struct zander_duration *duration)
+{
+    unsigned minutes = t->minute + ntohs(duration->minutes);
+
+    t->hour += minutes / 60;
+    t->hour %= 24;
+    t->minute = minutes % 60;
+}
+
+static inline unsigned
+zander_address_to_host(const struct zander_address *address) {
+    return address->address[0] << 16 | address->address[1] << 8 |
+        address->address[0];
+}
+
 
 #ifdef __cplusplus
 }

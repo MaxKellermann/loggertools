@@ -322,6 +322,54 @@ cmd_show_task(struct config *config)
 }
 
 static int
+cmd_list(struct config *config)
+{
+    int ret;
+    zander_t zander;
+    struct zander_serial serial;
+    struct zander_flight flights[ZANDER_MAX_FLIGHTS];
+    unsigned i;
+
+    ret = zander_open(config->tty, &zander);
+    if (ret != 0) {
+        zander_perror("failed to open zander", ret);
+        exit(2);
+    }
+
+    ret = zander_read_serial(zander, &serial);
+    if (ret != 0) {
+        zander_perror("failed to connect to zander", ret);
+        exit(2);
+    }
+
+    ret = zander_flight_list(zander, flights);
+    if (ret != 0) {
+        zander_perror("failed to read flight list", ret);
+        exit(2);
+    }
+
+    for (i = 0; i < ZANDER_MAX_FLIGHTS; ++i) {
+        const struct zander_flight *f = &flights[i];
+        struct zander_time record_end = f->record_start,
+            flight_start = f->record_start, flight_end = f->record_start;
+
+        zander_time_add_duration(&record_end, &f->record_end);
+        zander_time_add_duration(&flight_start, &f->flight_start);
+        zander_time_add_duration(&flight_end, &f->flight_end);
+
+        printf("%3u | %02u.%02u.%02u | %02u:%02u-%02u:%02u | %02u:%02u-%02u:%02u\n",
+               ntohs(f->no), f->date.day, f->date.month, f->date.year,
+               f->record_start.hour, f->record_start.minute,
+               record_end.hour, record_end.minute,
+               flight_start.hour, flight_start.minute,
+               flight_end.hour, flight_end.minute);
+    }
+
+    zander_close(&zander);
+    return 0;
+}
+
+static int
 cmd_raw(struct config *config, int argc, char **argv)
 {
     int ret;
@@ -388,6 +436,8 @@ int main(int argc, char **argv) {
         return cmd_battery(&config);
     } if (strcmp(cmd, "show_task") == 0) {
         return cmd_show_task(&config);
+    } if (strcmp(cmd, "list") == 0) {
+        return cmd_list(&config);
     } if (strcmp(cmd, "raw") == 0) {
         return cmd_raw(&config, argc - 2, argv + 2);
     } else {
