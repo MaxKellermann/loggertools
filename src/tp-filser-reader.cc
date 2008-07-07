@@ -80,7 +80,7 @@ const TurnPoint *FilserTurnPointReader::read() {
     do {
         stream->read((char*)&data, sizeof(data));
         count++;
-    } while (data.valid != 1);
+    } while (data.valid == 0);
 
     /* create object */
     tp = new TurnPoint();

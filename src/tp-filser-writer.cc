@@ -85,6 +85,7 @@ void FilserTurnPointWriter::write(const TurnPoint &tp) {
         throw container_full("Filser databases cannot hold more than 600 turn points");
 
     memset(&data, 0, sizeof(data));
+    data.valid = 0x02; /* XXX */
 
     copyString(data.code, sizeof(data.code),
                tp.getAbbreviatedName(sizeof(data.code)));
