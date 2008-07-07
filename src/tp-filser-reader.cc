@@ -74,10 +74,10 @@ const TurnPoint *FilserTurnPointReader::read() {
     TurnPoint *tp;
     size_t length;
 
-    if (count >= 600 || stream->eof())
-        return NULL;
-
     do {
+        if (count >= 600 || stream->eof())
+            return NULL;
+
         stream->read((char*)&data, sizeof(data));
         count++;
     } while (data.valid == 0);
