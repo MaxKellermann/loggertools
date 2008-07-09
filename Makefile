@@ -40,7 +40,7 @@ CFLAGS += -Wmissing-prototypes -Wcast-qual -Wfloat-equal -Wshadow -Wpointer-arit
 CXXFLAGS += $(COMMON_CFLAGS)
 CXXFLAGS += -Wwrite-strings -Wcast-qual -Wfloat-equal -Wpointer-arith -Wsign-compare -Wmissing-format-attribute -Wredundant-decls -Winline -Wdisabled-optimization -Wno-long-long -Wundef
 
-all: bin/tpconv bin/asconv bin/cenfistool bin/hexfile bin/lxn2igc bin/filsertool bin/lxn-logger bin/fakefilser bin/flarmtool bin/zander bin/zander-logger bin/fakezander bin/lxn-fwd bin/fwd
+all: bin/tpconv bin/asconv bin/cenfistool bin/hexfile bin/lxn2igc bin/filsertool bin/lxn-logger bin/lo4-logger bin/fakefilser bin/flarmtool bin/zander bin/zander-logger bin/fakezander bin/lxn-fwd bin/fwd
 
 clean:
 	rm -rf bin
@@ -98,6 +98,9 @@ filsertool_OBJECTS = $(patsubst src/%.c,bin/%.o,$(filsertool_SOURCES))
 lxn_logger_SOURCES = src/lxn-logger.c src/filser-crc.c src/filser-open.c src/filser-io.c src/filser-proto.c src/filser-filename.c src/lxn-reader.c src/lxn-to-igc.c
 lxn_logger_OBJECTS = $(patsubst src/%.c,bin/%.o,$(lxn_logger_SOURCES))
 
+lo4_logger_SOURCES = src/lo4-logger.c src/filser-crc.c src/filser-open.c src/filser-io.c src/filser-proto.c
+lo4_logger_OBJECTS = $(patsubst src/%.c,bin/%.o,$(lo4_logger_SOURCES))
+
 fakefilser_SOURCES = src/fakefilser.c src/filser-crc.c src/filser-open.c src/filser-io.c src/datadir.c src/lxn-reader.c src/dump.c
 fakefilser_OBJECTS = $(patsubst src/%.c,bin/%.o,$(fakefilser_SOURCES))
 
@@ -147,6 +150,9 @@ bin/filsertool: $(filsertool_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
 
 bin/lxn-logger: $(lxn_logger_OBJECTS)
+	$(CC) $(CFLAGS) -o $@ $^
+
+bin/lo4-logger: $(lo4_logger_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
 
 bin/fakefilser: $(fakefilser_OBJECTS)
