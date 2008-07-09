@@ -43,7 +43,7 @@ int filser_write_cmd(filser_t device, unsigned char cmd) {
 }
 
 int filser_write_crc(filser_t device, const void *p0, size_t length) {
-    const unsigned char *p = p0;
+    const unsigned char *const p = p0;
     ssize_t nbytes;
     unsigned char crc;
     size_t pos = 0, sublen;
