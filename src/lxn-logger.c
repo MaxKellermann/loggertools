@@ -37,7 +37,6 @@
 
 #include "version.h"
 #include "filser.h"
-#include "datadir.h"
 #include "lxn-to-igc.h"
 
 #define MAX_FLIGHTS 256
