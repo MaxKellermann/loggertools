@@ -33,6 +33,7 @@ Version 0.0.2 - not yet released
   * tp-milomei: new format which can parse the Welt2000 files
   * lxn-to-igc: print the correct vendor code in ORIGIN records (bug
     report by Calle Koppen)
+  * lo4-logger: new program which downloads flights from LX4000
 
 
 Version 0.0.1 - 2007/03/05
