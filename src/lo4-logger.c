@@ -46,7 +46,7 @@ struct config {
 };
 
 static void usage(void) {
-    puts("usage: lo4-logger [OPTIONS]\n"
+    puts("usage: lo4-logger [OPTIONS] FILE\n"
          "valid options:\n"
 #ifdef __GLIBC__
          " --help\n"
