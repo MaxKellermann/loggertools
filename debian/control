@@ -3,7 +3,7 @@ Section: misc
 Priority: optional
 Maintainer: Max Kellermann <max@duempel.org>
 Build-Depends: debhelper (>= 5), gcc (>= 4), g++ (>= 4), tetex-bin, tetex-extra
-Standards-Version: 3.7.2
+Standards-Version: 3.8.0
 
 Package: loggertools
 Architecture: any
