@@ -1,0 +1,26 @@
+.TH "zander-logger" "1" "July 2008"
+.PP
+.SH "NAME"
+zander-logger \- download IGC files from a Zander logger
+.PP
+.SH "SYNOPSIS"
+.B zander-logger
+[\fIOPTION\fR]...
+.SH DESCRIPTION
+.PP
+Download flights from a Zander logger device (like GP940 or GP941)
+over the serial port.
+.TP
+\fB\-t\fR, \fB\-\-tty\fI=DEVICE\fR
+Specify a device node different than /dev/ttyS0
+.SH AUTHOR
+Max Kellermann <max@duempel.org>
+.SH COPYRIGHT
+Copyright (C) 2004-2007 Max Kellermann
+.br
+This is free software.  You may redistribute copies of it under the
+terms of the GNU General Public License
+<http://www.gnu.org/licenses/gpl.html>.  There is NO WARRANTY, to the
+extent permitted by law.
+.SH "SEE ALSO"
+\fBlxn-logger\fR(1)
