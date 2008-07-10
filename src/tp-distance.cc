@@ -20,7 +20,39 @@
 #include "exception.hh"
 #include "tp.hh"
 #include "tp-io.hh"
+#include "io-compare.hh"
 #include "earth-parser.hh"
+
+class TurnPointFindByName {
+    std::string name;
+
+public:
+    TurnPointFindByName(const std::string &_name)
+        :name(_name) {}
+
+public:
+    bool operator ()(const TurnPoint &tp) {
+        return tp.getCode() == name || tp.getShortName() == name ||
+            tp.getFullName() == name;
+    }
+};
+
+class TurnPointCompareDistance {
+    Distance distance;
+
+public:
+    TurnPointCompareDistance(const Distance &_distance)
+        :distance(_distance) {}
+
+public:
+    bool operator ()(const TurnPoint &reference, const TurnPoint &tp) {
+        return tp.getPosition() - reference.getPosition() <= distance;
+    }
+};
+
+typedef FindCompareReader<TurnPoint, TurnPointFindByName,
+                          TurnPointCompareDistance>
+NameDistanceTurnPointReader;
 
 class DistanceTurnPointReader : public TurnPointReader {
 private:
@@ -44,7 +76,21 @@ DistanceTurnPointFilter::createFilter(TurnPointReader *reader,
     if (args == NULL || *args == 0)
         throw malformed_input("No maximum distance provided");
 
-    Position center = parsePosition(args);
+    Position center;
+    try {
+         center = parsePosition(args);
+    } catch (const malformed_input &e) {
+        const char *colon = strchr(args, ':');
+        if (colon == NULL)
+            throw malformed_input("Radius is missing");
+
+        std::string name(args, colon - args);
+        Distance radius = parseDistance(colon + 1);
+        return new NameDistanceTurnPointReader(reader,
+                                               TurnPointFindByName(name),
+                                               TurnPointCompareDistance(radius));
+    }
+
     Distance radius = parseDistance(args);
 
     /*
