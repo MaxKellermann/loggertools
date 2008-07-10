@@ -21,6 +21,7 @@
 #include "tp.hh"
 #include "tp-io.hh"
 #include "io-compare.hh"
+#include "io-match.hh"
 #include "earth-parser.hh"
 
 class TurnPointFindByName {
@@ -54,21 +55,23 @@ typedef FindCompareReader<TurnPoint, TurnPointFindByName,
                           TurnPointCompareDistance>
 NameDistanceTurnPointReader;
 
-class DistanceTurnPointReader : public TurnPointReader {
-private:
-    TurnPointReader *reader;
-    Position center;
-    Distance max_distance;
+class TurnPointMatchDistance {
+    const SurfacePosition center;
+    const Distance distance;
+
 public:
-    DistanceTurnPointReader(TurnPointReader *_reader,
-                            const Position &_center,
-                            const Distance &_max_distance)
-        :reader(_reader), center(_center),
-         max_distance(_max_distance) {}
-    virtual ~DistanceTurnPointReader();
+    TurnPointMatchDistance(const SurfacePosition &_center,
+                           const Distance &_distance)
+        :center(_center), distance(_distance) {}
+
 public:
-    virtual const TurnPoint *read();
+    bool operator ()(const TurnPoint &tp) {
+        return tp.getPosition() - center <= distance;
+    }
 };
+
+typedef MatchReader<TurnPoint, TurnPointMatchDistance>
+DistanceTurnPointReader;
 
 TurnPointReader *
 DistanceTurnPointFilter::createFilter(TurnPointReader *reader,
@@ -98,7 +101,8 @@ DistanceTurnPointFilter::createFilter(TurnPointReader *reader,
         throw malformed_input("malformed trailing input");
     */
 
-    return new DistanceTurnPointReader(reader, center, radius);
+    return new DistanceTurnPointReader(reader,
+                                       TurnPointMatchDistance(center, radius));
 }
 
 DistanceTurnPointReader::~DistanceTurnPointReader() {
