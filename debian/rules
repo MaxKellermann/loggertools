@@ -17,7 +17,7 @@ clean:
 	dh_testroot
 	rm -f debian/stamp-*
 
-	-$(MAKE) clean
+	$(MAKE) clean
 
 	dh_clean
 
