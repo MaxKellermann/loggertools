@@ -40,8 +40,7 @@ public:
         :reader(_reader), buffer(), from_buffer(false) {}
 
     virtual ~RewindReader() {
-        if (reader != NULL)
-            delete reader;
+        delete reader;
     }
 
 public:
