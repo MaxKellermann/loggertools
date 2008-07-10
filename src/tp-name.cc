@@ -20,18 +20,20 @@
 #include "exception.hh"
 #include "tp.hh"
 #include "tp-io.hh"
+#include "io-match.hh"
 
-class NameTurnPointReader : public TurnPointReader {
-private:
-    TurnPointReader *reader;
+class TurnPointMatchName {
     std::string name;
+
 public:
-    NameTurnPointReader(TurnPointReader *_reader,
-                        const std::string &_name)
-        :reader(_reader), name(_name) {}
-    virtual ~NameTurnPointReader();
+    TurnPointMatchName(const std::string &_name)
+        :name(_name) {}
+
 public:
-    virtual const TurnPoint *read();
+    bool operator ()(const TurnPoint &tp) {
+        return tp.getCode() == name || tp.getShortName() == name ||
+            tp.getFullName() == name;
+    }
 };
 
 TurnPointReader *
@@ -40,29 +42,6 @@ NameTurnPointFilter::createFilter(TurnPointReader *reader,
     if (args == NULL || *args == 0)
         throw malformed_input("No name provided");
 
-    return new NameTurnPointReader(reader, args);
-}
-
-NameTurnPointReader::~NameTurnPointReader() {
-    if (reader != NULL)
-        delete reader;
-}
-
-const TurnPoint *NameTurnPointReader::read() {
-    const TurnPoint *tp;
-
-    if (reader == NULL)
-        return NULL;
-
-    while ((tp = reader->read()) != NULL) {
-        if (tp->getCode() == name || tp->getShortName() == name ||
-            tp->getFullName() == name)
-            return tp;
-        else
-            delete tp;
-    }
-
-    delete reader;
-    reader = NULL;
-    return NULL;
+    return new MatchReader<TurnPoint, TurnPointMatchName>
+        (reader, TurnPointMatchName(args));
 }
