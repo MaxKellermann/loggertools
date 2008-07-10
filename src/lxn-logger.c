@@ -152,7 +152,7 @@ static void alarm_handler(int dummy) {
 
 static void syn_ack_wait(filser_t device) {
     int ret;
-    unsigned tries = 10;
+    unsigned tries = 20;
 
     do {
         alarm(10);
