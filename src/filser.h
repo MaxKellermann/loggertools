@@ -153,6 +153,8 @@ enum filser_command {
     FILSER_PREFIX = 0x02,
     FILSER_ACK = 0x06,
     FILSER_SYN = 0x16,
+    FILSER_READ_LO4 = 0x30,
+    FILSER_ERASE_LO4 = 0x4c,
     FILSER_READ_TP_TSK = 0x52,
     FILSER_WRITE_TP_TSK = 0x57,
     FILSER_APT_1 = 0x61,

@@ -18,6 +18,7 @@
  */
 
 #include <assert.h>
+#include <stdbool.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -42,6 +43,7 @@
 
 struct config {
     int verbose;
+    bool erase;
     const char *tty;
 };
 
@@ -68,6 +70,10 @@ static void usage(void) {
          " --tty DEVICE\n"
 #endif
          " -t DEVICE      open this tty device (default /dev/ttyS0)\n"
+#ifdef __GLIBC__
+         " --erase\n"
+#endif
+         " -E             erase memory after successful download\n"
          );
 }
 
@@ -94,6 +100,7 @@ static void parse_cmdline(struct config *config,
         {"verbose", 0, 0, 'v'},
         {"quiet", 1, 0, 'q'},
         {"tty", 1, 0, 't'},
+        {"erase", 0, 0, 'E'},
         {0,0,0,0}
     };
 #endif
@@ -106,10 +113,10 @@ static void parse_cmdline(struct config *config,
 #ifdef __GLIBC__
         int option_index = 0;
 
-        ret = getopt_long(argc, argv, "hVvqt:",
+        ret = getopt_long(argc, argv, "hVvqt:E",
                           long_options, &option_index);
 #else
-        ret = getopt(argc, argv, "hVvqt:");
+        ret = getopt(argc, argv, "hVvqt:E");
 #endif
         if (ret == -1)
             break;
@@ -134,6 +141,10 @@ static void parse_cmdline(struct config *config,
 
         case 't':
             config->tty = optarg;
+            break;
+
+        case 'E':
+            config->erase = true;
             break;
 
         case '?':
@@ -187,45 +198,6 @@ static int read_full_crc(filser_t device, void *buffer, size_t len) {
     return ret;
 }
 
-static int communicate(filser_t device, unsigned char cmd,
-                       unsigned char *buffer, size_t buffer_len) {
-    int ret;
-
-    syn_ack_wait(device);
-
-    tcflush(device->fd, TCIOFLUSH);
-
-    ret = filser_write_cmd(device, cmd);
-    if (ret <= 0)
-        return -1;
-
-    ret = read_full_crc(device, buffer, buffer_len);
-    if (ret <= 0)
-        return -1;
-
-    return 1;
-}
-
-static int check_mem_settings(filser_t device) {
-    int ret;
-    unsigned char buffer[6];
-
-    ret = communicate(device, FILSER_CHECK_MEM_SETTINGS,
-                      buffer, sizeof(buffer));
-    if (ret < 0) {
-        fprintf(stderr, "failed to communicate: %s\n",
-                strerror(errno));
-        exit(1);
-    }
-
-    if (ret == 0) {
-        fprintf(stderr, "no valid response\n");
-        exit(1);
-    }
-
-    return 0;
-}
-
 static int
 download_lo4_section(filser_t device, unsigned char cmd, int fd)
 {
@@ -253,6 +225,17 @@ download_lo4_section(filser_t device, unsigned char cmd, int fd)
     }
 
     return 0;
+}
+
+static int
+filser_erase_lo4(filser_t device) {
+    int ret;
+
+    ret = filser_send_command(device, FILSER_ERASE_LO4);
+    if (ret <= 0)
+        return ret;
+
+    return filser_recv_ack(device);
 }
 
 int main(int argc, char **argv) {
@@ -289,13 +272,16 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    check_mem_settings(device);
-
     syn_ack_wait(device);
 
     for (i = 0; i < 3; ++i) {
         printf("downloading section %u\n", i);
-        download_lo4_section(device, 0x30 + i, fd);
+        download_lo4_section(device, FILSER_READ_LO4 + i, fd);
+    }
+
+    if (config.erase) {
+        syn_ack_wait(device);
+        filser_erase_lo4(device);
     }
 
     filser_close(&device);
