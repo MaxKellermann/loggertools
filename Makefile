@@ -188,7 +188,7 @@ bin/version: $(version_OBJECTS)
 documentation: doc/loggertools.pdf
 
 doc/loggertools.pdf: doc/loggertools.tex
-	cd doc && pdflatex loggertools.tex
+	cd doc && pdflatex loggertools.tex && pdflatex loggertools.tex
 
 #
 # installation
