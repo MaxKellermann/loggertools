@@ -3,6 +3,7 @@ Section: misc
 Priority: optional
 Maintainer: Max Kellermann <max@duempel.org>
 Build-Depends: debhelper (>= 5), gcc (>= 4), g++ (>= 4), tetex-bin, tetex-extra
+Homepage: http://max.kellermann.name/projects/loggertools/
 Standards-Version: 3.8.0
 
 Package: loggertools
@@ -11,5 +12,3 @@ Depends: ${shlibs:Depends}
 Description: tools for flight recorders
  loggertools is a collection of tools and libraries which talk to GPS
  flight loggers.
- .
- Home page: http://max.kellermann.name/projects/loggertools/
