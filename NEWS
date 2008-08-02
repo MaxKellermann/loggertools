@@ -1,4 +1,4 @@
-Version 0.0.2 - not yet released
+Version 0.0.2 - 2008/08/02
   * refactorization of class TurnPoint
     - renamed property "Title" to "FullName"
     - added property "ShortName" which should be used instead of "Code" in

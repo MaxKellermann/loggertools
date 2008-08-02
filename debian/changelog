@@ -1,10 +1,10 @@
-loggertools (0.0.2~svn) unstable; urgency=low
+loggertools (0.0.2) unstable; urgency=low
 
   * build documentation
   * moved DH_COMPAT to debian/compat
   * don't ignore "make clean" errors
 
- --
+ -- Max Kellermann <max@duempel.org>  Sat, 02 Aug 2008 14:37:12 +0200
 
 loggertools (0.0.1) unstable; urgency=low
 
