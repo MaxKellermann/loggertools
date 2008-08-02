@@ -24,6 +24,8 @@
 #include "io-match.hh"
 #include "earth-parser.hh"
 
+#include <string.h>
+
 class TurnPointFindByName {
     std::string name;
 
