@@ -1,6 +1,6 @@
 Summary: tools for flight recorders
 Name: loggertools
-Version: 0.0.1
+Version: 0.0.2
 Release: 1
 License: GPL
 Group: Applications/Communications
@@ -33,5 +33,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/doc/loggertools/loggertools.pdf
 
 %changelog
+* Sat Aug  2 2008 Max Kellermann <mk@cm4all.com> 0.0.2-1
+- new upstream version
+
 * Tue Mar  5 2007 Max Kellermann <mk@cm4all.com> 0.0.1-1
 - initial RPM package
