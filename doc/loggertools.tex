@@ -142,7 +142,25 @@ To convert the SeeYou file {\em TurnPoints.cup} to a Cenfis Hexfile,
 enter:
 
 \begin{verbatim}
-tpconv TurnPoints.cup -o TurnPoints.bhf 
+tpconv TurnPoints.cup -o TurnPoints.bhf
+\end{verbatim}
+
+\subsubsection{Filters}
+
+The \texttt{airport} filter removes all turn points which are not
+actually airports:
+
+\begin{verbatim}
+tpconv TurnPoints.cup -o TurnPoints.bhf -F airport
+\end{verbatim}
+
+The \texttt{distance} filter removes all turn points which are too far
+away.  There are two arguments: first the center (either a turnpoint
+name or coordinates), and second the radius (including a unit).
+
+\begin{verbatim}
+tpconv TurnPoints.cup -o TurnPoints.bhf -F distance:BERGNEUSTADT:300km
+tpconv TurnPoints.cup -o TurnPoints.bhf -F distance:51.03.07N 007.42.26E:200NM
 \end{verbatim}
 
 
