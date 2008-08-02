@@ -148,7 +148,31 @@ tpconv TurnPoints.cup -o TurnPoints.bhf
 
 \subsection{{\em asconv}: Airspace converter}
 
-This tool is under development and not yet usable.
+{\em asconv} converts airspace databases between several formats:
+
+\begin{tabular}{|l|l|}
+\hline
+OpenAir & *.txt \\
+\hline
+Cenfis (write only) & *.bhf \\
+\hline
+Zander (write only) & *.az \\
+\hline
+SVG (write only) & *.svg \\
+\hline
+\end{tabular}
+
+SVG means ``Scalable Vector Graphics''.  This allows you to view
+airspace files in a SVG viewer.  It is an experiment, and very
+incomplete.
+
+The Cenfis writer produces files which are not working in some Cenfis
+devices.  On others, the Cenfis may crash when there are too many
+airspaces on the screen at the same time (e.g. 128km zoom near Cologne
+/ D\"usseldorf).  Holltronic has confirmed that this is due to a
+firmware bug, and there is no solution yet.
+
+The Zander writer has not been tested yet.
 
 
 \section{Feedback and further development}
