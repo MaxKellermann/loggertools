@@ -34,6 +34,7 @@ Version 0.0.2 - not yet released
   * lxn-to-igc: print the correct vendor code in ORIGIN records (bug
     report by Calle Koppen)
   * lo4-logger: new program which downloads flights from LX4000
+  * zander-logger: new program for Zander GP940/941
 
 
 Version 0.0.1 - 2007/03/05
