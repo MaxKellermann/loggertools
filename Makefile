@@ -185,10 +185,7 @@ bin/version: $(version_OBJECTS)
 
 .PHONY: documentation
 
-documentation: doc/loggertools.dvi doc/loggertools.pdf
-
-doc/loggertools.dvi: doc/loggertools.tex
-	cd doc && latex loggertools.tex
+documentation: doc/loggertools.pdf
 
 doc/loggertools.pdf: doc/loggertools.tex
 	cd doc && pdflatex loggertools.tex
@@ -211,7 +208,7 @@ install: bin/tpconv bin/cenfistool bin/hexfile bin/lxn2igc bin/filsertool bin/lx
 .PHONY: svn-export dist
 
 dist: documentation svn-export
-	cp doc/loggertools.dvi doc/loggertools.pdf /tmp/loggertools-$(VERSION)/doc/
+	cp doc/loggertools.pdf /tmp/loggertools-$(VERSION)/doc/
 	cd /tmp && $(FAKEROOT) tar cjf loggertools-$(VERSION).tar.bz2 loggertools-$(VERSION)
 
 svn-export: bin/version
