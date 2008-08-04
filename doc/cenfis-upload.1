@@ -1,0 +1,28 @@
+.TH "cenfis-upload" "1" "Aug 2008"
+.PP
+.SH "NAME"
+cenfis-upload \- upload hexfiles to a Holltronic Cenfis device
+.PP
+.SH "SYNOPSIS"
+.B cenfis-upload
+[\fIOPTION\fR]...
+\fBFILE.bhf\fR
+.SH DESCRIPTION
+.PP
+This program talks to a Holltronic Cenfis device over a serial cable.
+It supports uploading hexfiles which may contain firmware, turn points
+or airspace data.
+.TP
+\fB\-t\fR, \fB\-\-tty\fI=DEVICE\fR
+Specify a device node different than /dev/ttyS0
+.SH AUTHOR
+Max Kellermann <max@duempel.org>
+.SH COPYRIGHT
+Copyright (C) 2004-2008 Max Kellermann
+.br
+This is free software.  You may redistribute copies of it under the
+terms of the GNU General Public License
+<http://www.gnu.org/licenses/gpl.html>.  There is NO WARRANTY, to the
+extent permitted by law.
+.SH "SEE ALSO"
+\fBtpconv\fR(1), \fBasconv\fR(1)

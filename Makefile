@@ -40,7 +40,7 @@ CFLAGS += -Wmissing-prototypes -Wcast-qual -Wfloat-equal -Wshadow -Wpointer-arit
 CXXFLAGS += $(COMMON_CFLAGS)
 CXXFLAGS += -Wwrite-strings -Wcast-qual -Wfloat-equal -Wpointer-arith -Wsign-compare -Wmissing-format-attribute -Wredundant-decls -Winline -Wdisabled-optimization -Wno-long-long -Wundef
 
-all: bin/tpconv bin/asconv bin/cenfistool bin/hexfile bin/lxn2igc bin/filsertool bin/lxn-logger bin/lo4-logger bin/fakefilser bin/flarmtool bin/zander bin/zander-logger bin/fakezander bin/lxn-fwd bin/fwd
+all: bin/tpconv bin/asconv bin/cenfis-upload bin/hexfile bin/lxn2igc bin/filsertool bin/lxn-logger bin/lo4-logger bin/fakefilser bin/flarmtool bin/zander bin/zander-logger bin/fakezander bin/lxn-fwd bin/fwd
 
 clean:
 	rm -rf bin
@@ -88,6 +88,9 @@ asconv_OBJECTS = $(patsubst src/%.cc,bin/%.o,$(asconv_SOURCES))
 
 cenfistool_SOURCES = src/cenfis-tool.c src/cenfis.c src/serialio.c
 cenfistool_OBJECTS = $(patsubst src/%.c,bin/%.o,$(cenfistool_SOURCES))
+
+cenfis_upload_SOURCES = src/cenfis-upload.c src/cenfis.c src/serialio.c
+cenfis_upload_OBJECTS = $(patsubst src/%.c,bin/%.o,$(cenfis_upload_SOURCES))
 
 lxn2igc_SOURCES = src/lxn2igc.c src/lxn-reader.c src/lxn-to-igc.c
 lxn2igc_OBJECTS = $(patsubst src/%.c,bin/%.o,$(lxn2igc_SOURCES))
@@ -138,6 +141,9 @@ bin/asconv: $(asconv_OBJECTS)
 	$(CXX) $(CXXFLAGS) -o $@ $^ -lstdc++
 
 bin/cenfistool: $(cenfistool_OBJECTS)
+	$(CC) $(CFLAGS) -o $@ $^
+
+bin/cenfis-upload: $(cenfis_upload_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
 
 bin/hexfile: bin/hexfile-tool.o bin/hexfile-decoder.o
