@@ -20,6 +20,6 @@
 #ifndef __VERSION_H
 #define __VERSION_H
 
-#define VERSION "0.0.2"
+#define VERSION "0.0.3"
 
 #endif
