@@ -41,10 +41,12 @@ CXXFLAGS += $(COMMON_CFLAGS)
 CXXFLAGS += -Wwrite-strings -Wcast-qual -Wfloat-equal -Wpointer-arith -Wsign-compare -Wmissing-format-attribute -Wredundant-decls -Winline -Wdisabled-optimization -Wno-long-long -Wundef
 
 bin_PROGRAMS = bin/tpconv \
-	bin/cenfistool bin/hexfile \
+	bin/cenfis-upload bin/hexfile \
 	bin/filsertool bin/lxn-logger bin/lxn2igc \
 	bin/zander bin/zander-logger bin/zan2igc
-MANPAGES = doc/lxn-logger.1 doc/lxn2igc.1 doc/filsertool.1 doc/cenfistool.1
+MANPAGES = \
+	doc/cenfis-upload.1 \
+	doc/lxn-logger.1 doc/lxn2igc.1 doc/filsertool.1
 
 all: bin/tpconv bin/asconv bin/cenfis-upload bin/hexfile bin/lxn2igc bin/filsertool bin/lxn-logger bin/lo4-logger bin/fakefilser bin/flarmtool bin/zander bin/zander-logger bin/zan2igc bin/fakezander bin/lxn-fwd bin/fwd
 
