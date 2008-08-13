@@ -64,6 +64,11 @@ struct zander_time {
     unsigned char hour, minute, second;
 } __attribute__((packed));
 
+struct zander_datetime {
+    struct zander_date date;
+    struct zander_time time;
+} __attribute__((packed));
+
 struct zander_duration {
     uint16_t minutes;
 } __attribute__((packed));
