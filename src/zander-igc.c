@@ -42,9 +42,12 @@ enum zander_extended {
     ZAN_EXT_TASK = 0x13,
     ZAN_EXT_LZAN = 0x14,
     ZAN_EXT_LZAN2 = 0x15,
+    ZAN_EXT_LZAN3 = 0x16,
+    ZAN_EXT_LZAN4 = 0x17,
     ZAN_EXT_DATETIME = 0x18,
     ZAN_EXT_UNKNOWN6 = 0x1d,
     ZAN_EXT_DATETIME2 = 0x1e,
+    ZAN_EXT_SECURITY2 = 0x24,
     ZAN_EXT_SECURITY = 0x25,
 };
 
@@ -534,6 +537,45 @@ zander_to_igc(FILE *in, FILE *out)
                 }
                 break;
 
+            case ZAN_EXT_LZAN3:
+                ret = checked_read21(in, &cmd, sizeof(cmd));
+                if (ret != ZANDER_IGC_SUCCESS)
+                    return ret;
+
+                switch (cmd) {
+                case 0x0c:
+                    zander_datetime_add(&datetime, 1);
+                    fprintf(out, "LZAN %02u%02u%02u TimeOut\n",
+                            datetime.time.hour,
+                            datetime.time.minute,
+                            datetime.time.second);
+                    break;
+
+                default:
+                    fprintf(stderr, "unknown lzan3 0x%02x\n", cmd);
+                    return ZANDER_IGC_MALFORMED;
+                }
+                break;
+
+            case ZAN_EXT_LZAN4:
+                ret = checked_read21(in, &cmd, sizeof(cmd));
+                if (ret != ZANDER_IGC_SUCCESS)
+                    return ret;
+
+                switch (cmd) {
+                case 0x16:
+                    fprintf(out, "LZAN %02u%02u%02u PowerOff\n",
+                            datetime.time.hour,
+                            datetime.time.minute,
+                            datetime.time.second);
+                    break;
+
+                default:
+                    fprintf(stderr, "unknown lzan4 0x%02x\n", cmd);
+                    return ZANDER_IGC_MALFORMED;
+                }
+                break;
+
             case ZAN_EXT_DATETIME:
                 ret = checked_read21(in, &datetime, sizeof(datetime));
                 if (ret != ZANDER_IGC_SUCCESS)
@@ -557,6 +599,7 @@ zander_to_igc(FILE *in, FILE *out)
                 break;
 
             case ZAN_EXT_SECURITY:
+            case ZAN_EXT_SECURITY2:
                 /* the security "G" record */
                 ret = read_security(in, out);
                 if (ret != ZANDER_IGC_SUCCESS)
