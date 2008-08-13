@@ -69,6 +69,8 @@ flarm_send_frame(flarm_t flarm, uint8_t type,
     if (ret != FLARM_RESULT_SUCCESS)
         return ret;
 
+    /* XXX byte order? */
+
     header.length = (uint16_t)sizeof(header) + length;
     header.version = 1; /* XXX */
     header.seq_no = ++flarm->last_seq_no;
