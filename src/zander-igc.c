@@ -545,7 +545,7 @@ zander_to_igc(FILE *in, FILE *out)
                 switch (cmd) {
                 case 0x0c:
                     zander_datetime_add(&datetime, 1);
-                    fprintf(out, "LZAN %02u%02u%02u TimeOut\n",
+                    fprintf(out, "LZAN %02u%02u%02u PowerOff\n",
                             datetime.time.hour,
                             datetime.time.minute,
                             datetime.time.second);
@@ -564,7 +564,7 @@ zander_to_igc(FILE *in, FILE *out)
 
                 switch (cmd) {
                 case 0x16:
-                    fprintf(out, "LZAN %02u%02u%02u PowerOff\n",
+                    fprintf(out, "LZAN %02u%02u%02u TimeOut\n",
                             datetime.time.hour,
                             datetime.time.minute,
                             datetime.time.second);
