@@ -44,6 +44,7 @@ bin_PROGRAMS = bin/tpconv \
 	bin/cenfistool bin/hexfile \
 	bin/filsertool bin/lxn-logger bin/lxn2igc \
 	bin/zander bin/zander-logger bin/zan2igc
+MANPAGES = doc/lxn-logger.1 doc/lxn2igc.1 doc/filsertool.1 doc/cenfistool.1
 
 all: bin/tpconv bin/asconv bin/cenfis-upload bin/hexfile bin/lxn2igc bin/filsertool bin/lxn-logger bin/lo4-logger bin/fakefilser bin/flarmtool bin/zander bin/zander-logger bin/zan2igc bin/fakezander bin/lxn-fwd bin/fwd
 
@@ -215,7 +216,7 @@ doc/loggertools.pdf: doc/loggertools.tex
 install: $(bin_PROGRAMS) documentation
 	install -d -m 0755 $(DESTDIR)$(PREFIX)/bin $(DESTDIR)$(PREFIX)/share/man/man1 $(DESTDIR)$(PREFIX)/share/doc/loggertools
 	install -m 0755 $(bin_PROGRAMS) $(DESTDIR)$(PREFIX)/bin
-	install -m 0644 doc/lxn-logger.1 doc/lxn2igc.1 doc/filsertool.1 doc/cenfistool.1 $(DESTDIR)$(PREFIX)/share/man/man1
+	install -m 0644 $(MANPAGES) $(DESTDIR)$(PREFIX)/share/man/man1
 	install -m 0644 doc/loggertools.pdf $(DESTDIR)$(PREFIX)/share/doc/loggertools
 
 #
