@@ -1,1 +1,1 @@
-bin/{tpconv,cenfis-upload,hexfile,filsertool,lxn-logger,lxn2igc,lo4-logger,zander,zander-logger,zan2igc} usr/bin
+bin/{tpconv,cenfis-upload,hexfile,filsertool,lxn-logger,lxn2igc,lo4-logger,zander,zander-logger,zan2igc,igc2zan} usr/bin

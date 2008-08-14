@@ -43,13 +43,13 @@ CXXFLAGS += -Wwrite-strings -Wcast-qual -Wfloat-equal -Wpointer-arith -Wsign-com
 bin_PROGRAMS = bin/tpconv \
 	bin/cenfis-upload bin/hexfile \
 	bin/filsertool bin/lxn-logger bin/lxn2igc \
-	bin/zander bin/zander-logger bin/zan2igc
+	bin/zander bin/zander-logger bin/zan2igc bin/igc2zan
 MANPAGES = \
 	doc/cenfis-upload.1 \
 	doc/filsertool.1 doc/lxn-logger.1 doc/lxn2igc.1 doc/lo4-logger.1 \
 	doc/zander-logger.1
 
-all: bin/tpconv bin/asconv bin/cenfis-upload bin/hexfile bin/lxn2igc bin/filsertool bin/lxn-logger bin/lo4-logger bin/fakefilser bin/flarmtool bin/zander bin/zander-logger bin/zan2igc bin/fakezander bin/lxn-fwd bin/fwd
+all: bin/tpconv bin/asconv bin/cenfis-upload bin/hexfile bin/lxn2igc bin/filsertool bin/lxn-logger bin/lo4-logger bin/fakefilser bin/flarmtool bin/zander bin/zander-logger bin/zan2igc bin/igc2zan bin/fakezander bin/lxn-fwd bin/fwd
 
 clean:
 	rm -rf bin
@@ -128,6 +128,9 @@ zander_logger_OBJECTS = $(patsubst src/%.c,bin/%.o,$(zander_logger_SOURCES))
 zan2igc_SOURCES = src/zan2igc.c src/zander-igc.c
 zan2igc_OBJECTS = $(patsubst src/%.c,bin/%.o,$(zan2igc_SOURCES))
 
+igc2zan_SOURCES = src/igc2zan.c
+igc2zan_OBJECTS = $(patsubst src/%.c,bin/%.o,$(igc2zan_SOURCES))
+
 fakezander_SOURCES = src/fakezander.c src/zander-open.c src/datadir.c src/dump.c
 fakezander_OBJECTS = $(patsubst src/%.c,bin/%.o,$(fakezander_SOURCES))
 
@@ -186,6 +189,9 @@ bin/zander-logger: $(zander_logger_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
 
 bin/zan2igc: $(zan2igc_OBJECTS)
+	$(CC) $(CFLAGS) -o $@ $^
+
+bin/igc2zan: $(igc2zan_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
 
 bin/fakezander: $(fakezander_OBJECTS)
