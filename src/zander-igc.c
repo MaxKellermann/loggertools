@@ -45,6 +45,7 @@ enum zander_extended {
     ZAN_EXT_LZAN3 = 0x16,
     ZAN_EXT_LZAN4 = 0x17,
     ZAN_EXT_DATETIME = 0x18,
+    ZAN_EXT_DATETIME3 = 0x1c,
     ZAN_EXT_UNKNOWN6 = 0x1d,
     ZAN_EXT_DATETIME2 = 0x1e,
     ZAN_EXT_SECURITY2 = 0x24,
@@ -588,6 +589,7 @@ zander_to_igc(FILE *in, FILE *out)
                 break;
 
             case ZAN_EXT_DATETIME2:
+            case ZAN_EXT_DATETIME3:
                 /* what's this for? */
                 ret = checked_read21(in, &datetime2, sizeof(datetime2));
                 if (ret != ZANDER_IGC_SUCCESS)
