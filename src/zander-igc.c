@@ -39,6 +39,7 @@ enum zander_command {
 enum zander_extended {
     ZAN_EXT_BASIC = 0x08,
     ZAN_EXT_ALTITUDE = 0x0c,
+    ZAN_EXT_TASK2 = 0x12,
     ZAN_EXT_TASK = 0x13,
     ZAN_EXT_LZAN = 0x14,
     ZAN_EXT_LZAN2 = 0x15,
@@ -486,6 +487,7 @@ zander_to_igc(FILE *in, FILE *out)
                break;
 
             case ZAN_EXT_TASK:
+            case ZAN_EXT_TASK2:
                 /* pre-flight task declaration */
                 ret = read_task(in, out);
                 if (ret != ZANDER_IGC_SUCCESS)
