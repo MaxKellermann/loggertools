@@ -139,6 +139,30 @@ zander_time_add(struct zander_time *time, unsigned seconds)
 }
 
 /**
+ * Add a specific number of seconds to a zander_datetime struct.
+ */
+static void
+zander_time_sub(struct zander_time *dest, const struct zander_time *src)
+{
+    if (src->second > dest->second) {
+        dest->second += 60 - src->second;
+        dest->minute = (dest->minute + 60 - 1) % 60;
+    } else
+        dest->second -= src->second;
+
+    if (src->minute > dest->minute) {
+        dest->minute += 60 - src->minute;
+        dest->hour = (dest->hour + 24 - 1) % 24;
+    } else
+        dest->minute -= src->minute;
+
+    if (src->hour > dest->hour)
+        dest->hour += 24 - src->hour;
+    else
+        dest->hour -= src->hour;
+}
+
+/**
  * Dump the whole input file as "G" records to the IGC file.  This
  * function also seeks the input file to the beginning.
  */
@@ -293,7 +317,8 @@ read_altitude(FILE *in, struct position *position)
 }
 
 static enum zander_to_igc_result
-read_relative(FILE *in, FILE *out, struct zander_time *time,
+read_relative(FILE *in, FILE *out, bool generate,
+              struct zander_time *time,
               struct position *position)
 {
     enum zander_to_igc_result ret;
@@ -309,6 +334,11 @@ read_relative(FILE *in, FILE *out, struct zander_time *time,
     if (ret != ZANDER_IGC_SUCCESS)
         return ret;
 
+    zander_time_add(time, 4);
+
+    if (!generate)
+        return ZANDER_IGC_SUCCESS;
+
     fflush(out);
     fprintf(stderr, "B %02x %02x %02x %02x %02x\n",
             relative.ias, (uint8_t)relative.baro_altitude, (uint8_t)relative.gps_altitude,
@@ -323,7 +353,6 @@ read_relative(FILE *in, FILE *out, struct zander_time *time,
     position->baro_altitude += relative.baro_altitude % 0x34 - 0x19;
     position->gps_altitude += (relative.gps_altitude % 0x34 - 0x19) * 8;
 
-    zander_time_add(time, 4);
     fprintf(out, "B%02u%02u%02u%02u%05u%c%03u%05u%c%c%05u%05u%03u%03u\n",
             time->hour, time->minute, time->second,
             abs(position->latitude) / 3600 / 4,
@@ -343,7 +372,8 @@ read_relative(FILE *in, FILE *out, struct zander_time *time,
 }
 
 static enum zander_to_igc_result
-read_wind(FILE *in, FILE *out, const struct zander_time *time)
+read_wind(FILE *in, FILE *out, bool generate,
+          const struct zander_time *time)
 {
     enum zander_to_igc_result ret;
     struct {
@@ -355,6 +385,9 @@ read_wind(FILE *in, FILE *out, const struct zander_time *time)
     ret = checked_read21(in, &wind, sizeof(wind));
     if (ret != ZANDER_IGC_SUCCESS)
         return ret;
+
+    if (!generate)
+        return ZANDER_IGC_SUCCESS;
 
     fprintf(out, "K%02u%02u%02u%03u%03u\n",
             time->hour, time->minute, time->second,
@@ -387,15 +420,18 @@ read_security(FILE *in, FILE *out)
 enum zander_to_igc_result
 zander_to_igc(FILE *in, FILE *out)
 {
+    int iret;
     enum zander_to_igc_result ret;
     char sig[0x14];
     struct {
         unsigned char unknown1[0xa];
     } header;
     struct zander_datetime datetime, datetime2;
+    struct zander_time delta_time;
     struct position position;
     unsigned char cmd;
     unsigned char unknown21[21], unknown6[6];
+    off_t first_time_record = 0; /* -1 if we're in the second iteration */
 
     ret = checked_read(in, sig, sizeof(sig));
     if (ret != ZANDER_IGC_SUCCESS)
@@ -418,25 +454,33 @@ zander_to_igc(FILE *in, FILE *out)
 
         switch ((enum zander_command)cmd) {
         case ZAN_CMD_RELATIVE:
-            ret = read_relative(in, out, &datetime.time, &position);
+            if (first_time_record == 0)
+                first_time_record = ftell(in) - 1;
+
+            ret = read_relative(in, out, first_time_record < 0,
+                                &datetime.time, &position);
             if (ret != ZANDER_IGC_SUCCESS)
                 return ret;
             break;
 
         case ZAN_CMD_BARO_MINUS_25:
-            position.baro_altitude -= 25;
+            if (first_time_record < 0)
+                position.baro_altitude -= 25;
             break;
 
         case ZAN_CMD_BARO_PLUS_25:
-            position.baro_altitude += 25;
+            if (first_time_record < 0)
+                position.baro_altitude += 25;
             break;
 
         case ZAN_CMD_GPS_MINUS_200:
-            position.gps_altitude -= 200;
+            if (first_time_record < 0)
+                position.gps_altitude -= 200;
             break;
 
         case ZAN_CMD_GPS_PLUS_200:
-            position.gps_altitude += 200;
+            if (first_time_record < 0)
+                position.gps_altitude += 200;
             break;
 
         case ZAN_CMD_POSITION:
@@ -453,7 +497,11 @@ zander_to_igc(FILE *in, FILE *out)
             break;
 
         case ZAN_CMD_WIND:
-            ret = read_wind(in, out, &datetime.time);
+            if (first_time_record == 0)
+                first_time_record = ftell(in) - 1;
+
+            ret = read_wind(in, out, first_time_record < 0,
+                            &datetime.time);
             if (ret != ZANDER_IGC_SUCCESS)
                 return ret;
             break;
@@ -496,6 +544,11 @@ zander_to_igc(FILE *in, FILE *out)
                 ret = checked_read21(in, &cmd, sizeof(cmd));
                 if (ret != ZANDER_IGC_SUCCESS)
                     return ret;
+
+                if (first_time_record == 0) {
+                    first_time_record = ftell(in) - 3;
+                    break;
+                }
 
                 switch (cmd) {
                 case 0x02:
@@ -584,11 +637,34 @@ zander_to_igc(FILE *in, FILE *out)
                 if (ret != ZANDER_IGC_SUCCESS)
                     return ret;
 
-                /* round down to 4 seconds */
-                datetime.time.second &= ~0x03;
+                memset(&datetime.time, 0, sizeof(datetime.time));
                 break;
 
             case ZAN_EXT_DATETIME2:
+                /* the end time; backtrack to first_time_record and
+                   really write all records to the output file */
+                ret = checked_read21(in, &datetime2, sizeof(datetime2));
+                if (ret != ZANDER_IGC_SUCCESS)
+                    return ret;
+
+                if (first_time_record <= 0)
+                    break;
+
+                /* calculate the start time: datetime.time =
+                   datetime2.time (end time) - datetime.time
+                   (duration) */
+                delta_time = datetime.time;
+                zander_time_add(&delta_time, 2);
+                datetime.time = datetime2.time;
+                zander_time_sub(&datetime.time, &delta_time);
+
+                iret = fseek(in, first_time_record, SEEK_SET);
+                if (iret < 0)
+                    return ZANDER_IGC_ERRNO;
+
+                first_time_record = -1;
+                break;
+
             case ZAN_EXT_DATETIME3:
                 /* what's this for? */
                 ret = checked_read21(in, &datetime2, sizeof(datetime2));
