@@ -121,18 +121,18 @@ angle_quarters_to_int(const struct zander_angle_quarters *delta)
 }
 
 /**
- * Add a specific number of seconds to a zander_datetime struct.
+ * Add a specific number of seconds to a zander_time struct.
  */
 static void
-zander_datetime_add(struct zander_datetime *dt, unsigned seconds)
+zander_time_add(struct zander_time *time, unsigned seconds)
 {
-    dt->time.second += seconds;
-    if (dt->time.second >= 60) {
-        dt->time.second -= 60;
-        ++dt->time.minute;
-        if (dt->time.minute >= 60) {
-            dt->time.minute -= 60;
-            ++dt->time.hour;
+    time->second += seconds;
+    if (time->second >= 60) {
+        time->second -= 60;
+        ++time->minute;
+        if (time->minute >= 60) {
+            time->minute -= 60;
+            ++time->hour;
             /* XXX check hour >= 24 */
         }
     }
@@ -293,7 +293,7 @@ read_altitude(FILE *in, struct position *position)
 }
 
 static enum zander_to_igc_result
-read_relative(FILE *in, FILE *out, struct zander_datetime *datetime,
+read_relative(FILE *in, FILE *out, struct zander_time *time,
               struct position *position)
 {
     enum zander_to_igc_result ret;
@@ -323,11 +323,9 @@ read_relative(FILE *in, FILE *out, struct zander_datetime *datetime,
     position->baro_altitude += relative.baro_altitude % 0x34 - 0x19;
     position->gps_altitude += (relative.gps_altitude % 0x34 - 0x19) * 8;
 
-    zander_datetime_add(datetime, 4);
+    zander_time_add(time, 4);
     fprintf(out, "B%02u%02u%02u%02u%05u%c%03u%05u%c%c%05u%05u%03u%03u\n",
-            datetime->time.hour,
-            datetime->time.minute,
-            datetime->time.second,
+            time->hour, time->minute, time->second,
             abs(position->latitude) / 3600 / 4,
             abs(position->latitude) % (3600 * 4) * 1000 / 60 / 4,
             position->latitude < 0 ? 'S' : 'N',
@@ -420,7 +418,7 @@ zander_to_igc(FILE *in, FILE *out)
 
         switch ((enum zander_command)cmd) {
         case ZAN_CMD_RELATIVE:
-            ret = read_relative(in, out, &datetime, &position);
+            ret = read_relative(in, out, &datetime.time, &position);
             if (ret != ZANDER_IGC_SUCCESS)
                 return ret;
             break;
@@ -527,7 +525,7 @@ zander_to_igc(FILE *in, FILE *out)
 
                 switch (cmd) {
                 case 0x16:
-                    zander_datetime_add(&datetime, 1);
+                    zander_time_add(&datetime.time, 1);
                     fprintf(out, "LZAN %02u%02u%02u TimeOut\n",
                             datetime.time.hour,
                             datetime.time.minute,
@@ -548,7 +546,7 @@ zander_to_igc(FILE *in, FILE *out)
                 switch (cmd) {
                 case 0x0c:
                     datetime2 = datetime;
-                    zander_datetime_add(&datetime2, 2);
+                    zander_time_add(&datetime2.time, 2);
                     fprintf(out, "LZAN %02u%02u%02u PowerOff\n",
                             datetime2.time.hour,
                             datetime2.time.minute,
@@ -568,7 +566,7 @@ zander_to_igc(FILE *in, FILE *out)
 
                 switch (cmd) {
                 case 0x16:
-                    zander_datetime_add(&datetime, 3);
+                    zander_time_add(&datetime.time, 3);
                     fprintf(out, "LZAN %02u%02u%02u TimeOut\n",
                             datetime.time.hour,
                             datetime.time.minute,
