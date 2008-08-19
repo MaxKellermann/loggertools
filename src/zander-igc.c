@@ -39,6 +39,7 @@ enum zander_command {
 enum zander_extended {
     ZAN_EXT_BASIC = 0x08,
     ZAN_EXT_ALTITUDE = 0x0c,
+    ZAN_EXT_TASK0 = 0x10,
     ZAN_EXT_TASK2 = 0x12,
     ZAN_EXT_TASK = 0x13,
     ZAN_EXT_LZAN = 0x14,
@@ -533,6 +534,7 @@ zander_to_igc(FILE *in, FILE *out)
                break;
 
             case ZAN_EXT_TASK:
+            case ZAN_EXT_TASK0:
             case ZAN_EXT_TASK2:
                 /* pre-flight task declaration */
                 ret = read_task(in, out);
@@ -577,6 +579,13 @@ zander_to_igc(FILE *in, FILE *out)
                     return ret;
 
                 switch (cmd) {
+                case 0x0c:
+                    fprintf(out, "LZAN %02u%02u%02u PowerOff\n",
+                            datetime.time.hour,
+                            datetime.time.minute,
+                            datetime.time.second);
+                    break;
+
                 case 0x16:
                     zander_time_add(&datetime.time, 1);
                     fprintf(out, "LZAN %02u%02u%02u TimeOut\n",
@@ -604,6 +613,14 @@ zander_to_igc(FILE *in, FILE *out)
                             datetime2.time.hour,
                             datetime2.time.minute,
                             datetime2.time.second);
+                    break;
+
+                case 0x16:
+                    zander_time_add(&datetime.time, 1);
+                    fprintf(out, "LZAN %02u%02u%02u TimeOut\n",
+                            datetime.time.hour,
+                            datetime.time.minute,
+                            datetime.time.second);
                     break;
 
                 default:
