@@ -24,6 +24,7 @@
 
 enum zander_command {
     ZAN_CMD_RELATIVE = 0xcf,
+    ZAN_CMD_RELATIVE2 = 0xd0,
     ZAN_CMD_BARO_MINUS_25 = 0xd1,
     ZAN_CMD_BARO_PLUS_25 = 0xd2,
     ZAN_CMD_GPS_MINUS_200 = 0xd3,
@@ -50,6 +51,7 @@ enum zander_extended {
     ZAN_EXT_DATETIME3 = 0x1c,
     ZAN_EXT_UNKNOWN6 = 0x1d,
     ZAN_EXT_DATETIME2 = 0x1e,
+    ZAN_EXT_DATETIME4 = 0x1f,
     ZAN_EXT_SECURITY2 = 0x24,
     ZAN_EXT_SECURITY = 0x25,
 };
@@ -462,6 +464,7 @@ zander_to_igc(FILE *in, FILE *out)
 
         switch ((enum zander_command)cmd) {
         case ZAN_CMD_RELATIVE:
+        case ZAN_CMD_RELATIVE2:
             if (first_time_record == 0)
                 first_time_record = ftell(in) - 1;
 
@@ -690,6 +693,7 @@ zander_to_igc(FILE *in, FILE *out)
                 break;
 
             case ZAN_EXT_DATETIME3:
+            case ZAN_EXT_DATETIME4:
                 /* what's this for? */
                 ret = checked_read21(in, &datetime2, sizeof(datetime2));
                 if (ret != ZANDER_IGC_SUCCESS)
