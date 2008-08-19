@@ -314,6 +314,13 @@ read_altitude(FILE *in, struct position *position)
         return ret;
 
     position->baro_altitude = ntohs(altitude.altitude);
+
+    while (ntohs(altitude.unknown) >= 0x100) {
+        ret = checked_read21(in, &altitude.unknown, sizeof(altitude.unknown));
+        if (ret != ZANDER_IGC_SUCCESS)
+            return ret;
+    }
+
     return ZANDER_IGC_SUCCESS;
 }
 
