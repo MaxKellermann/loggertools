@@ -30,6 +30,7 @@ enum zander_command {
     ZAN_CMD_GPS_MINUS_200 = 0xd3,
     ZAN_CMD_GPS_PLUS_200 = 0xd4,
     ZAN_CMD_POSITION = 0xd5,
+    ZAN_CMD_UNKNOWN6 = 0xd6,
     ZAN_CMD_GPS_QUALITY = 0xd7,
     ZAN_CMD_EXTENDED = 0xd8,
     ZAN_CMD_WIND = 0xda,
@@ -52,6 +53,10 @@ enum zander_extended {
     ZAN_EXT_UNKNOWN6 = 0x1d,
     ZAN_EXT_DATETIME2 = 0x1e,
     ZAN_EXT_DATETIME4 = 0x1f,
+    ZAN_EXT_UNKNOWN1 = 0x20,
+    ZAN_EXT_UNKNOWN1b = 0x21,
+    ZAN_EXT_UNKNOWN1c = 0x22,
+    ZAN_EXT_UNKNOWN1d = 0x23,
     ZAN_EXT_SECURITY2 = 0x24,
     ZAN_EXT_SECURITY = 0x25,
 };
@@ -500,6 +505,12 @@ zander_to_igc(FILE *in, FILE *out)
                 return ret;
             break;
 
+        case ZAN_CMD_UNKNOWN6:
+            ret = checked_read21(in, unknown6, sizeof(unknown6));
+            if (ret != ZANDER_IGC_SUCCESS)
+                return ret;
+            break;
+
         case ZAN_CMD_GPS_QUALITY:
             ret = checked_read21(in, &position.gps_quality,
                                  sizeof(position.gps_quality));
@@ -702,6 +713,15 @@ zander_to_igc(FILE *in, FILE *out)
 
             case ZAN_EXT_UNKNOWN6:
                 ret = checked_read21(in, unknown6, sizeof(unknown6));
+                if (ret != ZANDER_IGC_SUCCESS)
+                    return ret;
+                break;
+
+            case ZAN_EXT_UNKNOWN1:
+            case ZAN_EXT_UNKNOWN1b:
+            case ZAN_EXT_UNKNOWN1c:
+            case ZAN_EXT_UNKNOWN1d:
+                ret = checked_read21(in, unknown6, 1);
                 if (ret != ZANDER_IGC_SUCCESS)
                     return ret;
                 break;
