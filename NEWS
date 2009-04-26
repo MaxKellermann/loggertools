@@ -2,6 +2,8 @@ version 0.0.3 - not yet released
   * new (easier) program "cenfis-upload" replaces "cenfis-tool"
   * new program "zan2igc" converts Zander logger files to IGC format
   * new program "igc2zan" converts Zander IGC files back to ZAN format
+  * asconv:
+    - print line numbers in error messages
 
 
 Version 0.0.2 - 2008/08/02
