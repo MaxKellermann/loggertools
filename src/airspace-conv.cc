@@ -19,6 +19,7 @@
 
 #include "airspace.hh"
 #include "airspace-io.hh"
+#include "exception.hh"
 
 #include <fstream>
 #include <iostream>
@@ -173,6 +174,14 @@ int main(int argc, char **argv) {
                 writer->write(*as);
                 delete as;
             }
+        } catch (const malformed_input &e) {
+            delete writer;
+            delete reader;
+            unlink(out_filename);
+            if (e.get_location().defined())
+                cerr << "line " << e.get_location().line << ": ";
+            cerr << e.what() << endl;
+            exit(2);
         } catch (const std::exception &e) {
             delete writer;
             delete reader;
