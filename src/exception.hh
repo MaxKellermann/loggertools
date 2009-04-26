@@ -30,16 +30,37 @@ public:
     virtual ~already_flushed() throw() {}
 };
 
+struct input_location {
+    unsigned line;
+
+    input_location():line(0) {}
+    input_location(unsigned _line):line(_line) {}
+
+    bool defined() const {
+        return line != 0;
+    }
+};
+
 class malformed_input : public std::exception {
 private:
     std::string msg;
+    input_location location;
+
 public:
     malformed_input():msg("malformed input file") {}
     malformed_input(const std::string &_msg):msg(_msg) {}
+    malformed_input(const malformed_input &mi,
+                    const input_location &_location)
+        :msg(mi.msg), location(_location) {}
+
     virtual ~malformed_input() throw() {}
 public:
     virtual const char *what() const throw() {
         return msg.c_str();
+    }
+
+    const input_location &get_location() const {
+        return location;
     }
 };
 
