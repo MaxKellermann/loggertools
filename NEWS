@@ -5,6 +5,7 @@ version 0.0.3 - not yet released
   * asconv:
     - print line numbers in error messages
     - openair: ignore commands AT, SB, SP
+    - openair: ignore leading spaces
 
 
 Version 0.0.2 - 2008/08/02

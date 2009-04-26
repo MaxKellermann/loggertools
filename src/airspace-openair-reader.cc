@@ -173,7 +173,7 @@ last_edge_equals(const Airspace::EdgeList &edges, const SurfacePosition &sp)
 const Airspace *
 OpenAirAirspaceReader::read_internal()
 {
-    char line[512];
+    char buffer[512], *line;
     Airspace::type_t type = Airspace::TYPE_UNKNOWN;
     std::string name;
     Altitude bottom, top;
@@ -183,7 +183,7 @@ OpenAirAirspaceReader::read_internal()
 
     while (!stream->eof()) {
         try {
-            stream->getline(line, sizeof(line));
+            stream->getline(buffer, sizeof(buffer));
             ++line_number;
         } catch (const std::ios_base::failure &e) {
             if (stream->eof())
@@ -191,6 +191,10 @@ OpenAirAirspaceReader::read_internal()
             else
                 throw;
         }
+
+        line = buffer;
+        while (*line == ' ')
+            ++line;
 
         if (line[0] == '*') /* comment */
             continue;
