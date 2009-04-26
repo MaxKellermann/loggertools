@@ -29,16 +29,20 @@
 class OpenAirAirspaceReader : public AirspaceReader {
 private:
     std::istream *stream;
+    unsigned line_number;
 
 public:
     OpenAirAirspaceReader(std::istream *stream);
+
+private:
+    const Airspace *read_internal();
 
 public:
     virtual const Airspace *read();
 };
 
 OpenAirAirspaceReader::OpenAirAirspaceReader(std::istream *_stream)
-    :stream(_stream) {}
+    :stream(_stream), line_number(0) {}
 
 static void chomp(char *p) {
     size_t length = strlen(p);
@@ -166,7 +170,9 @@ last_edge_equals(const Airspace::EdgeList &edges, const SurfacePosition &sp)
     return last.getType() == Edge::TYPE_VERTEX && last.getEnd() == sp;
 }
 
-const Airspace *OpenAirAirspaceReader::read() {
+const Airspace *
+OpenAirAirspaceReader::read_internal()
+{
     char line[512];
     Airspace::type_t type = Airspace::TYPE_UNKNOWN;
     std::string name;
@@ -178,6 +184,7 @@ const Airspace *OpenAirAirspaceReader::read() {
     while (!stream->eof()) {
         try {
             stream->getline(line, sizeof(line));
+            ++line_number;
         } catch (const std::ios_base::failure &e) {
             if (stream->eof())
                 break;
@@ -268,6 +275,16 @@ const Airspace *OpenAirAirspaceReader::read() {
                             edges);
 
     return NULL;
+}
+
+const Airspace *
+OpenAirAirspaceReader::read()
+{
+    try {
+        return read_internal();
+    } catch (const malformed_input &e) {
+        throw malformed_input(e, input_location(line_number));
+    }
 }
 
 AirspaceReader *OpenAirAirspaceFormat::createReader(std::istream *stream) const {
