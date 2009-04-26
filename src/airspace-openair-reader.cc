@@ -224,6 +224,11 @@ OpenAirAirspaceReader::read_internal()
                 top = parse_altitude(line + 3);
                 break;
 
+            case 'T':
+                /* center? */
+                /* ignore */
+                break;
+
             default:
                 throw malformed_input("invalid command");
             }
@@ -264,6 +269,12 @@ OpenAirAirspaceReader::read_internal()
 
             /* reset direction */
             direction = 1;
+        } else if (line[0] == 'S' && line[1] == 'B' && line[2] == ' ') {
+            /* background color? */
+            /* ignore */
+        } else if (line[0] == 'S' && line[1] == 'P' && line[2] == ' ') {
+            /* ??? */
+            /* ignore */
         } else {
             throw malformed_input("invalid command");
         }
