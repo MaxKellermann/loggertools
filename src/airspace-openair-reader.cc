@@ -36,8 +36,12 @@ public:
         :stream(_stream), line_number(0) {}
 
 public:
-    std::istream *operator ->() {
-        return stream;
+    void getline(char *p, size_t max_size) {
+        stream->getline(p, max_size);
+    }
+
+    bool eof() const {
+        return stream->eof();
     }
 
     unsigned get_line_number() const {
@@ -199,11 +203,11 @@ OpenAirAirspaceReader::read_internal()
     SurfacePosition x;
     int direction = 1;
 
-    while (!stream->eof()) {
+    while (!stream.eof()) {
         try {
-            stream->getline(buffer, sizeof(buffer));
+            stream.getline(buffer, sizeof(buffer));
         } catch (const std::ios_base::failure &e) {
-            if (stream->eof())
+            if (stream.eof())
                 break;
             else
                 throw;
