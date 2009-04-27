@@ -38,6 +38,7 @@ public:
 public:
     void getline(char *p, size_t max_size) {
         stream->getline(p, max_size);
+        ++line_number;
     }
 
     bool eof() const {
