@@ -332,6 +332,13 @@ OpenAirAirspaceReader::read_internal()
                 throw malformed_input("DC without X");
 
             edges.push_back(Edge(x, parse_distance(line + 3)));
+        } else if (line[0] == 'D' && line[1] == 'A' && line[2] == ' ') {
+            // arc with center, radius and two angles
+
+            if (!x.defined())
+                throw malformed_input("DA without X");
+
+            /* XXX implement this */
         } else if (line[0] == 'D' && line[1] == 'B' && line[2] == ' ') {
             // arc with three points
             SurfacePosition start, end;
