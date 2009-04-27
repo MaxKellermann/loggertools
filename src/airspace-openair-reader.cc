@@ -23,6 +23,7 @@
 
 #include <istream>
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -30,6 +31,7 @@ class LineInputStream {
 private:
     std::istream *stream;
     unsigned line_number;
+    std::string buffer;
 
 public:
     LineInputStream(std::istream *_stream)
@@ -37,8 +39,23 @@ public:
 
 public:
     void getline(char *p, size_t max_size) {
+        if (!buffer.empty()) {
+            size_t length = buffer.length();
+            if (length >= max_size)
+                length = max_size - 1;
+            memcpy(p, buffer.data(), length);
+            p[length] = 0;
+            buffer.clear();
+            return;
+        }
+
         stream->getline(p, max_size);
         ++line_number;
+    }
+
+    void putline(const char *p) {
+        assert(buffer.empty());
+        buffer = p;
     }
 
     bool eof() const {
