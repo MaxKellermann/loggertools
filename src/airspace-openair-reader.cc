@@ -160,7 +160,7 @@ parse_surface_position(const char *p)
     char latSN[4], lonWE[4]; /* on AMD64, this must be 32 bits wide? wtf? */
     int ret;
 
-    ret = sscanf(p, "%2d:%2d:%2d %[SN] %3d:%2d:%2d %[WE]",
+    ret = sscanf(p, "%2d:%2d:%2d %[SNsn] %3d:%2d:%2d %[WEwe]",
                  &lat1, &lat2, &lat3, latSN,
                  &lon1, &lon2, &lon3, lonWE);
     if (ret != 8)
@@ -169,14 +169,14 @@ parse_surface_position(const char *p)
     int latitude = ((lat1 * 60) + lat2) * 1000 + (lat3 * 1000 + 499) / 60;
     int longitude = ((lon1 * 60) + lon2) * 1000 + (lon3 * 1000 + 499) / 60;
 
-    if (*latSN == 'S')
+    if (*latSN == 'S' || *latSN == 's')
         latitude = -latitude;
-    else if (*latSN != 'N')
+    else if (*latSN != 'N' && *latSN != 'n')
         throw malformed_input();
 
-    if (*lonWE == 'W')
+    if (*lonWE == 'W' || *lonWE == 'w')
         longitude = -longitude;
-    else if (*lonWE != 'E')
+    else if (*lonWE != 'E' && *lonWE != 'e')
         throw malformed_input("expected 'W' or 'E'");
 
     return SurfacePosition(Latitude(latitude), Longitude(longitude));

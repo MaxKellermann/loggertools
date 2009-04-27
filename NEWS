@@ -9,6 +9,7 @@ version 0.0.3 - not yet released
     - openair: ignore leading spaces
     - openair: finish airspace with second "AC" line
     - openair: don't write AN, AL, AH with undefined values
+    - openair: allow lower-case north/south/east/west letters
 
 
 Version 0.0.2 - 2008/08/02
