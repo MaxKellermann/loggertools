@@ -250,6 +250,14 @@ OpenAirAirspaceReader::read_internal()
             if (line[2] != ' ')
                 throw malformed_input();
 
+            if (line[1] == 'C' && type != Airspace::TYPE_UNKNOWN &&
+                !edges.empty()) {
+                /* empty line to finish the airspace is missing -
+                   unread the current line and finish the airspace */
+                stream.putline(line);
+                break;
+            }
+
             switch (line[1]) {
             case 'C':
                 type = parse_type(line + 3);

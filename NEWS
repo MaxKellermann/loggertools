@@ -6,6 +6,7 @@ version 0.0.3 - not yet released
     - print line numbers in error messages
     - openair: ignore commands AT, SB, SP
     - openair: ignore leading spaces
+    - openair: finish airspace with second "AC" line
 
 
 Version 0.0.2 - 2008/08/02
