@@ -186,10 +186,16 @@ write_arc(std::ostream &stream, const Edge &edge,
 }
 
 void OpenAirAirspaceWriter::write(const Airspace &as) {
-    *stream << "AC " << as.getType() << "\n"
-            << "AN " << as.getName() << "\n"
-            << "AL " << as.getBottom() << "\n"
-            << "AH " << as.getTop() << "\n";
+    *stream << "AC " << as.getType() << "\n";
+
+    if (!as.getName().empty())
+        *stream << "AN " << as.getName() << "\n";
+
+    if (as.getBottom().defined())
+        *stream << "AL " << as.getBottom() << "\n";
+
+    if (as.getTop().defined())
+        *stream << "AH " << as.getTop() << "\n";
 
     const Airspace::EdgeList &edges = as.getEdges();
     for (Airspace::EdgeList::const_iterator it = edges.begin();
