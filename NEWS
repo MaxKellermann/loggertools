@@ -4,7 +4,8 @@ version 0.0.3 - not yet released
   * new program "igc2zan" converts Zander IGC files back to ZAN format
   * asconv:
     - print line numbers in error messages
-    - openair: ignore commands AT, SB, SP
+    - openair: ignore command AT
+    - openair: skip color definitions (SB, SP, TC)
     - openair: ignore leading spaces
     - openair: finish airspace with second "AC" line
     - openair: don't write AN, AL, AH with undefined values

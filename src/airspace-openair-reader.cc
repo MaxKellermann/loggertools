@@ -75,6 +75,11 @@ public:
     OpenAirAirspaceReader(std::istream *stream);
 
 private:
+    /**
+     * Skip the current airspace, discard all lines.
+     */
+    void skip();
+
     const Airspace *read_internal();
 
 public:
@@ -210,6 +215,35 @@ last_edge_equals(const Airspace::EdgeList &edges, const SurfacePosition &sp)
     return last.getType() == Edge::TYPE_VERTEX && last.getEnd() == sp;
 }
 
+void
+OpenAirAirspaceReader::skip()
+{
+    char buffer[512], *line;
+
+    while (!stream.eof()) {
+        try {
+            stream.getline(buffer, sizeof(buffer));
+        } catch (const std::ios_base::failure &e) {
+            if (stream.eof())
+                break;
+            else
+                throw;
+        }
+
+        line = buffer;
+        while (*line == ' ')
+            ++line;
+
+        if (line[0] == '*') /* comment */
+            continue;
+
+        chomp(line);
+        if (line[0] == 0 ||
+            (line[0] == 'A' && line[1] == 'C'))
+            break;
+    }
+}
+
 const Airspace *
 OpenAirAirspaceReader::read_internal()
 {
@@ -322,10 +356,13 @@ OpenAirAirspaceReader::read_internal()
             direction = 1;
         } else if (line[0] == 'S' && line[1] == 'B' && line[2] == ' ') {
             /* background color? */
-            /* ignore */
+            skip();
         } else if (line[0] == 'S' && line[1] == 'P' && line[2] == ' ') {
             /* ??? */
-            /* ignore */
+            skip();
+        } else if (line[0] == 'T' && line[1] == 'C' && line[2] == ' ') {
+            /* ??? */
+            skip();
         } else {
             throw malformed_input("invalid command");
         }
