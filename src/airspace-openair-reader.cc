@@ -26,10 +26,28 @@
 #include <stdlib.h>
 #include <string.h>
 
-class OpenAirAirspaceReader : public AirspaceReader {
+class LineInputStream {
 private:
     std::istream *stream;
     unsigned line_number;
+
+public:
+    LineInputStream(std::istream *_stream)
+        :stream(_stream), line_number(0) {}
+
+public:
+    std::istream *operator ->() {
+        return stream;
+    }
+
+    unsigned get_line_number() const {
+        return line_number;
+    }
+};
+
+class OpenAirAirspaceReader : public AirspaceReader {
+private:
+    LineInputStream stream;
 
 public:
     OpenAirAirspaceReader(std::istream *stream);
@@ -42,7 +60,7 @@ public:
 };
 
 OpenAirAirspaceReader::OpenAirAirspaceReader(std::istream *_stream)
-    :stream(_stream), line_number(0) {}
+    :stream(_stream) {}
 
 static void chomp(char *p) {
     size_t length = strlen(p);
@@ -184,7 +202,6 @@ OpenAirAirspaceReader::read_internal()
     while (!stream->eof()) {
         try {
             stream->getline(buffer, sizeof(buffer));
-            ++line_number;
         } catch (const std::ios_base::failure &e) {
             if (stream->eof())
                 break;
@@ -298,7 +315,7 @@ OpenAirAirspaceReader::read()
     try {
         return read_internal();
     } catch (const malformed_input &e) {
-        throw malformed_input(e, input_location(line_number));
+        throw malformed_input(e, input_location(stream.get_line_number()));
     }
 }
 
