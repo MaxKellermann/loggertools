@@ -62,8 +62,8 @@ public:
         return stream->eof();
     }
 
-    unsigned get_line_number() const {
-        return line_number;
+    const input_location get_location() const {
+        return input_location(line_number);
     }
 };
 
@@ -345,7 +345,7 @@ OpenAirAirspaceReader::read()
     try {
         return read_internal();
     } catch (const malformed_input &e) {
-        throw malformed_input(e, input_location(stream.get_line_number()));
+        throw malformed_input(e, stream.get_location());
     }
 }
 
