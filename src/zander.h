@@ -29,6 +29,26 @@
 typedef struct zander *zander_t;
 
 
+enum zander_command {
+    ZAN_CMD_RELATIVE = 0xcf,
+    ZAN_CMD_UNKNOWN0 = 0xd3,
+    ZAN_CMD_UNKNOWN0b = 0xd4,
+    ZAN_CMD_POSITION = 0xd5,
+    ZAN_CMD_UNKNOWN1 = 0xd7,
+    ZAN_CMD_EXTENDED = 0xd8,
+    ZAN_CMD_EOF = 0xde,
+};
+
+enum zander_extended {
+    ZAN_EXT_BASIC = 0x08,
+    ZAN_EXT_ALTITUDE = 0x0c,
+    ZAN_EXT_TASK = 0x13,
+    ZAN_EXT_UNKNOWN12 = 0x14,
+    ZAN_EXT_DATETIME = 0x18,
+    ZAN_EXT_UNKNOWN6 = 0x1d,
+};
+
+
 struct zander_battery {
     /** big endian; this number * 0.686 = voltage [mV] */
     uint16_t voltage;
@@ -79,6 +99,13 @@ struct zander_angle {
     unsigned char seconds;
     /** 0=North/East; 1=South/West */
     unsigned char sign;
+} __attribute__((packed));
+
+struct zander_delta_angle {
+    unsigned char degrees_18;
+    unsigned char minutes_17;
+    unsigned char seconds_16;
+    unsigned char seconds_quarter;
 } __attribute__((packed));
 
 struct zander_task_wp {
