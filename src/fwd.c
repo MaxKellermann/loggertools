@@ -139,8 +139,8 @@ open_real(void)
     attr.c_cflag |= (CS8 | CLOCAL);
     attr.c_cc[VMIN] = 0;
     attr.c_cc[VTIME] = 1;
-    cfsetospeed(&attr, B9600);
-    cfsetispeed(&attr, B9600);
+    cfsetospeed(&attr, B19200);
+    cfsetispeed(&attr, B19200);
 
     ret = tcsetattr(fd, TCSANOW, &attr);
     if (ret < 0) {
