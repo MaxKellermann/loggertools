@@ -22,13 +22,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-struct zander_angle_quarters {
-    unsigned char degrees_18;
-    unsigned char minutes_17;
-    unsigned char seconds_16;
-    unsigned char seconds_quarter;
-} __attribute__((packed));
-
 struct position {
     int latitude, longitude;
     int baro_altitude, gps_altitude;
@@ -78,10 +71,10 @@ checked_read21(FILE *in, void *buffer, size_t length)
 }
 
 /**
- * Convert an zander_angle_quarters struct to an integer.
+ * Convert an zander_delta_angle struct to an integer.
  */
 static int
-angle_quarters_to_int(const struct zander_angle_quarters *delta)
+angle_quarters_to_int(const struct zander_delta_angle *delta)
 {
     return ((delta->degrees_18 * 64 +
              delta->minutes_17) * 64 +
@@ -251,7 +244,7 @@ static enum zander_to_igc_result
 read_position(FILE *in, struct position *position)
 {
     enum zander_to_igc_result ret;
-    struct zander_angle_quarters angle;
+    struct zander_delta_angle angle;
 
     ret = checked_read21(in, &angle, sizeof(angle));
     if (ret != ZANDER_IGC_SUCCESS)
