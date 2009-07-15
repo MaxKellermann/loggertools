@@ -242,6 +242,12 @@ zander_address_to_host(const struct zander_address *address) {
         address->address[2];
 }
 
+static inline bool
+zander_address_valid(unsigned address)
+{
+    return address >= 0x30000 && address < 0x80000;
+}
+
 static inline unsigned
 zander_address_difference(unsigned start, unsigned end)
 {

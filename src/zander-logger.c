@@ -145,8 +145,8 @@ download_flight(const struct config *config,
                 const char *filename)
 {
     int ret;
-    int start = zander_address_to_host(&flight->memory_start);
-    int end = zander_address_to_host(&flight->memory_end);
+    unsigned start = zander_address_to_host(&flight->memory_start);
+    unsigned end = zander_address_to_host(&flight->memory_end);
     unsigned length = zander_address_difference(start, end) + 1;
     void *buffer;
     int fd;
@@ -155,6 +155,11 @@ download_flight(const struct config *config,
     (void)config;
 
     assert(length > 0);
+
+    if (!zander_address_valid(start) || !zander_address_valid(end)) {
+        fprintf(stderr, "Invalid address\n");
+        return -1;
+    }
 
     buffer = malloc(length);
     if (buffer == NULL)
