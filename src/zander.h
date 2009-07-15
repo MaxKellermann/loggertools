@@ -31,21 +31,29 @@ typedef struct zander *zander_t;
 
 enum zander_command {
     ZAN_CMD_RELATIVE = 0xcf,
-    ZAN_CMD_UNKNOWN0 = 0xd3,
-    ZAN_CMD_UNKNOWN0b = 0xd4,
+    ZAN_CMD_RELATIVE2 = 0xd0,
+    ZAN_CMD_BARO_MINUS_25 = 0xd1,
+    ZAN_CMD_BARO_PLUS_25 = 0xd2,
+    ZAN_CMD_GPS_MINUS_200 = 0xd3,
+    ZAN_CMD_GPS_PLUS_200 = 0xd4,
     ZAN_CMD_POSITION = 0xd5,
-    ZAN_CMD_UNKNOWN1 = 0xd7,
+    ZAN_CMD_UNKNOWN6 = 0xd6,
+    ZAN_CMD_GPS_QUALITY = 0xd7,
     ZAN_CMD_EXTENDED = 0xd8,
+    ZAN_CMD_WIND = 0xda,
+    ZAN_CMD_UNKNOWN21 = 0xdb,
     ZAN_CMD_EOF = 0xde,
 };
 
 enum zander_extended {
-    ZAN_EXT_BASIC = 0x08,
-    ZAN_EXT_ALTITUDE = 0x0c,
-    ZAN_EXT_TASK = 0x13,
-    ZAN_EXT_UNKNOWN12 = 0x14,
-    ZAN_EXT_DATETIME = 0x18,
-    ZAN_EXT_UNKNOWN6 = 0x1d,
+    ZAN_EXT_BASIC = 0x02,
+    ZAN_EXT_ALTITUDE = 0x03,
+    ZAN_EXT_TASK = 0x04,
+    ZAN_EXT_LZAN = 0x05,
+    ZAN_EXT_DATETIME = 0x06,
+    ZAN_EXT_DATETIME2 = 0x07,
+    ZAN_EXT_UNKNOWN1 = 0x08,
+    ZAN_EXT_SECURITY = 0x09,
 };
 
 
