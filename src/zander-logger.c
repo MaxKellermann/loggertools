@@ -147,7 +147,7 @@ download_flight(const struct config *config,
     int ret;
     int start = zander_address_to_host(&flight->memory_start);
     int end = zander_address_to_host(&flight->memory_end);
-    int length = end - start + 1;
+    unsigned length = zander_address_difference(start, end) + 1;
     void *buffer;
     int fd;
     ssize_t nbytes;

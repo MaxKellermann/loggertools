@@ -234,6 +234,13 @@ zander_address_to_host(const struct zander_address *address) {
         address->address[2];
 }
 
+static inline unsigned
+zander_address_difference(unsigned start, unsigned end)
+{
+    return end - start +
+        (start <= end ? 0 : 0x50000);
+}
+
 
 #ifdef __cplusplus
 }
