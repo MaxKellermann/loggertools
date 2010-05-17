@@ -57,7 +57,7 @@ const TurnPointFormat *getFormatFromFilename(const char *filename) {
     const char *dot;
     const TurnPointFormat *format;
 
-    dot = strchr(filename, '.');
+    dot = strrchr(filename, '.');
     if (dot == NULL || dot[1] == 0) {
         cerr << "No filename extension in " << filename << endl;
         exit(1);
