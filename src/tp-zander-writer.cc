@@ -25,6 +25,7 @@
 #include <iomanip>
 
 #include <stdlib.h>
+#include <stdio.h>
 
 class ZanderTurnPointWriter : public TurnPointWriter {
 private:
