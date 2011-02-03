@@ -138,7 +138,7 @@ void SeeYouTurnPointWriter::write(const TurnPoint &tp) {
         *stream << altitude.getValue() << 'M';
     *stream << ',' << makeSeeYouStyle(tp) << ',';
     if (tp.getRunway().defined())
-        *stream << tp.getRunway().getDirection();
+        *stream << tp.getRunway().getDirection() * 10;
     *stream << ',';
     if (tp.getRunway().getLength() > 0)
         *stream << tp.getRunway().getLength();
