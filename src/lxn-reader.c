@@ -22,7 +22,12 @@
 #include <assert.h>
 #include <errno.h>
 #include <string.h>
+
+#ifdef WIN32
+#include <winsock.h>
+#else
 #include <arpa/inet.h>
+#endif
 
 static union lxn_packet hack;
 

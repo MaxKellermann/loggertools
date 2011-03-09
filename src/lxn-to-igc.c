@@ -31,10 +31,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <netinet/in.h>
 
 #include "lxn-to-igc.h"
 #include "lxn-reader.h"
+
+#ifdef WIN32
+#include <winsock.h>
+#else
+#include <netinet/in.h>
+#endif
 
 struct lxn_to_igc {
     struct lxn_reader reader;
