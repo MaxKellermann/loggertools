@@ -109,7 +109,9 @@ static void parse_cmdline(struct config *config,
         if (p == NULL)
             abort();
 
-        if (length >= 4 && strcasecmp(config->input_path + length - 4, ".lxn") == 0)
+        if (length >= 4 &&
+            (strcasecmp(config->input_path + length - 4, ".lxn") == 0 ||
+             strcasecmp(config->input_path + length - 4, ".fil") == 0))
             length -= 4;
 
         memcpy(p, config->input_path, length);
