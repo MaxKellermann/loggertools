@@ -17,6 +17,8 @@
  * 02111-1307, USA.
  */
 
+#include "open.h"
+
 #include <assert.h>
 #include <sys/types.h>
 #include <fcntl.h>
@@ -189,7 +191,7 @@ int main(int argc, char **argv) {
 
     /* open files */
 
-    fd = open(config.input_path, O_RDONLY);
+    fd = open(config.input_path, O_RDONLY|O_BINARY);
     if (fd < 0) {
         fprintf(stderr, "failed to open %s: %s\n",
                 config.input_path, strerror(errno));

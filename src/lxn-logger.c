@@ -17,6 +17,8 @@
  * 02111-1307, USA.
  */
 
+#include "open.h"
+
 #include <assert.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -400,7 +402,7 @@ static int download_flight(const struct config *config,
         exit(1);
     }
 
-    fd2 = open(filename, O_WRONLY|O_CREAT|O_TRUNC, 0666);
+    fd2 = open(filename, O_WRONLY|O_CREAT|O_TRUNC|O_BINARY, 0666);
     if (fd2 < 0) {
         fprintf(stderr, "failed to create %s: %s\n",
                 filename, strerror(errno));
@@ -442,7 +444,7 @@ static int cmd_lxn2igc(const char *in_path, const char *out_path) {
     ssize_t nbytes;
     lxn_to_igc_t fti;
 
-    fd = open(in_path, O_RDONLY);
+    fd = open(in_path, O_RDONLY|O_BINARY);
     if (fd < 0) {
         fprintf(stderr, "failed to open %s: %s\n",
                 in_path, strerror(errno));

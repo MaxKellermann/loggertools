@@ -17,6 +17,8 @@
  * 02111-1307, USA.
  */
 
+#include "open.h"
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -141,7 +143,7 @@ void *datadir_read(struct datadir *dir,
         return NULL;
     }
 
-    fd = open(path, O_RDONLY);
+    fd = open(path, O_RDONLY|O_BINARY);
     free(path);
     if (fd < 0)
         return NULL;
@@ -182,7 +184,7 @@ void *datadir_read_at(struct datadir *dir,
         return NULL;
     }
 
-    fd = open(path, O_RDONLY);
+    fd = open(path, O_RDONLY|O_BINARY);
     free(path);
     if (fd < 0)
         return NULL;
@@ -220,7 +222,7 @@ int datadir_write(struct datadir *dir,
     if (path == NULL)
         return -1;
 
-    fd = open(path, O_CREAT|O_TRUNC|O_WRONLY, 0666);
+    fd = open(path, O_CREAT|O_TRUNC|O_WRONLY|O_BINARY, 0666);
     free(path);
     if (fd < 0)
         return -1;

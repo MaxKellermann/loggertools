@@ -17,6 +17,8 @@
  * 02111-1307, USA.
  */
 
+#include "open.h"
+
 #include <assert.h>
 #include <stdbool.h>
 #include <sys/types.h>
@@ -265,7 +267,7 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    fd = open(argv[optind], O_CREAT|O_WRONLY, 0777);
+    fd = open(argv[optind], O_CREAT|O_WRONLY|O_BINARY, 0777);
     if (fd < 0) {
         fprintf(stderr, "failed to create file %s: %s\n",
                 argv[optind], strerror(errno));
