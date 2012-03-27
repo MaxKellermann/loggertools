@@ -206,7 +206,7 @@ int main(int argc, char **argv) {
     if (config.output_path == NULL) {
         output_file = stdout;
     } else {
-        output_file = fopen(config.output_path, "w");
+        output_file = fopen(config.output_path, "wb");
         if (output_file == NULL) {
             fprintf(stderr, "failed to create %s: %s\n",
                     config.output_path, strerror(errno));
