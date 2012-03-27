@@ -1,6 +1,6 @@
 /*
  * loggertools
- * Copyright (C) 2004-2007 Max Kellermann <max@duempel.org>
+ * Copyright (C) 2004-2012 Max Kellermann <max@duempel.org>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -38,7 +38,10 @@ struct config {
 };
 
 static void usage(void) {
-    puts("usage: lxn2igc [-o FILENAME.igc] FILENAME.lxn\n"
+    puts("loggertools (C) 2004-2012 Max Kellermann <max@duempel.org>\n"
+         "http://max.kellermann.name/projects/loggertools/\n"
+         "\n"
+         "usage: lxn2igc [-o FILENAME.igc] FILENAME.lxn\n"
          "valid options:\n"
 #ifdef __GLIBC__
          " --output FILENAME.igc\n"
